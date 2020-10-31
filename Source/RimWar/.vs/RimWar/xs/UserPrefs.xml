@@ -1,0 +1,36 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workbench ActiveDocument="Planet/WarObject.cs">
+    <Files>
+      <File FileName="Harmony/HarmonyPatchesExtras.cs" Line="20" Column="102" />
+      <File FileName="Utility/Alert_NearbyRimWarObject.cs" Line="36" Column="64" />
+      <File FileName="Planet/WarObject.cs" Line="132" Column="53" />
+      <File FileName="Planet/CapitolBuilding.cs" Line="13" Column="36" />
+      <File FileName="Planet/Warband.cs" Line="67" Column="1" />
+      <File FileName="Planet/Warband_Caravan.cs" Line="1" Column="1" />
+      <File FileName="Planet/WorldUtility.cs" Line="347" Column="29" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="RimWar" expanded="True">
+            <Node name="RimWar" expanded="True">
+              <Node name="Planet" expanded="True">
+                <Node name="WarObject.cs" selected="True" />
+              </Node>
+              <Node name="Utility" expanded="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <DisabledProjects>
+    <String>../../../rimworld-cities/Source/RimCities.csproj</String>
+  </DisabledProjects>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
