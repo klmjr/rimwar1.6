@@ -153,26 +153,7 @@ namespace RimWar
         private void DoRelationsPage(Rect fillRect)
         {
             base.DoWindowContents(fillRect);
-            var sw = Stopwatch.StartNew();
             RimWarFactionUtility.DoWindowContents(fillRect, ref scrollPosition, ref scrollViewHeight);
-            sw.Stop();
-
-
-            //tasker.Register((Func<ContextStorage>)(() =>
-            //{
-            //    Stopwatch stopwatch = new Stopwatch();
-            //    stopwatch.Start();
-            //    var context = new ContextStorage();
-
-            //    stopwatch.Stop();
-            //    return context;
-            //}),
-            //(Action<ContextStorage>)((context) =>
-            //{
-            //    Stopwatch stopwatch = new Stopwatch();
-            //    stopwatch.Start();
-            //    stopwatch.Stop();
-            //}));
         }
 
         private void DoEventsPage(Rect rect)

@@ -152,20 +152,29 @@ namespace RimWar.Planet
                 }
                 if (this.settlementsInRange.Count == 0 || this.nextSettlementScan <= Find.TickManager.TicksGame)
                 {
-                    this.settlementsInRange.Clear();
-                    Options.SettingsRef settingsRef = new Options.SettingsRef();
-                    List<RimWorld.Planet.Settlement> scanSettlements = WorldUtility.GetRimWorldSettlementsInRange(this.parent.Tile, Mathf.Min(Mathf.RoundToInt(this.RimWarPoints / (settingsRef.settlementScanRangeDivider)), (int)settingsRef.maxSettelementScanRange));
-                    if (scanSettlements != null && scanSettlements.Count > 0)
+                    WorldComponent_PowerTracker.tasker.Register(() =>
                     {
-                        for (int i = 0; i < scanSettlements.Count; i++)
+                        List<Settlement> tmpSettlementsInRange = new List<Settlement>();
+                        tmpSettlementsInRange.Clear();
+                        Options.SettingsRef settingsRef = new Options.SettingsRef();
+                        List<RimWorld.Planet.Settlement> scanSettlements = WorldUtility.GetRimWorldSettlementsInRange(this.parent.Tile, Mathf.Min(Mathf.RoundToInt(this.RimWarPoints / (settingsRef.settlementScanRangeDivider)), (int)settingsRef.maxSettelementScanRange));
+                        if (scanSettlements != null && scanSettlements.Count > 0)
                         {
-                            if (scanSettlements[i] != this.parent)
+                            for (int i = 0; i < scanSettlements.Count; i++)
                             {
-                                this.settlementsInRange.Add(scanSettlements[i]);
+                                if (scanSettlements[i] != this.parent)
+                                {
+                                    tmpSettlementsInRange.Add(scanSettlements[i]);
+                                }
                             }
                         }
-                    }
-                    this.nextSettlementScan = Find.TickManager.TicksGame + settingsRef.settlementScanDelay;
+                        this.nextSettlementScan = Find.TickManager.TicksGame + settingsRef.settlementScanDelay;
+                        this.settlementsInRange = tmpSettlementsInRange;
+                        return null;
+                    }, (context) =>
+                    {
+                    });
+                    
                 }
                 return this.settlementsInRange;
             }

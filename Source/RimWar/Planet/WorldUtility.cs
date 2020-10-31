@@ -1272,24 +1272,28 @@ namespace RimWar.Planet
         {
             List<WorldObject> tmpObjects = new List<WorldObject>();
             tmpObjects.Clear();
-            List<WorldObject> worldObjects = Find.WorldObjects.AllWorldObjects.InRandomOrder().ToList();
-            for (int i = 0; i < worldObjects.Count; i++)
+            IEnumerable<WorldObject> rndObjects = Find.WorldObjects.AllWorldObjects.InRandomOrder();            
+            if (rndObjects != null && rndObjects.Count() > 0)
             {
-                int to = worldObjects[i].Tile;
-                if (from == to)
+                List<WorldObject> worldObjects = rndObjects.ToList();
+                for (int i = 0; i < worldObjects.Count; i++)
                 {
-                    tmpObjects.Add(worldObjects[i]);
-                    continue;
-                }
-                //int distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, range);
-                float distance = Find.WorldGrid.ApproxDistanceInTiles(from, to);
-                //Log.Message("getting tile in range is an approx distance of " + Find.WorldGrid.ApproxDistanceInTiles(from, to) + " travel distance is " + distance + " and has a range cap of " + range);
-                if (distance <= range)
-                {
-                    distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, Mathf.RoundToInt(range));
-                    if (distance <= range)
+                    int to = worldObjects[i].Tile;
+                    if (from == to)
                     {
                         tmpObjects.Add(worldObjects[i]);
+                        continue;
+                    }
+                    //int distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, range);
+                    float distance = Find.WorldGrid.ApproxDistanceInTiles(from, to);
+                    //Log.Message("getting tile in range is an approx distance of " + Find.WorldGrid.ApproxDistanceInTiles(from, to) + " travel distance is " + distance + " and has a range cap of " + range);
+                    if (distance <= range)
+                    {
+                        distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, Mathf.RoundToInt(range));
+                        if (distance <= range)
+                        {
+                            tmpObjects.Add(worldObjects[i]);
+                        }
                     }
                 }
             }

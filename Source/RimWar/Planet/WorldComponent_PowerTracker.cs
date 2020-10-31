@@ -201,11 +201,17 @@ namespace RimWar.Planet
             }
             if (currentTick % settingsRef.rwdUpdateFrequency == 0)
             {
-                UpdateFactions();
-                if (settingsRef.useRimWarVictory && !victoryDeclared && this.rwdInitVictory)
+                tasker.Register(() =>
                 {
-                    CheckVictoryConditions();
-                }
+                    UpdateFactions();
+                    if (settingsRef.useRimWarVictory && !victoryDeclared && this.rwdInitVictory)
+                    {
+                        CheckVictoryConditions();
+                    }
+                    return null;
+                }, (context) =>
+                {
+                });                
             }
             if (currentTick % 60000 == 0)
             {

@@ -26,7 +26,7 @@ namespace RimWar.Options
         //performance controls
         public int averageEventFrequency = 50;        
         public int settlementEventDelay = 60000;
-        public int settlementScanDelay = 120000;               
+        public int settlementScanDelay = 30000;               
         public int woEventFrequency = 200;
         public int rwdUpdateFrequency = 2500;
         public bool forceRandomObject = false;        

@@ -7,6 +7,8 @@ using RimWorld.Planet;
 using Verse;
 using UnityEngine;
 using HarmonyLib;
+using System.Threading;
+using RimWar.RocketTools;
 
 namespace RimWar.Planet
 {
@@ -38,6 +40,16 @@ namespace RimWar.Planet
 
         public bool canReachDestination = true;
         public bool playerNotified = false;
+
+        public class ContextStorage
+        {
+            internal bool shouldExecute;
+            internal WorldObject destinationTarget;
+            internal int destinationTile;
+        }
+
+        public static RocketTasker<ContextStorage> tasker = new RocketTasker<ContextStorage>();
+        public static int MainthreadID = -1;
 
         private bool useDestinationTile = false;
         public virtual bool UseDestinationTile
@@ -356,6 +368,7 @@ namespace RimWar.Planet
             pather = new WarObject_PathFollower(this);
             gotoMote = new WarObject_GotoMoteRenderer();
             tweener = new WarObject_Tweener(this);
+            MainthreadID = Thread.CurrentThread.ManagedThreadId;
         }
 
         public void SetUniqueId(int newId)
@@ -385,7 +398,7 @@ namespace RimWar.Planet
                 NextSearchTick = Find.TickManager.TicksGame + NextSearchTickIncrement;
                 this.ValidateParentSettlement();
                 //scan for nearby engagements
-                WorldComponent_PowerTracker.tasker.Register(() =>
+                tasker.Register(() =>
                 {
                     ScanAction(ScanRange);
                     return null;
@@ -475,9 +488,8 @@ namespace RimWar.Planet
                 {
                     for (int i = 0; i < worldObjects.Count; i++)
                     {
-
                         WorldObject wo = worldObjects[i];
-                        if (wo.Faction != this.Faction && wo != this.DestinationTarget)
+                        if (wo != null && !wo.Destroyed && wo.Faction != this.Faction && wo != this.DestinationTarget)
                         {
                             if (wo is Caravan) //or rimwar caravan, or diplomat, or merchant; ignore scouts and settlements
                             {
