@@ -657,16 +657,16 @@ namespace RimWar.Planet
                             if (rwdTown.parent.def.defName == "City_Citadel")
                             {
                                 maxPts += 15000;
-                                mult = 2f;
+                                mult = 1.2f;
                             }
                             if (rwdTown.isCapitol)
                             {
                                 maxPts += 20000;
-                                mult += .35f;
+                                mult += .2f;
                             }
                             if (rwdTown.RimWarPoints <= maxPts)
                             {
-                                float pts = (Rand.Range(1, 4)) + (2 * GenDate.YearsPassed) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome);
+                                float pts = (Rand.Range(1, 3)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome);
                                 pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * Rand.Range(.2f, 1f) * rwd.growthAttribute;
                                 rwdTown.RimWarPoints += Mathf.RoundToInt(pts);
                             }

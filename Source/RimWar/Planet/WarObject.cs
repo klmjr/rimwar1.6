@@ -451,7 +451,7 @@ namespace RimWar.Planet
                     {
                         FindParentSettlement();
                     }
-                    if (ParentSettlement != null && (!Utility.WorldReachability.CanReach(this.Tile, ParentSettlement.Tile) || Find.WorldGrid.ApproxDistanceInTiles(this.Tile, ParentSettlement.Tile) > 100))
+                    if (ParentSettlement != null && (Find.WorldGrid.ApproxDistanceInTiles(this.Tile, ParentSettlement.Tile) > 250))
                     {
                         this.Destroy();
                     }

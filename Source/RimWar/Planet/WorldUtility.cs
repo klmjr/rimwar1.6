@@ -36,6 +36,17 @@ namespace RimWar.Planet
             return wcpt;
         }
 
+        private static object locker = new object();
+        private static List<WorldObject> _worldObjectsHolder = new List<WorldObject>();
+        public static List<WorldObject> WorldObjectsHolder => _worldObjectsHolder.Where(obj => obj != null).ToList();
+        public static void CopyData()
+        {
+            lock (locker)
+            {
+                _worldObjectsHolder = Find.WorldObjects.AllWorldObjects.ToList();
+            }
+        }
+
         public static RimWarData GetRimWarDataForFaction(Faction faction)
         {
             if (faction != null)
@@ -1271,30 +1282,27 @@ namespace RimWar.Planet
         public static List<WorldObject> GetWorldObjectsInRange(int from, float range)
         {
             List<WorldObject> tmpObjects = new List<WorldObject>();
-            tmpObjects.Clear();
-            IEnumerable<WorldObject> rndObjects = Find.WorldObjects.AllWorldObjects.InRandomOrder();            
-            if (rndObjects != null && rndObjects.Count() > 0)
+            List<WorldObject> worldObjects;
+            if (WorldObjectsHolder == null)
+                CopyData();
+            lock (locker)
             {
-                List<WorldObject> worldObjects = rndObjects.ToList();
-                for (int i = 0; i < worldObjects.Count; i++)
+                worldObjects = WorldObjectsHolder.InRandomOrder().ToList();
+            }
+            for (int i = 0; i < worldObjects.Count; i++)
+            {
+                int to = worldObjects[i].Tile;
+                if (from == to)
                 {
-                    int to = worldObjects[i].Tile;
-                    if (from == to)
-                    {
-                        tmpObjects.Add(worldObjects[i]);
-                        continue;
-                    }
-                    //int distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, range);
-                    float distance = Find.WorldGrid.ApproxDistanceInTiles(from, to);
-                    //Log.Message("getting tile in range is an approx distance of " + Find.WorldGrid.ApproxDistanceInTiles(from, to) + " travel distance is " + distance + " and has a range cap of " + range);
-                    if (distance <= range)
-                    {
-                        distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, Mathf.RoundToInt(range));
-                        if (distance <= range)
-                        {
-                            tmpObjects.Add(worldObjects[i]);
-                        }
-                    }
+                    tmpObjects.Add(worldObjects[i]);
+                    continue;
+                }
+                //int distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, range);
+                float distance = Find.WorldGrid.ApproxDistanceInTiles(from, to);
+                //Log.Message("getting tile in range is an approx distance of " + Find.WorldGrid.ApproxDistanceInTiles(from, to) + " travel distance is " + distance + " and has a range cap of " + range);
+                if (distance <= range)
+                {
+                    tmpObjects.Add(worldObjects[i]);
                 }
             }
             return tmpObjects;
@@ -1303,8 +1311,13 @@ namespace RimWar.Planet
         public static List<WorldObject> GetAllWorldObjectsAt(int tile)
         {
             List<WorldObject> tmpObjects = new List<WorldObject>();
-            tmpObjects.Clear();
-            List<WorldObject> worldObjects = Find.WorldObjects.AllWorldObjects.ToList();
+            List<WorldObject> worldObjects;
+            if (WorldObjectsHolder == null)
+                CopyData();
+            lock (locker)
+            {
+                worldObjects = WorldObjectsHolder.ToList();
+            }
             for (int i = 0; i < worldObjects.Count; i++)
             {
                 if (tile == worldObjects[i].Tile)
@@ -1319,8 +1332,13 @@ namespace RimWar.Planet
         public static List<WorldObject> GetAllWorldObjectsAtExcept(int tile, WorldObject woThis)
         {
             List<WorldObject> tmpObjects = new List<WorldObject>();
-            tmpObjects.Clear();
-            List<WorldObject> worldObjects = Find.WorldObjects.AllWorldObjects.ToList();
+            List<WorldObject> worldObjects;
+            if (WorldObjectsHolder == null)
+                CopyData();
+            lock (locker)
+            {
+                worldObjects = WorldObjectsHolder.ToList();
+            }
             for (int i = 0; i < worldObjects.Count; i++)
             {
                 if (tile == worldObjects[i].Tile && woThis != worldObjects[i])
@@ -1372,7 +1390,14 @@ namespace RimWar.Planet
         {
             List<WarObject> tmpWarObjects = new List<WarObject>();
             tmpWarObjects.Clear();
-            List<WorldObject> tmpObjects = Find.WorldObjects.AllWorldObjects;
+            List<WorldObject> tmpObjects;
+            lock (locker)
+            {
+                if (WorldObjectsHolder == null)
+                    CopyData();
+
+                tmpObjects = WorldObjectsHolder.ToList();
+            }
             if (tmpObjects != null && tmpObjects.Count > 0)
             {
                 for (int i = 0; i < tmpObjects.Count; i++)
