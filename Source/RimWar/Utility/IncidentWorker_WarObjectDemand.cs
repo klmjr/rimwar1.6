@@ -49,14 +49,29 @@ namespace RimWar.Utility
         {
             parms.points *= IncidentPointsFactorRange.RandomInRange;
             Caravan caravan = (Caravan)parms.target;
+            RimWarCaravanComp rwcc = caravan.GetComponent<RimWarCaravanComp>();
+            if(rwcc != null)
+            {
+                rwcc.currentTarget = null;
+            }
             bool factionCanFight = WorldUtility.FactionCanFight((int)parms.points, parms.faction);
-            //if (!PawnGroupMakerUtility.TryGetRandomFactionForCombatPawnGroup(parms.points, out parms.faction))
-            //{
-            //    return false;
-            //}
             List<ThingCount> demands = GenerateDemands(caravan);
+            int silverAvailable = IncidentUtility.TryGetAvailableSilver(caravan);
+            RimWarSettlementComp rwsc = WorldUtility.GetClosestSettlementOfFaction(caravan.Faction, caravan.Tile, 40);
+            Settlement colonySettlement = null;
+            if (rwsc != null)
+            {
+                colonySettlement = rwsc.parent as Settlement;
+            }
+            List<Settlement> tmpSettlements = WorldUtility.GetHostileSettlementsInRange(caravan.Tile, 30, caravan.Faction);
+            Settlement settlementToAttack = null;
+            if (tmpSettlements != null && tmpSettlements.Count > 0)
+            {
+                settlementToAttack = tmpSettlements.RandomElement();
+            }
             if (demands.NullOrEmpty() && parms.faction.HostileTo(caravan.Faction))
             {
+                Log.Warning("Failed to generate demands - caravan might not have any supplies");
                 return false;
             }
             PawnGroupMakerParms defaultPawnGroupMakerParms = IncidentParmsUtility.GetDefaultPawnGroupMakerParms(PawnGroupKindDefOf.Combat, parms);
@@ -97,6 +112,46 @@ namespace RimWar.Utility
             };
             diaOption2.resolveTree = true;
             diaNode.options.Add(diaOption2);
+            if (!wo.Faction.HostileTo(caravan.Faction))
+            {
+                string defendColonyString = "RW_CaravanDemand_DefendColony".Translate(RequestFee);
+                DiaOption diaOption21 = new DiaOption(defendColonyString);
+                diaOption21.action = delegate
+                {
+                    ActionDefendColony(colonySettlement, caravan, RequestFee);
+                };
+                if (colonySettlement == null)
+                {
+                    diaOption21.Disable("RW_CaravanDemand_DefendColonyDisabledDistance".Translate());
+                }
+                else if (silverAvailable < RequestFee)
+                {
+                    diaOption21.Disable("RW_CaravanDemand_DefendColonyDisabled".Translate(silverAvailable, RequestFee));
+                }
+                diaOption21.resolveTree = true;
+                diaNode.options.Add(diaOption21);
+
+                string attackSettlementString = "RW_CaravanDemand_AttackSettlement".Translate(RequestFee, "none");
+                if (settlementToAttack != null)
+                {
+                    attackSettlementString = "RW_CaravanDemand_AttackSettlement".Translate(RequestFee, settlementToAttack.Label);
+                }
+                DiaOption diaOption22 = new DiaOption(attackSettlementString);
+                diaOption22.action = delegate
+                {
+                    ActionAttackSettlement(settlementToAttack, caravan, RequestFee);
+                };
+                if (settlementToAttack == null)
+                {
+                    diaOption22.Disable("RW_CaravanDemand_AttackSettlementNone".Translate());
+                }
+                else if (silverAvailable < RequestFee)
+                {
+                    diaOption22.Disable("RW_CaravanDemand_AttackSettlementDisabled".Translate(silverAvailable, RequestFee));
+                }
+                diaOption22.resolveTree = true;
+                diaNode.options.Add(diaOption22);
+            }
             DiaOption diaOption3 = new DiaOption("CaravanMeeting_MoveOn".Translate());
             diaOption3.action = delegate
             {
@@ -116,6 +171,10 @@ namespace RimWar.Utility
 
         public void ActionMoveOn(Caravan car, List<Pawn> attackers)
         {
+            if(!wo.Faction.HostileTo(car.Faction))
+            {
+                car.pather.StopDead();
+            }
             //do what?
         }
 
@@ -233,6 +292,14 @@ namespace RimWar.Utility
                     select new ThingCount(x, 1)).ToList();
         }
 
+        private int RequestFee
+        {
+            get
+            {
+                return Mathf.RoundToInt(wo.RimWarPoints / 2f);
+            }
+        }
+
         private List<ThingCount> TryGenerateItemsDemand(Caravan caravan)
         {
             List<ThingCount> list = new List<ThingCount>();
@@ -339,6 +406,20 @@ namespace RimWar.Utility
                 Find.TickManager.Notify_GeneratedPotentiallyHostileMap();
                 CameraJumper.TryJump(attackers[0]);
             }, "GeneratingMapForNewEncounter", false, null);
+        }
+
+        private void ActionDefendColony(Settlement s, Caravan caravan, int fee)
+        {
+            IncidentUtility.CaravanPayment(caravan, fee);
+            wo.DestinationTarget = s;
+            wo.PathToTarget(s);
+        }
+
+        private void ActionAttackSettlement(Settlement s, Caravan caravan, int fee)
+        {
+            IncidentUtility.CaravanPayment(caravan, fee);
+            wo.DestinationTarget = s;
+            wo.PathToTarget(s);
         }
     }
 }

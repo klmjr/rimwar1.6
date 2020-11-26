@@ -124,11 +124,11 @@ namespace RimWar
 
             if (world != Find.World) return;
 #if DEBUG
-            if (Prefs.DevMode)
-            {
-                messages.Add(string.Format("ROCKETMAN: Island counter {0}, visited {1}", currentIslandCounter, visitedTilesCount));
-                messages.Add(string.Format("ROCKETMAN: FINISHED BUILDING ISLANDS!, {0}, {1}, {2}, {3}", islandCounter, visitedTilesCount, passableTiles.Count, currentIslandCounter));
-            }
+            //if (Prefs.DevMode)
+            //{
+            //    messages.Add(string.Format("ROCKETMAN: Island counter {0}, visited {1}", currentIslandCounter, visitedTilesCount));
+            //    messages.Add(string.Format("ROCKETMAN: FINISHED BUILDING ISLANDS!, {0}, {1}, {2}, {3}", islandCounter, visitedTilesCount, passableTiles.Count, currentIslandCounter));
+            //}
 #endif
         }
 
@@ -182,25 +182,29 @@ namespace RimWar
         {
             if (world != Find.World)
             {
-                Log.Message("ROCKETMAN: Creating world map cache");
+                //Log.Message("ROCKETMAN: Creating world map cache");
                 Initialize();
             }
             if (!finished)
             {
-                Log.Warning("ROCKETMAN: Tried to call WorldReachability while still processing");
+                //Log.Warning("ROCKETMAN: Tried to call WorldReachability while still processing");
                 return true;
             }
             if (tilesToIsland[startTile] == 0 || tilesToIsland[destTile] == 0 || tilesToIsland[startTile] != tilesToIsland[destTile])
             {
-                if (Prefs.DevMode) Log.Message("ROCKETMAN: Not Allowed");
+                //if (Prefs.DevMode) Log.Message("ROCKETMAN: Not Allowed");
                 __result = false;
+                return false;
             }
             if (tilesToIsland[startTile] == tilesToIsland[destTile])
             {
-                if (Prefs.DevMode) Log.Message("ROCKETMAN: Allowed");
+                //if (Prefs.DevMode) Log.Message("ROCKETMAN: Allowed");
                 __result = true;
+                return false;
             }
-            return false;
+            //Log.Message("unmatched " + tilesToIsland[startTile] + " " + tilesToIsland[destTile]);
+            //__result = true;
+            return true;
         }
     }
 

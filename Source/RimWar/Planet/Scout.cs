@@ -24,6 +24,8 @@ namespace RimWar.Planet
             Scribe_Values.Look<int>(ref this.ticksPerMove, "ticksPerMove", 2000, false);
         }
 
+        public override WorldObjectDef GetDef => this.def;
+
         public override void Notify_Player()
         {
             base.Notify_Player();
@@ -103,7 +105,7 @@ namespace RimWar.Planet
         {
             if (car != null)
             {
-                if (car.Faction != null && car.Faction == Faction.OfPlayer && this.Faction.HostileTo(car.Faction))
+                if (car.Faction != null && car.Faction == Faction.OfPlayer && this.Faction.HostileTo(car.Faction) && CaravanDetected(car))
                 {
                     if (ShouldInteractWith(car, this) || (car.PlayerWealthForStoryteller / 105) <= (int)(this.RimWarPoints))
                     {
@@ -186,20 +188,28 @@ namespace RimWar.Planet
                     if (wo.Faction == Faction.OfPlayer)
                     {
                         //Do Raid
-                        RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);
-                        Caravan playerCaravan = Find.World.worldObjects.PlayerControlledCaravanAt(this.Tile);
-                        if (playerSettlement != null)
+                        if (wo is Settlement)
                         {
-                            //Raid Player Map
-                            IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
-                            base.ArrivalAction();
+                            //RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);
+                            Settlement playerSettlement = wo as Settlement;
+                            if (playerSettlement != null)
+                            {
+                                //Raid Player Map
+                                IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                base.ArrivalAction();
+                            }
                         }
-                        else if (playerCaravan != null)
+                        else if (wo is Caravan)
                         {
-                            //Raid player caravan
-                            IncidentUtility.DoCaravanAttackWithPoints(this, playerCaravan, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
-                            this.DestinationTarget = this.ParentSettlement;
-                            this.interactable = false;
+                            //Caravan playerCaravan = Find.World.worldObjects.PlayerControlledCaravanAt(this.Tile);
+                            Caravan playerCaravan = wo as Caravan;
+                            if (playerCaravan != null)
+                            {
+                                //Raid player caravan
+                                IncidentUtility.DoCaravanAttackWithPoints(this, playerCaravan, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                this.DestinationTarget = this.ParentSettlement;
+                                this.interactable = false;
+                            }
                         }
                     }
                     else

@@ -384,6 +384,26 @@ namespace RimWar.Utility
             }
         }
 
+        [DebugAction("Rim War - Debug Log", "Settlements in Range", actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
+        private static void LogRimWarSettlementsInRange()
+        {
+            List<Settlement> settlementsInRange = new List<Settlement>();
+            int tile = GenWorld.MouseTile();
+            WorldObject wo = Find.WorldObjects.SettlementAt(tile);
+            RimWarSettlementComp rwsc = wo.GetComponent<RimWarSettlementComp>();
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+            int targetRange = Mathf.RoundToInt(rwsc.RimWarPoints / settingsRef.settlementScanRangeDivider);
+            List<WorldObject> woList = WorldUtility.GetWorldObjectsInRange(tile, targetRange);
+            for(int i = 0; i < woList.Count; i++)
+            {
+                if(woList[i] is Settlement)
+                {
+                    Settlement s = woList[i] as Settlement;
+                    Log.Message(s.Label + " in range of " + rwsc.parent.Label);
+                }
+            }
+        }
+
         [DebugAction("Rim War - Debug Log", "Settlement Summary Log", actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
         private static void LogRimWarSettlementData()
         {

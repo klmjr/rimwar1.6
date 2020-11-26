@@ -9,6 +9,7 @@ using HarmonyLib;
 using RimWar;
 using RimWorld;
 using RimWorld.Planet;
+using FactionColonies;
 
 namespace RimWar.Planet
 {
@@ -69,6 +70,15 @@ namespace RimWar.Planet
             }
         }
 
+        public int SettlementScanRange
+        {
+            get
+            {
+                float r = ((.4f * this.RimWarPoints) + 1000) / Options.Settings.Instance.settlementScanRangeDivider;
+                return Mathf.RoundToInt(Mathf.Clamp(r, 10, Options.Settings.Instance.maxSettlementScanRange));
+            }
+        }
+
         //public override void PostDrawExtraSelectionOverlays()
         //{
         //    if(isCapitol)
@@ -86,28 +96,43 @@ namespace RimWar.Planet
         {
             get
             {
-                if (this.parent.Faction == Faction.OfPlayer)
+                if (this.RWD != null && this.parent != null)
                 {
-                    Map map = null;
-                    for (int i = 0; i < Verse.Find.Maps.Count; i++)
+                    if (this.RWD.behavior == RimWarBehavior.Player)
                     {
-                        if (Verse.Find.Maps[i].Tile == this.parent.Tile)
+                        Map map = null;
+                        for (int i = 0; i < Verse.Find.Maps.Count; i++)
                         {
-                            map = Verse.Find.Maps[i];
+                            if (Verse.Find.Maps[i].Tile == this.parent.Tile)
+                            {
+                                map = Verse.Find.Maps[i];
+                            }
+                        }
+                        if (map != null)
+                        {
+                            Options.SettingsRef settingsRef = new Options.SettingsRef();
+                            if (settingsRef.storytellerBasedDifficulty)
+                            {
+                                return Mathf.RoundToInt(StorytellerUtility.DefaultThreatPointsNow(map) * 1.2f * WorldUtility.GetDifficultyMultiplierFromStoryteller());
+                            }
+                            return Mathf.RoundToInt(StorytellerUtility.DefaultThreatPointsNow(map) * settingsRef.rimwarDifficulty);
+                        }
+                        else
+                        {
+                            return 0;
                         }
                     }
-                    if (map != null)
+                    if (this.RWD.behavior == RimWarBehavior.Vassal)
                     {
-                        Options.SettingsRef settingsRef = new Options.SettingsRef();
-                        if (settingsRef.storytellerBasedDifficulty)
+                        FactionFC component = Find.World.GetComponent<FactionFC>();
+                        if (component != null)
                         {
-                            return Mathf.RoundToInt(StorytellerUtility.DefaultThreatPointsNow(map) * 1.2f * WorldUtility.GetDifficultyMultiplierFromStoryteller());
+                            SettlementFC sfc = component.returnSettlementByLocation(this.parent.Tile, Find.World.info.name);
+                            if (sfc != null)
+                            {
+                                this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, (sfc.settlementLevel * 500));
+                            }
                         }
-                        return Mathf.RoundToInt(StorytellerUtility.DefaultThreatPointsNow(map) * settingsRef.rimwarDifficulty);
-                    }
-                    else
-                    {
-                        return 0;
                     }
                 }
                 this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, 100000);
@@ -157,7 +182,7 @@ namespace RimWar.Planet
                         List<Settlement> tmpSettlementsInRange = new List<Settlement>();
                         tmpSettlementsInRange.Clear();
                         Options.SettingsRef settingsRef = new Options.SettingsRef();
-                        List<RimWorld.Planet.Settlement> scanSettlements = WorldUtility.GetRimWorldSettlementsInRange(this.parent.Tile, Mathf.Min(Mathf.RoundToInt(this.RimWarPoints / (settingsRef.settlementScanRangeDivider)), (int)settingsRef.maxSettelementScanRange));
+                        List<RimWorld.Planet.Settlement> scanSettlements = WorldUtility.GetRimWorldSettlementsInRange(this.parent.Tile, SettlementScanRange);
                         if (scanSettlements != null && scanSettlements.Count > 0)
                         {
                             for (int i = 0; i < scanSettlements.Count; i++)
@@ -238,7 +263,7 @@ namespace RimWar.Planet
             {
                 yield return gizmo;
             }
-            if(WorldUtility.GetRimWarDataForFaction(this.parent.Faction).AllianceFactions.Contains(Faction.OfPlayer))
+            if(WorldUtility.GetRimWarDataForFaction(this.parent.Faction).AllianceFactions.Contains(Faction.OfPlayer) || WorldUtility.GetRimWarDataForFaction(this.parent.Faction).behavior == RimWarBehavior.Vassal)
             {
                 int ptsToSend = 500;
                 Command_Action command_SendTrader = new Command_Action();
@@ -314,7 +339,7 @@ namespace RimWar.Planet
         {
             Find.WorldSelector.ClearSelection();
             int tile = this.parent.Tile;
-            int maxRange = Mathf.RoundToInt(this.RimWarPoints / Options.Settings.Instance.settlementScanRangeDivider);
+            int maxRange = SettlementScanRange;
             Find.WorldTargeter.BeginTargeting_NewTemp(new Func<GlobalTargetInfo, bool>(ChooseWorldTarget), true, sendTypeDef.ExpandingIconTexture, false, delegate
             {
                 GenDraw.DrawWorldRadiusRing(tile, maxRange);  //center, max launch distance
@@ -351,7 +376,14 @@ namespace RimWar.Planet
                         //send caravan
                         int relationsCost = -15;
                         int pointsCost = Mathf.RoundToInt(this.RimWarPoints * .3f);
-                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                        if (this.RWD.behavior == RimWarBehavior.Vassal)
+                        {
+                            this.RimWarPoints -= pointsCost;
+                        }
+                        else
+                        {
+                            this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                        }
                         WorldUtility.CreateWarObjectOfType(new Trader(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, s, WorldObjectDefOf.Settlement);
                         return true;
                     }
@@ -384,7 +416,14 @@ namespace RimWar.Planet
                     //send caravan
                     int relationsCost = -20;
                     int pointsCost = Mathf.RoundToInt(this.RimWarPoints * .45f);
-                    this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                    if (this.RWD.behavior == RimWarBehavior.Vassal)
+                    {
+                        this.RimWarPoints -= pointsCost;
+                    }
+                    else
+                    {
+                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                    }
                     WorldUtility.CreateWarObjectOfType(new Scout(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
                 }
@@ -393,7 +432,14 @@ namespace RimWar.Planet
                     target = wo;
                     int relationsCost = -25;
                     int pointsCost = Mathf.RoundToInt(this.RimWarPoints * .6f);
-                    this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                    if (this.RWD.behavior == RimWarBehavior.Vassal)
+                    {
+                        this.RimWarPoints -= pointsCost;
+                    }
+                    else
+                    {
+                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                    }
                     WorldUtility.CreateWarObjectOfType(new Warband(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
                 }
@@ -402,7 +448,14 @@ namespace RimWar.Planet
                     target = wo;
                     int relationsCost = -25;
                     int pointsCost = Mathf.RoundToInt(this.RimWarPoints * .6f);
-                    this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                    if (this.RWD.behavior == RimWarBehavior.Vassal)
+                    {
+                        this.RimWarPoints -= pointsCost;
+                    }
+                    else
+                    {
+                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                    }
                     WorldUtility.CreateLaunchedWarband(pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
                 }
@@ -443,6 +496,22 @@ namespace RimWar.Planet
             }
 
             return "Send " + sendTypeDef.label;
+        }
+
+        public override void PostDrawExtraSelectionOverlays()
+        {
+            if (!Options.Settings.Instance.forceRandomObject)
+            {
+                GenDraw.DrawWorldRadiusRing(this.parent.Tile, SettlementScanRange);
+                //float averageTileSize = Find.WorldGrid.averageTileSize;
+                //float transitionPct = ExpandableWorldObjectsUtility.TransitionPct;
+                //if (this.parent.def.expandingIcon && transitionPct > 0f)
+                //{
+                //    float num = 1f - transitionPct;
+                //    WorldRendererUtility.DrawQuadTangentialToPlanet(this.parent.DrawPos, 0.7f * averageTileSize, 0.015f, RimWarMatPool.Material_Exclamation_Green);
+                //}
+            }
+            base.PostDrawExtraSelectionOverlays();
         }
     }
 }

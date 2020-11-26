@@ -92,22 +92,27 @@ namespace RimWar.Options
                 Find.WindowStack.Add(new FloatMenu(list));
             }
             TooltipHandler.TipRegionByKey(new Rect(0f, num, rect3.xMax, rect3.height), "PlanetCoverageTip");
-            num += 40f;
-            Rect rect7 = new Rect(0f, num, 400f, 30f);
-            Widgets.CheckboxLabeled(rect7, "RW_playerVSworld".Translate(), ref Settings.Instance.playerVS, false);
-            TooltipHandler.TipRegion(rect7, "RW_playerVSworldInfo".Translate());
-            num += 40f;
-            Rect rect8 = new Rect(0f, num, 400f, 30f);
-            Widgets.CheckboxLabeled(rect8, "RW_randomizeFactionRelations".Translate(), ref Settings.Instance.randomizeFactionBehavior, false);
-            TooltipHandler.TipRegion(rect8, "RW_randomizeFactionRelationsInfo".Translate());
-            num += 40f;
-            Rect rect9 = new Rect(0f, num, 400f, 30f);
-            Widgets.CheckboxLabeled(rect9, "RW_randomizeFactionAttributes".Translate(), ref Settings.Instance.randomizeAttributes, false);
-            TooltipHandler.TipRegion(rect9, "RW_randomizeFactionAttributesInfo".Translate());
-            num += 40f;
+            num += 36f;
             Rect rect10 = new Rect(0f, num, 400f, 30f);
             Widgets.CheckboxLabeled(rect10, "RW_useRimWarVictory".Translate(), ref Settings.Instance.useRimWarVictory, false);
             TooltipHandler.TipRegion(rect10, "RW_useRimWarVictoryInfo".Translate());
+            num += 36f;
+            Rect rect11 = new Rect(0f, num, 400f, 30f);
+            Widgets.CheckboxLabeled(rect11, "RW_randomRival".Translate(), ref Settings.Instance.randomRival, false);
+            TooltipHandler.TipRegion(rect11, "RW_randomRivalInfo".Translate());
+            num += 36f;
+            Rect rect7 = new Rect(0f, num, 400f, 30f);
+            Widgets.CheckboxLabeled(rect7, "RW_playerVSworld".Translate(), ref Settings.Instance.playerVS, false);
+            TooltipHandler.TipRegion(rect7, "RW_playerVSworldInfo".Translate());
+            num += 36f;
+            Rect rect8 = new Rect(0f, num, 400f, 30f);
+            Widgets.CheckboxLabeled(rect8, "RW_randomizeFactionRelations".Translate(), ref Settings.Instance.randomizeFactionBehavior, false);
+            TooltipHandler.TipRegion(rect8, "RW_randomizeFactionRelationsInfo".Translate());
+            num += 36f;
+            Rect rect9 = new Rect(0f, num, 400f, 30f);
+            Widgets.CheckboxLabeled(rect9, "RW_randomizeFactionAttributes".Translate(), ref Settings.Instance.randomizeAttributes, false);
+            TooltipHandler.TipRegion(rect9, "RW_randomizeFactionAttributesInfo".Translate());
+
             GUI.EndGroup();
         }
     }

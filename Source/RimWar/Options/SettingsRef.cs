@@ -15,6 +15,8 @@ namespace RimWar.Options
         public bool useRimWarVictory = Settings.Instance.useRimWarVictory;
         public bool restrictEvents = Settings.Instance.restrictEvents;
         public bool randomizeAttributes = Settings.Instance.randomizeAttributes;
+        public float heatMultiplier = Settings.Instance.heatMultiplier;
+        public float heatFrequency = Settings.Instance.heatFrequency;
 
         public int maxFactionSettlements = Settings.Instance.maxFactionSettlements;
         public float settlementScanRangeDivider = Settings.Instance.settlementScanRangeDivider;
@@ -33,7 +35,9 @@ namespace RimWar.Options
 
         public bool playerVS = Settings.Instance.playerVS;
         public float planetCoverageCustom = Settings.Instance.planetCoverageCustom;
-        public bool randomizeFactionRelations = Settings.Instance.randomizeFactionRelations; 
-        
+        public bool randomizeFactionRelations = Settings.Instance.randomizeFactionRelations;
+        public bool randomRival = Settings.Instance.randomRival;
+
+        public bool showAggressionMarkers = Settings.Instance.showAggressionMarkers;
     }
 }

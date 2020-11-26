@@ -18,6 +18,14 @@ namespace RimWar.Utility
         private const int MapSize = 100;
         WarObject wo = null;
 
+        private int RequestFee
+        {
+            get
+            {
+                return Mathf.RoundToInt(wo.RimWarPoints / 4f);
+            }
+        }
+
         protected override bool CanFireNowSub(IncidentParms parms)
         {
             if (parms.target is Map)
@@ -44,10 +52,10 @@ namespace RimWar.Utility
             }).TryRandomElement(out faction);
         }
 
-        public void PreExecuteWorker(IncidentParms parms, WarObject _wo)
+        public bool PreExecuteWorker(IncidentParms parms, WarObject _wo)
         {
             this.wo = _wo;
-            TryExecuteWorker(parms);
+            return TryExecuteWorker(parms);
         }
 
         protected override bool TryExecuteWorker(IncidentParms parms)
@@ -64,6 +72,13 @@ namespace RimWar.Utility
             Caravan caravan = (Caravan)parms.target;
             Faction faction = parms.faction;
             bool factionCanTrade = WorldUtility.FactionCanTrade(parms.faction);
+            int silverAvailable = IncidentUtility.TryGetAvailableSilver(caravan);
+            RimWarSettlementComp rwsc = WorldUtility.GetClosestSettlementOfFaction(caravan.Faction, caravan.Tile, 40);
+            Settlement colonySettlement = null;
+            if(rwsc != null)
+            {
+                colonySettlement = rwsc.parent as Settlement;
+            }
             //if (parms.faction != null && factionCanTrade)
             //{
             //    faction = parms.faction;
@@ -150,6 +165,25 @@ namespace RimWar.Utility
             };
             diaOption2.resolveTree = true;
             diaNode.options.Add(diaOption2);
+            if (!hostileToPlayer)
+            {
+                string tradeColonyString = "RW_CaravanMeeting_TradeWithColony".Translate(RequestFee);
+                DiaOption diaOption21 = new DiaOption(tradeColonyString);
+                diaOption21.action = delegate
+                {
+                    ActionTradeWithColony(colonySettlement, caravan, RequestFee);
+                };
+                if (colonySettlement == null)
+                {
+                    diaOption21.Disable("RW_CaravanMeeting_TradeWithColonyDisabledDistance".Translate());
+                }
+                else if (silverAvailable < RequestFee)
+                {
+                    diaOption21.Disable("RW_CaravanMeeting_TradeWithColonyDisabled".Translate(silverAvailable, RequestFee));
+                }
+                diaOption21.resolveTree = true;
+                diaNode.options.Add(diaOption21);
+            }
             DiaOption diaOption3 = new DiaOption("CaravanMeeting_MoveOn".Translate());
             diaOption3.action = delegate
             {
@@ -183,6 +217,13 @@ namespace RimWar.Utility
                 Find.WorldPawns.PassToWorld(pawnsListForReading[i]);
             }
             caravan.RemoveAllPawns();
+        }
+
+        private void ActionTradeWithColony(Settlement s, Caravan caravan, int fee)
+        {
+            IncidentUtility.CaravanPayment(caravan, fee);
+            wo.DestinationTarget = s;
+            wo.PathToTarget(s);
         }
     }
 }

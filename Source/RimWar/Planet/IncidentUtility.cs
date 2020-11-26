@@ -9,6 +9,7 @@ using UnityEngine;
 using Verse.AI.Group;
 using RimWar.History;
 using RimWar.Utility;
+using FactionColonies;
 
 namespace RimWar.Planet
 {
@@ -148,99 +149,209 @@ namespace RimWar.Planet
             //Log.Message("resolving war object attack on settlement for " + attacker.Name + " against " + defender.parent.Label);
             if (ValidateRimWarAction(attacker, defender, WorldUtility.GetAllWorldObjectsAtExcept(attacker.Tile, attacker)))
             {
-                float combinedPoints = attacker.RimWarPoints + defender.RimWarPoints;
-                float attackerRoll = Rand.Value;
-                float defenderRoll = Rand.Value;
-                float attackerResult = attackerRoll * attacker.RimWarPoints * attacker.rimwarData.combatAttribute;
-                float defenderResult = defenderRoll * defender.RimWarPoints * defender.RWD.combatAttribute;
-                if(defender.isCapitol)
+                if (defender.RWD.behavior == RimWarBehavior.Vassal)
                 {
-                    defenderResult *= 1.15f;
+                    AttackEmpireSettlement(attacker, defender);
+                    defender.RimWarPoints -= Mathf.RoundToInt(attacker.RimWarPoints * Rand.Range(.3f, .6f));
                 }
-                float endPointsAttacker = 0f;
-                float endPointsDefender = 0f;
-
-                RW_Letter let = RW_LetterMaker.Make_RWLetter(RimWarDefOf.RimWar_NeutralEvent);
-                let.label = "RW_LetterSettlementBattle".Translate();
-
-                //determine attacker/defender win
-                //if attacker wins ->
-                // determine points assigned to attacker (routed or solid can capture, routed can raze (city loses additional pts), solid or win can weaken)
-                // determine if the city is destroyed (less than x points always or chance when routed)
-                // determine if the city is captured (no additional points to attacker but settlement faction change) or remains (razed (loses more points) or weakened)
-                //if defender wins ->
-                // determine points assigned to defender (routed can capture the warband (lots of points, nothing returned to attacker)
-                // determine points to assign to attacker and defender and send attack back to parent settlement
-
-                if (attackerResult > defenderResult)
+                else
                 {
-                    //Log.Message("attacker " + attacker.Label + " wins against settlement " + defender.RimWorld_Settlement.Name);
-                    endPointsAttacker = (attacker.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * defender.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
-                    endPointsDefender = (defender.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * attacker.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
-                                                                                                                                           //Attacker wins
-                    if (attackerResult > 1.75 * defenderResult) //routed
+                    float combinedPoints = attacker.RimWarPoints + defender.RimWarPoints;
+                    float attackerRoll = Rand.Value;
+                    float defenderRoll = Rand.Value;
+                    float attackerResult = attackerRoll * attacker.RimWarPoints * attacker.rimwarData.combatAttribute;
+                    float defenderResult = defenderRoll * defender.RimWarPoints * defender.RWD.combatAttribute;
+                    if (defender.isCapitol)
                     {
-                        float rndCapture = Rand.Value;
-                        if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
-                        {
-                            rndCapture *= 1.1f;
-                        }
-                        else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
-                        {
-                            rndCapture *= 1.5f;
-                        }
+                        defenderResult *= 1.15f;
+                    }
+                    float endPointsAttacker = 0f;
+                    float endPointsDefender = 0f;
 
-                        if (rndCapture >= .35f)
+                    RW_Letter let = RW_LetterMaker.Make_RWLetter(RimWarDefOf.RimWar_NeutralEvent);
+                    let.label = "RW_LetterSettlementBattle".Translate();
+
+                    //determine attacker/defender win
+                    //if attacker wins ->
+                    // determine points assigned to attacker (routed or solid can capture, routed can raze (city loses additional pts), solid or win can weaken)
+                    // determine if the city is destroyed (less than x points always or chance when routed)
+                    // determine if the city is captured (no additional points to attacker but settlement faction change) or remains (razed (loses more points) or weakened)
+                    //if defender wins ->
+                    // determine points assigned to defender (routed can capture the warband (lots of points, nothing returned to attacker)
+                    // determine points to assign to attacker and defender and send attack back to parent settlement
+
+                    if (attackerResult > defenderResult)
+                    {
+                        //Log.Message("attacker " + attacker.Label + " wins against settlement " + defender.RimWorld_Settlement.Name);
+                        endPointsAttacker = (attacker.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * defender.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
+                        endPointsDefender = (defender.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * attacker.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
+                                                                                                                                               //Attacker wins
+                        if (attackerResult > 1.75 * defenderResult) //routed
                         {
-                            //Log.Message("attacker is capturing " + defender.RimWorld_Settlement.Name);
-                            let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "captured", defender.parent?.Label, defender.RimWarPoints);
-                            let.lookTargets = attacker;
-                            let.relatedFaction = attacker.Faction;
-                            WorldUtility.ConvertSettlement(Find.WorldObjects.SettlementAt(defender.parent.Tile), WorldUtility.GetRimWarDataForFaction(defender.parent.Faction), WorldUtility.GetRimWarDataForFaction(attacker.Faction), Mathf.RoundToInt(Mathf.Max(endPointsDefender, 0)));
-                            //RimWorld.Planet.Settlement rws = Find.World.worldObjects.SettlementAt(defender.Tile);
-                            //rws.SetFaction(attacker.Faction);
-                            //WorldUtility.GetRimWarDataForFaction(defender.Faction).FactionSettlements.Remove(defender);
-                            //defender.Faction = attacker.Faction;
-                            //WorldUtility.GetRimWarDataForFaction(attacker.Faction).FactionSettlements.Add(defender);
-                            //Find.World.WorldUpdate();                        
-                        }
-                        else
-                        {
-                            float pointsAdjustment = endPointsDefender * (Rand.Range(.35f, .5f));
-                            endPointsAttacker += pointsAdjustment;
-                            endPointsDefender -= pointsAdjustment;
-                            let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "defeated", defender.parent.Label, defender.RimWarPoints);
-                            let.lookTargets = attacker;
-                            let.relatedFaction = defender.parent.Faction;
-                            if (endPointsDefender <= 1000)
+                            float rndCapture = Rand.Value;
+                            if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
                             {
-                                let.text += "\nThe pathetic hamlet was burned to the ground.";
-                                //Find.WorldObjects.Remove(Find.World.worldObjects.SettlementAt(defender.Tile));
-                                Find.WorldObjects.SettlementAt(defender.parent.Tile)?.Destroy();
-                                if (WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements?.Count <= 0)
-                                {
-                                    WorldUtility.RemoveRWDFaction(WorldUtility.GetRimWarDataForFaction(defender.parent.Faction));
-                                }
+                                rndCapture *= 1.1f;
+                            }
+                            else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
+                            {
+                                rndCapture *= 1.5f;
+                            }
+
+                            if (rndCapture >= .35f && attacker.rimwarData?.behavior != RimWarBehavior.Vassal)
+                            {
+                                //Log.Message("attacker is capturing " + defender.RimWorld_Settlement.Name);
+                                let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "captured", defender.parent?.Label, defender.RimWarPoints);
+                                let.lookTargets = attacker;
+                                let.relatedFaction = attacker.Faction;
+                                WorldUtility.ConvertSettlement(Find.WorldObjects.SettlementAt(defender.parent.Tile), WorldUtility.GetRimWarDataForFaction(defender.parent.Faction), WorldUtility.GetRimWarDataForFaction(attacker.Faction), Mathf.RoundToInt(Mathf.Max(endPointsDefender, 0)));
+                                //RimWorld.Planet.Settlement rws = Find.World.worldObjects.SettlementAt(defender.Tile);
+                                //rws.SetFaction(attacker.Faction);
+                                //WorldUtility.GetRimWarDataForFaction(defender.Faction).FactionSettlements.Remove(defender);
+                                //defender.Faction = attacker.Faction;
+                                //WorldUtility.GetRimWarDataForFaction(attacker.Faction).FactionSettlements.Add(defender);
+                                //Find.World.WorldUpdate();                        
                             }
                             else
                             {
-                                float rndRaze = Rand.Value;
-                                if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
+                                float pointsAdjustment = endPointsDefender * (Rand.Range(.35f, .5f));
+                                endPointsAttacker += pointsAdjustment;
+                                endPointsDefender -= pointsAdjustment;
+                                let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "defeated", defender.parent.Label, defender.RimWarPoints);
+                                let.lookTargets = attacker;
+                                let.relatedFaction = defender.parent.Faction;
+                                if (endPointsDefender <= 1000)
                                 {
-                                    rndRaze *= .8f;
+                                    let.text += "\nThe pathetic hamlet was burned to the ground.";
+                                    //Find.WorldObjects.Remove(Find.World.worldObjects.SettlementAt(defender.Tile));
+                                    Find.WorldObjects.SettlementAt(defender.parent.Tile)?.Destroy();
+                                    if (WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements?.Count <= 0)
+                                    {
+                                        WorldUtility.RemoveRWDFaction(WorldUtility.GetRimWarDataForFaction(defender.parent.Faction));
+                                    }
                                 }
-                                else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
+                                else
                                 {
-                                    rndRaze *= 1.2f;
-                                }
+                                    float rndRaze = Rand.Value;
+                                    if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
+                                    {
+                                        rndRaze *= .8f;
+                                    }
+                                    else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
+                                    {
+                                        rndRaze *= 1.2f;
+                                    }
 
-                                if (rndRaze >= .9f)
+                                    if (rndRaze >= .9f)
+                                    {
+                                        let.text += "\nThe city was brutally destroyed.";
+                                        endPointsAttacker += (Rand.Range(.4f, .7f) * endPointsDefender);
+                                        Find.WorldObjects.SettlementAt(defender.parent.Tile)?.Destroy();
+                                        //Find.WorldObjects.Remove(Find.World.worldObjects.SettlementAt(defender.Tile));
+                                        //WorldUtility.GetRimWarDataForFaction(defender.Faction)?.FactionSettlements?.Remove(defender);
+                                        if (WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements?.Count <= 0)
+                                        {
+                                            WorldUtility.RemoveRWDFaction(WorldUtility.GetRimWarDataForFaction(defender.parent.Faction));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        defender.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(endPointsDefender, 100, defender.RimWarPoints));
+                                    }
+                                }
+                            }
+                        }
+                        else if (attackerResult > 1.35f * defenderResult) //solid win
+                        {
+                            float rndCapture = Rand.Value;
+                            if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
+                            {
+                                rndCapture *= 1.1f;
+                            }
+                            else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
+                            {
+                                rndCapture *= 1.5f;
+                            }
+
+                            if (rndCapture >= .6f && attacker.rimwarData?.behavior != RimWarBehavior.Vassal)
+                            {
+                                //Log.Message("attacker is capturing " + defender.RimWorld_Settlement.Name);
+                                let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "captured", defender.parent.Label, defender.RimWarPoints);
+                                let.lookTargets = attacker;
+                                let.relatedFaction = attacker.Faction;
+                                WorldUtility.ConvertSettlement(Find.WorldObjects.SettlementAt(defender.parent.Tile), WorldUtility.GetRimWarDataForFaction(defender.parent.Faction), WorldUtility.GetRimWarDataForFaction(attacker.Faction), Mathf.RoundToInt(Mathf.Max(endPointsDefender, 0)));
+
+                                //Find.World.worldObjects.SettlementAt(defender.Tile).SetFaction(attacker.Faction);
+                                //WorldUtility.GetRimWarDataForFaction(defender.Faction).FactionSettlements.Remove(defender);
+                                //defender.Faction = attacker.Faction;
+                                //WorldUtility.GetRimWarDataForFaction(attacker.Faction).FactionSettlements.Add(defender);
+                                //Find.World.WorldUpdate();
+                            }
+                            else
+                            {
+                                float pointsAdjustment = endPointsDefender * (Rand.Range(.2f, .35f));
+                                endPointsAttacker += pointsAdjustment;
+                                endPointsDefender -= pointsAdjustment;
+                                let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "defeated", defender.parent.Label, defender.RimWarPoints);
+                                let.lookTargets = attacker;
+                                let.relatedFaction = defender.parent.Faction;
+                                if (endPointsDefender <= 1000)
                                 {
-                                    let.text += "\nThe city was brutally destroyed.";
-                                    endPointsAttacker += (Rand.Range(.4f, .7f) * endPointsDefender);
+                                    let.text += "\nThe pathetic hamlet was burned to the ground.";
                                     Find.WorldObjects.SettlementAt(defender.parent.Tile)?.Destroy();
                                     //Find.WorldObjects.Remove(Find.World.worldObjects.SettlementAt(defender.Tile));
                                     //WorldUtility.GetRimWarDataForFaction(defender.Faction)?.FactionSettlements?.Remove(defender);
+                                    if (WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements.Count <= 0)
+                                    {
+                                        WorldUtility.RemoveRWDFaction(WorldUtility.GetRimWarDataForFaction(defender.parent.Faction));
+                                    }
+                                }
+                                else
+                                {
+                                    defender.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(endPointsDefender, 100, defender.RimWarPoints));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            float rndCapture = Rand.Value;
+                            if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
+                            {
+                                rndCapture *= 1.1f;
+                            }
+                            else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
+                            {
+                                rndCapture *= 1.5f;
+                            }
+
+                            if (rndCapture >= .9f && attacker.rimwarData?.behavior != RimWarBehavior.Vassal)
+                            {
+                                //Log.Message("attacker is capturing " + defender.RimWorld_Settlement.Name);
+                                let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "captured", defender.parent.Label, defender.RimWarPoints);
+                                let.lookTargets = attacker;
+                                let.relatedFaction = attacker.Faction;
+                                WorldUtility.ConvertSettlement(Find.WorldObjects.SettlementAt(defender.parent.Tile), WorldUtility.GetRimWarDataForFaction(defender.parent.Faction), WorldUtility.GetRimWarDataForFaction(attacker.Faction), Mathf.RoundToInt(Mathf.Max(endPointsDefender, 0)));
+
+                                //Find.World.worldObjects.SettlementAt(defender.Tile).SetFaction(attacker.Faction);
+                                //WorldUtility.GetRimWarDataForFaction(defender.Faction).FactionSettlements.Remove(defender);
+                                //defender.Faction = attacker.Faction;
+                                //WorldUtility.GetRimWarDataForFaction(attacker.Faction).FactionSettlements.Add(defender);
+                                //Find.World.WorldUpdate();
+                            }
+                            else
+                            {
+                                float pointsAdjustment = endPointsDefender * (Rand.Range(.1f, .25f));
+                                endPointsAttacker += pointsAdjustment;
+                                endPointsDefender -= pointsAdjustment;
+                                let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "defeated", defender.parent.Label, defender.RimWarPoints);
+                                let.lookTargets = attacker;
+                                let.relatedFaction = defender.parent.Faction;
+                                if (endPointsDefender <= 1000)
+                                {
+                                    let.text += "\nThe pathetic hamlet was burned to the ground.";
+                                    Find.WorldObjects.SettlementAt(defender.parent.Tile)?.Destroy();
+                                    //Find.WorldObjects.Remove(Find.World.worldObjects.SettlementAt(defender.Tile));
+                                    //WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements?.Remove(defender);
                                     if (WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements?.Count <= 0)
                                     {
                                         WorldUtility.RemoveRWDFaction(WorldUtility.GetRimWarDataForFaction(defender.parent.Faction));
@@ -252,157 +363,55 @@ namespace RimWar.Planet
                                 }
                             }
                         }
-                    }
-                    else if (attackerResult > 1.35f * defenderResult) //solid win
-                    {
-                        float rndCapture = Rand.Value;
-                        if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
-                        {
-                            rndCapture *= 1.1f;
-                        }
-                        else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
-                        {
-                            rndCapture *= 1.5f;
-                        }
+                        WorldUtility.CreateWarObjectOfType(attacker, Mathf.RoundToInt(Mathf.Clamp(endPointsAttacker, 50, 2 * attacker.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(attacker.Faction), attacker.ParentSettlement, attacker.Tile, attacker.ParentSettlement, WorldObjectDefOf.Settlement);
 
-                        if (rndCapture >= .6f)
-                        {
-                            //Log.Message("attacker is capturing " + defender.RimWorld_Settlement.Name);
-                            let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "captured", defender.parent.Label, defender.RimWarPoints);
-                            let.lookTargets = attacker;
-                            let.relatedFaction = attacker.Faction;
-                            WorldUtility.ConvertSettlement(Find.WorldObjects.SettlementAt(defender.parent.Tile), WorldUtility.GetRimWarDataForFaction(defender.parent.Faction), WorldUtility.GetRimWarDataForFaction(attacker.Faction), Mathf.RoundToInt(Mathf.Max(endPointsDefender, 0)));
-
-                            //Find.World.worldObjects.SettlementAt(defender.Tile).SetFaction(attacker.Faction);
-                            //WorldUtility.GetRimWarDataForFaction(defender.Faction).FactionSettlements.Remove(defender);
-                            //defender.Faction = attacker.Faction;
-                            //WorldUtility.GetRimWarDataForFaction(attacker.Faction).FactionSettlements.Add(defender);
-                            //Find.World.WorldUpdate();
-                        }
-                        else
-                        {
-                            float pointsAdjustment = endPointsDefender * (Rand.Range(.2f, .35f));
-                            endPointsAttacker += pointsAdjustment;
-                            endPointsDefender -= pointsAdjustment;
-                            let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "defeated", defender.parent.Label, defender.RimWarPoints);
-                            let.lookTargets = attacker;
-                            let.relatedFaction = defender.parent.Faction;
-                            if (endPointsDefender <= 1000)
-                            {
-                                let.text += "\nThe pathetic hamlet was burned to the ground.";
-                                Find.WorldObjects.SettlementAt(defender.parent.Tile)?.Destroy();
-                                //Find.WorldObjects.Remove(Find.World.worldObjects.SettlementAt(defender.Tile));
-                                //WorldUtility.GetRimWarDataForFaction(defender.Faction)?.FactionSettlements?.Remove(defender);
-                                if (WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements.Count <= 0)
-                                {
-                                    WorldUtility.RemoveRWDFaction(WorldUtility.GetRimWarDataForFaction(defender.parent.Faction));
-                                }
-                            }
-                            else
-                            {
-                                defender.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(endPointsDefender, 100, defender.RimWarPoints));
-                            }
-                        }
                     }
                     else
                     {
-                        float rndCapture = Rand.Value;
-                        if (attacker.rimwarData?.behavior == RimWarBehavior.Expansionist)
+                        //Log.Message("attacker " + attacker.Label + " loses against settlement " + defender.RimWorld_Settlement.Name);
+                        //Defender wins
+                        endPointsAttacker = (attacker.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * defender.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
+                        endPointsDefender = (defender.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * attacker.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
+                        let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "failed in their assault against", defender.parent.Label, defender.RimWarPoints);
+                        let.lookTargets = defender.parent;
+                        let.relatedFaction = defender.parent.Faction;
+                        if (defenderResult > 1.75 * attackerResult) //routed
                         {
-                            rndCapture *= 1.1f;
+                            endPointsDefender += endPointsAttacker * (Rand.Range(.35f, .55f)); //gain up to half the points of the attacker warband in combat power and disperse the warband
+                            if (attacker.WarSettlementComp != null)
+                            {
+                                ConsolidatePoints reconstitute = new ConsolidatePoints(Mathf.RoundToInt(Mathf.Min(Rand.Range(.3f, .5f) * endPointsAttacker, attacker.RimWarPoints)), Mathf.RoundToInt(Find.WorldGrid.TraversalDistanceBetween(attacker.Tile, attacker.ParentSettlement.Tile) * attacker.TicksPerMove) + Find.TickManager.TicksGame);
+                                attacker.WarSettlementComp.SettlementPointGains.Add(reconstitute);
+                            }
                         }
-                        else if (attacker.rimwarData?.behavior == RimWarBehavior.Warmonger)
+                        else if (defenderResult > 1.35f * attackerResult) //solid win; warband retreats back to parent settlement
                         {
-                            rndCapture *= 1.5f;
-                        }
-
-                        if (rndCapture >= .9f)
-                        {
-                            //Log.Message("attacker is capturing " + defender.RimWorld_Settlement.Name);
-                            let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "captured", defender.parent.Label, defender.RimWarPoints);
-                            let.lookTargets = attacker;
-                            let.relatedFaction = attacker.Faction;
-                            WorldUtility.ConvertSettlement(Find.WorldObjects.SettlementAt(defender.parent.Tile), WorldUtility.GetRimWarDataForFaction(defender.parent.Faction), WorldUtility.GetRimWarDataForFaction(attacker.Faction), Mathf.RoundToInt(Mathf.Max(endPointsDefender, 0)));
-
-                            //Find.World.worldObjects.SettlementAt(defender.Tile).SetFaction(attacker.Faction);
-                            //WorldUtility.GetRimWarDataForFaction(defender.Faction).FactionSettlements.Remove(defender);
-                            //defender.Faction = attacker.Faction;
-                            //WorldUtility.GetRimWarDataForFaction(attacker.Faction).FactionSettlements.Add(defender);
-                            //Find.World.WorldUpdate();
+                            float pointsAdjustment = endPointsAttacker * (Rand.Range(.3f, .4f));
+                            endPointsAttacker -= pointsAdjustment;
+                            endPointsDefender += pointsAdjustment;
+                            if (attacker.WarSettlementComp != null)
+                            {
+                                WorldUtility.CreateWarObjectOfType(attacker, Mathf.RoundToInt(Mathf.Clamp(endPointsAttacker, 50, attacker.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(attacker.Faction), attacker.ParentSettlement, attacker.Tile, attacker.ParentSettlement, WorldObjectDefOf.Settlement);
+                            }
                         }
                         else
                         {
-                            float pointsAdjustment = endPointsDefender * (Rand.Range(.1f, .25f));
-                            endPointsAttacker += pointsAdjustment;
-                            endPointsDefender -= pointsAdjustment;
-                            let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "defeated", defender.parent.Label, defender.RimWarPoints);
-                            let.lookTargets = attacker;
-                            let.relatedFaction = defender.parent.Faction;
-                            if (endPointsDefender <= 1000)
+                            float pointsAdjustment = endPointsAttacker * (Rand.Range(.15f, .25f));
+                            endPointsAttacker -= pointsAdjustment;
+                            endPointsDefender += pointsAdjustment;
+                            if (attacker.WarSettlementComp != null)
                             {
-                                let.text += "\nThe pathetic hamlet was burned to the ground.";
-                                Find.WorldObjects.SettlementAt(defender.parent.Tile)?.Destroy();
-                                //Find.WorldObjects.Remove(Find.World.worldObjects.SettlementAt(defender.Tile));
-                                //WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements?.Remove(defender);
-                                if (WorldUtility.GetRimWarDataForFaction(defender.parent.Faction)?.WorldSettlements?.Count <= 0)
-                                {
-                                    WorldUtility.RemoveRWDFaction(WorldUtility.GetRimWarDataForFaction(defender.parent.Faction));
-                                }
-                            }
-                            else
-                            {
-                                defender.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(endPointsDefender, 100, defender.RimWarPoints));
+                                WorldUtility.CreateWarObjectOfType(attacker, Mathf.RoundToInt(Mathf.Clamp(endPointsAttacker, 50, attacker.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(attacker.Faction), attacker.ParentSettlement, attacker.Tile, attacker.ParentSettlement, WorldObjectDefOf.Settlement);
                             }
                         }
+                        defender.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(endPointsDefender, 100, defender.RimWarPoints + attacker.RimWarPoints));
                     }
-                    WorldUtility.CreateWarObjectOfType(attacker, Mathf.RoundToInt(Mathf.Clamp(endPointsAttacker, 50, 2 * attacker.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(attacker.Faction), attacker.ParentSettlement, attacker.Tile, attacker.ParentSettlement, WorldObjectDefOf.Settlement);
-
-                }
-                else
-                {
-                    //Log.Message("attacker " + attacker.Label + " loses against settlement " + defender.RimWorld_Settlement.Name);
-                    //Defender wins
-                    endPointsAttacker = (attacker.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * defender.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
-                    endPointsDefender = (defender.RimWarPoints * (1 - ((Rand.Range(.3f, .5f) * attacker.RimWarPoints) / combinedPoints))); //always lose points in relation to warband sizes
-                    let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "failed in their assault against", defender.parent.Label, defender.RimWarPoints);
-                    let.lookTargets = defender.parent;
-                    let.relatedFaction = defender.parent.Faction;
-                    if (defenderResult > 1.75 * attackerResult) //routed
+                    RW_LetterMaker.Archive_RWLetter(let);
+                    if (defender.parent.Faction != null && attacker.Faction != null && !defender.parent.Faction.defeated && !attacker.Faction.defeated)
                     {
-                        endPointsDefender += endPointsAttacker * (Rand.Range(.35f, .55f)); //gain up to half the points of the attacker warband in combat power and disperse the warband
-                        if (attacker.WarSettlementComp != null)
-                        {
-                            ConsolidatePoints reconstitute = new ConsolidatePoints(Mathf.RoundToInt(Mathf.Min(Rand.Range(.3f, .5f) * endPointsAttacker, attacker.RimWarPoints)), Mathf.RoundToInt(Find.WorldGrid.TraversalDistanceBetween(attacker.Tile, attacker.ParentSettlement.Tile) * attacker.TicksPerMove) + Find.TickManager.TicksGame);
-                            attacker.WarSettlementComp.SettlementPointGains.Add(reconstitute);
-                        }
+                        defender.parent.Faction.TryAffectGoodwillWith(attacker.Faction, -5, true, true, null, null);
+                        attacker.Faction.TryAffectGoodwillWith(defender.parent.Faction, -2, true, true, null, null);
                     }
-                    else if (defenderResult > 1.35f * attackerResult) //solid win; warband retreats back to parent settlement
-                    {
-                        float pointsAdjustment = endPointsAttacker * (Rand.Range(.3f, .4f));
-                        endPointsAttacker -= pointsAdjustment;
-                        endPointsDefender += pointsAdjustment;
-                        if (attacker.WarSettlementComp != null)
-                        {
-                            WorldUtility.CreateWarObjectOfType(attacker, Mathf.RoundToInt(Mathf.Clamp(endPointsAttacker, 50, attacker.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(attacker.Faction), attacker.ParentSettlement, attacker.Tile, attacker.ParentSettlement, WorldObjectDefOf.Settlement);
-                        }
-                    }
-                    else
-                    {
-                        float pointsAdjustment = endPointsAttacker * (Rand.Range(.15f, .25f));
-                        endPointsAttacker -= pointsAdjustment;
-                        endPointsDefender += pointsAdjustment;
-                        if (attacker.WarSettlementComp != null)
-                        {
-                            WorldUtility.CreateWarObjectOfType(attacker, Mathf.RoundToInt(Mathf.Clamp(endPointsAttacker, 50, attacker.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(attacker.Faction), attacker.ParentSettlement, attacker.Tile, attacker.ParentSettlement, WorldObjectDefOf.Settlement);
-                        }
-                    }
-                    defender.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(endPointsDefender, 100, defender.RimWarPoints + attacker.RimWarPoints));
-                }
-                RW_LetterMaker.Archive_RWLetter(let);
-                if (defender.parent.Faction != null && attacker.Faction != null && !defender.parent.Faction.defeated && !attacker.Faction.defeated)
-                {
-                    defender.parent.Faction.TryAffectGoodwillWith(attacker.Faction, -5, true, true, null, null);
-                    attacker.Faction.TryAffectGoodwillWith(defender.parent.Faction, -2, true, true, null, null);
                 }
             }
         }
@@ -687,7 +696,10 @@ namespace RimWar.Planet
                 if (warObject is Trader || warObject is Settler)
                 {
                     Utility.IncidentWorker_WarObjectMeeting iw_caravanMeeting = new Utility.IncidentWorker_WarObjectMeeting();
-                    iw_caravanMeeting.PreExecuteWorker(parms, warObject);
+                    if(iw_caravanMeeting.PreExecuteWorker(parms, warObject))
+                    {
+
+                    }
                     //parms.generateFightersOnly = false;                    
                     //IncidentWorker_CaravanMeeting iw_cm = new IncidentWorker_CaravanMeeting();
                     //parms.forced = true;
@@ -784,14 +796,15 @@ namespace RimWar.Planet
             parms.raidStrategy = RaidStrategyOrRandom(RaidStrategyDefOf.ImmediateAttack);
             //IncidentWorker_CaravanMeeting iw_caravanMeeting = new IncidentWorker_CaravanMeeting();
             Utility.IncidentWorker_WarObjectMeeting iw_caravanMeeting = new Utility.IncidentWorker_WarObjectMeeting();
-            iw_caravanMeeting.PreExecuteWorker(parms, warObject);
-
-            RW_Letter let = RW_LetterMaker.Make_RWLetter(RimWarDefOf.RimWar_FriendlyEvent);
-            let.label = "RW_CaravanTrade".Translate(playerCaravan.Label);
-            let.text = "RW_CaravanTradeText".Translate(playerCaravan.Label, warObject.Label);
-            let.lookTargets = playerCaravan;
-            let.relatedFaction = warObject.Faction;
-            RW_LetterMaker.Archive_RWLetter(let);
+            if (iw_caravanMeeting.PreExecuteWorker(parms, warObject))
+            {
+                RW_Letter let = RW_LetterMaker.Make_RWLetter(RimWarDefOf.RimWar_FriendlyEvent);
+                let.label = "RW_CaravanTrade".Translate(playerCaravan.Label);
+                let.text = "RW_CaravanTradeText".Translate(playerCaravan.Label, warObject.Label);
+                let.lookTargets = playerCaravan;
+                let.relatedFaction = warObject.Faction;
+                RW_LetterMaker.Archive_RWLetter(let);
+            }
         }
 
         public static void DoSettlementTradeWithPoints(WarObject warObject, RimWorld.Planet.Settlement playerSettlement, RimWarData rwd, PawnsArrivalModeDef arrivalMode, TraderKindDef traderKind)
@@ -905,7 +918,7 @@ namespace RimWar.Planet
 
         public static bool ValidateRimWarAction(WarObject warObject, RimWarSettlementComp settlement, List<WorldObject> objectsHere)
         {
-            if (warObject != null && settlement != null && settlement.parent != null && !settlement.parent.Destroyed && objectsHere != null && objectsHere.Count > 0)
+            if (warObject != null && !warObject.Destroyed && settlement != null && settlement.parent != null && !settlement.parent.Destroyed && objectsHere != null && objectsHere.Count > 0)
             {
                 return true;
             }
@@ -914,7 +927,7 @@ namespace RimWar.Planet
 
         public static bool ValidateRimWarAction(WarObject warObject1, WarObject warObject2, List<WorldObject> objectsHere)
         {
-            if (warObject1 != null && warObject2 != null && objectsHere != null && objectsHere.Count > 0)
+            if (warObject1 != null && !warObject1.Destroyed && warObject2 != null && !warObject2.Destroyed && objectsHere != null && objectsHere.Count > 0)
             {
                 return true;
             }
@@ -960,6 +973,72 @@ namespace RimWar.Planet
 
             return DefDatabase<RaidStrategyDef>.AllDefs.RandomElement();
             
+        }
+
+        public static void AttackEmpireSettlement(WarObject rwo, RimWarSettlementComp rwsc, int ticksTillEvent = 15000)
+        {
+            FactionFC fc = Find.World.GetComponent<FactionFC>();
+            if (fc != null)
+            {
+                SettlementFC settlement = fc.returnSettlementByLocation(rwsc.parent.Tile, Find.World.info.name);
+                militaryForce attackingForce = new militaryForce(Mathf.RoundToInt(Mathf.Max(1, rwo.RimWarPoints / 500f)), rwo.rimwarData.combatAttribute, null, rwo.Faction);
+                if (settlement != null && attackingForce != null)
+                {
+                    FCEvent fCEvent = FCEventMaker.MakeEvent(FCEventDefOf.settlementBeingAttacked);
+                    fCEvent.hasCustomDescription = true;
+                    fCEvent.timeTillTrigger = Find.TickManager.TicksGame + ticksTillEvent;
+                    fCEvent.location = settlement.mapLocation;
+                    fCEvent.planetName = settlement.planetName;
+                    fCEvent.hasDestination = true;
+                    fCEvent.customDescription = "settlementAboutToBeAttacked".Translate(settlement.name, rwo.Faction.Name);
+                    fCEvent.militaryForceDefending = militaryForce.createMilitaryForceFromSettlement(settlement);
+                    fCEvent.militaryForceDefendingFaction = FactionColonies.FactionColonies.getPlayerColonyFaction();
+                    fCEvent.militaryForceAttacking = attackingForce;
+                    fCEvent.militaryForceAttackingFaction = rwo.Faction;
+                    fCEvent.settlementFCDefending = settlement;
+                    Find.World.GetComponent<FactionFC>().addEvent(fCEvent);
+                    FCEvent fCEvent2 = fCEvent;
+                    fCEvent2.customDescription = fCEvent2.customDescription + "\n\nThe estimated attacking force's power is: " + fCEvent.militaryForceAttacking.forceRemaining.ToString();
+                    settlement.isUnderAttack = true;
+                    Find.LetterStack.ReceiveLetter("settlementInDanger".Translate(), fCEvent.customDescription, LetterDefOf.ThreatBig, new LookTargets(Find.WorldObjects.SettlementAt(settlement.mapLocation)));
+                }
+            }
+        }
+
+        public static void CaravanPayment(Caravan caravan, int fee)
+        {
+            List<Thing> list = new List<Thing>();
+            list.AddRange(caravan.PawnsListForReading.SelectMany((Pawn x) => ThingOwnerUtility.GetAllThingsRecursively(x, allowUnreal: false)));
+            list.RemoveAll((Thing x) => x.def != ThingDefOf.Silver);
+
+            int subtractedAmount = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                int reduction = list[i].stackCount;
+                if (list[i].stackCount > (fee - subtractedAmount))
+                {
+                    reduction = (fee - subtractedAmount);
+                }
+                list[i].SplitOff(Mathf.Min(list[i].stackCount, reduction));
+                subtractedAmount += reduction;
+                if (subtractedAmount >= fee)
+                {
+                    break;
+                }
+            }
+        }
+
+        public static int TryGetAvailableSilver(Caravan caravan)
+        {
+            int silver = 0;
+            List<Thing> list2 = new List<Thing>();
+            list2.AddRange(caravan.PawnsListForReading.SelectMany((Pawn x) => ThingOwnerUtility.GetAllThingsRecursively(x, allowUnreal: false)));
+            list2.RemoveAll((Thing x) => x.def != ThingDefOf.Silver);
+            foreach (Thing t in list2)
+            {
+                silver += t.stackCount;
+            }
+            return silver;
         }
     }
 }

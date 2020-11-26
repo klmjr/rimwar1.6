@@ -19,7 +19,7 @@ namespace RimWar
         //{
         //    return "RimWarData_" + uniqueID;
         //}
-
+        
         private Faction rimwarFaction;
         public int lastEventTick = 0;
         public List<WorldObject> factionWorldObjects;
@@ -416,6 +416,23 @@ namespace RimWar
             set
             {
                 this.rimwarFaction = value;
+            }
+        }
+
+        public int RandomKey
+        {
+            get
+            {
+                return rimwarFaction.randomKey;
+            }
+        }
+
+        public string RimWarFactionKey
+        {
+            get
+            {
+                string str = RimWarFaction.Name + RandomKey.ToString();
+                return str;
             }
         }
 

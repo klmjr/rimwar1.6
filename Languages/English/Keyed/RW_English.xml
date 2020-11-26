@@ -20,6 +20,8 @@
 <RW_DiplomatName>Diplomat of {0}</RW_DiplomatName>
 <RW_CombatPower>Combat power: {0}</RW_CombatPower>
 <RW_Capitol>Faction Capitol</RW_Capitol>
+<RW_AggressionDefense>Min. amount for AI Aggression: {0}</RW_AggressionDefense>
+<RW_AggressionPoints>Aggression amount: {0}</RW_AggressionPoints>
 
 <!-- ============ Faction Menu =============-->
 <RW_FactionPower>Faction power: {0}</RW_FactionPower>
@@ -41,30 +43,47 @@ Growth ({2})</RW_AttributeDisplay>
 
 <!-- ============ Settings =============-->
 <RW_randomizeFactionBehavior>Random Faction behavior</RW_randomizeFactionBehavior>
-<RW_randomizeFactionBehaviorInfo>Core game factions have a pre-defined behavior - eg Outlander Civil will always have a Cautious behavior, Rough Tribes will always be warmonger's etc. Enabling this setting randomizes all faction behavior regardless of what's defined in the RimWarDef.xml file.</RW_randomizeFactionBehaviorInfo>
+<RW_randomizeFactionBehaviorInfo>Core game factions have a pre-defined behavior - eg Outlander Civil will always have a Cautious behavior, Rough Tribes will always be warmonger's etc; this is set in the RimWarDef.xml file. Enabling this setting randomizes all faction behavior regardless of what's defined in the RimWarDef.xml file.
+
+**Only applies at the start of a new game**</RW_randomizeFactionBehaviorInfo>
 <RW_storytellerBasedDifficulty>RimWar difficulty uses game difficulty</RW_storytellerBasedDifficulty>
-<RW_storytellerBasedDifficultyInfo>This option associates bonus points for RimWar actions with the game difficulty. Higher difficulty increases rate of growth, raid sizes, etc. Disabling this allows you to make Rim War actions more or less severe than other storyteller incidents.</RW_storytellerBasedDifficultyInfo>
+<RW_storytellerBasedDifficultyInfo>This option associates RimWar difficulty with the game difficulty. Higher difficulty increases rate of growth of AI settlements, AI aggression, and the combat power of units sent to attack the player. Disabling this makes the challenge Rim War units present more or less severe than game difficulty.</RW_storytellerBasedDifficultyInfo>
 <RW_maxFactionSettlements>Max Faction Settlements</RW_maxFactionSettlements>
-<RW_rimwarDifficulty>Difficulty</RW_rimwarDifficulty>
+<RW_maxFactionSettlementsInfo>Factions will no longer create settlers if they have more settlements than this limit; this does not prevent a faction from capturing enemy settlements. Increasing this will raise overall global population and activity and will favor expansionist faction behavior; may decrease performance.</RW_maxFactionSettlementsInfo>
+<RW_rimwarDifficulty>Rim War Difficulty</RW_rimwarDifficulty>
 <RW_eventFrequency>Global Event Frequency</RW_eventFrequency>
-<RW_maxScanRange>Max Scan Range</RW_maxScanRange>
-<RW_scanRange>Settlement Scan Range (adjusted by settlement points)</RW_scanRange>
+<RW_eventFrequencyInfo>Modifies how frequently the RimWar manager attempts an action (create a unit, update statistics, etc). Increases global activity and will make the world more "alive." This does not change how often settlements attempt actions. Decreasing this will reduce the overall game difficulty and improve performance.</RW_eventFrequencyInfo>
+<RW_maxScanRange>Max Settlement Scan Range</RW_maxScanRange>
+<RW_maxScanRangeInfo>The maximum activity range of a settlement. Increasing this will diversify settlement actions as they will have more options. Decreasing this may improve performance, but decreasing this excessively may prevent settlements from performing any action if no other settlement or unit is in range.</RW_maxScanRangeInfo>
+<RW_scanRange>Settlement Scan Range (adjusted by settlement points).</RW_scanRange>
+<RW_scanRangeInfo>Modifies the activity range of a settlement; effective range is determined by this setting and the settlements power and has an upper limit determined by the Max Scan Range. This setting should be reasonably related to the max scan range for best results.</RW_scanRangeInfo>
 <RW_createDiplomats>Diplomats Enabled</RW_createDiplomats>
 <RW_settlementEventFrequency>Settlement Event Frequency (game hrs):</RW_settlementEventFrequency>
+<RW_settlementEventFrequencyInfo>Determines how often a single settlement may perform an action. Lowering the game hours between potential events will increase overall Rim War activity. Increasing this may also increase game difficulty and reduce performance. Faction capitol's can generate events 50% more often then a normal settlement.</RW_settlementEventFrequencyInfo>
 <RW_settlementScanFrequency>Settlement Scan Update Frequency (game hrs):</RW_settlementScanFrequency>
+<RW_settlementScanFrequencyInfo>Determines how often a settlement evaluates other world objects within range. This never needs to be lower than settlement event frequency. Increasing the number of game hours between scans may improve performance but may also introduce strange or oblivious AI behavior.</RW_settlementScanFrequencyInfo>
 <RW_warobjectActionFrequency>Mobile Object Action Frequency (seconds):</RW_warobjectActionFrequency>
+<RW_warobjectActionFrequencyInfo>Determines how often Rim War units search surrounding tiles for other units or settlements. Scouts and Warbands may attack nearby units or caravans based on this scan; traders may perform trades. Decreasing the time between scans will make units more aware of their surroundings but will also make caravan travel more dangerous. More frequent scans will decrease performance.</RW_warobjectActionFrequencyInfo>
 <RW_maxScanObjects>Max Objects Scanned per Event</RW_maxScanObjects>
 <RW_forceRandomObject>Replace Scans with Random Selection</RW_forceRandomObject>
 <RW_forceRandomObjectInfo>When this option is disabled, settlements will only take action within a certain radius. When this option is enabled, actions taken may be against any other object on the map. Performance may increase when random selection is enabled since no additional distance filtering occurs, but it may result in caravans or war parties traveling across the entire map. This option is only recommended if factions are clustered or separated by large distances (usually as a result of modded faction control).</RW_forceRandomObjectInfo>
 <RW_maxFactionObjects>Max Faction Objects</RW_maxFactionObjects>
 <RW_objectMovementMultiplier>Mobile Object Move Speed</RW_objectMovementMultiplier>
-<RW_rwdUpdateFrequency>RimWar Data Update Frequency (game hrs):</RW_rwdUpdateFrequency>
+<RW_objectMovementMultiplierInfo>Changes how fast Rim War units will travel across the map. Increasing this may improve performance since units will not exist as long. Does not apply to the player caravan.</RW_objectMovementMultiplierInfo>
+<RW_rwdUpdateFrequency>Settlement Growth Frequency (game hrs):</RW_rwdUpdateFrequency>
+<RW_rwdUpdateFrequencyInfo>Directly affects how quickly settlements grow; frequency of growth. This will influence how quickly the world matures (combat power) and may make the game more difficult if AI neighbors are hostile.</RW_rwdUpdateFrequencyInfo>
 <RW_alertRange>Player Alert radius:</RW_alertRange>
-<RW_alertRangeInfo>Shows an alert whenever a Rim War related entity is within range of player settlements. Setting the radius to 0 will disable this alert.</RW_alertRangeInfo>
+<RW_alertRangeInfo>Shows an alert whenever a Rim War related entity is within range of player settlements. Setting the radius to 0 will disable this alert. Decreasing this setting will improve performance.</RW_alertRangeInfo>
 <RW_letterNotificationRange>Letter notification range:</RW_letterNotificationRange>
 <RW_letterNotificationRangeInfo>Generate a warning letter whenever a hostile force is approaching and targeting the players settlement. Setting the radius to 0 will disable letter notifications.</RW_letterNotificationRangeInfo>
 <RW_restrictEvents>Restrict events</RW_restrictEvents>
 <RW_restrictEventsInfo>Restricts Rim War actions from occurring randomly. When disabled, the storyteller will continue to generate random raids, caravans, and any other events associated with Rim War global objects.</RW_restrictEventsInfo>
+<RW_heatOffset>Aggression offset</RW_heatOffset>
+<RW_heatOffsetInfo>Controls how many aggression points are generated when attacking the player. Aggression calculations are based on game (or RimWar) difficulty. Lowering this setting allows the AI to attack the player more often, while raising this value will decrease the frequency of attacks. This setting is applied *per AI settlement* and will not limit the number of times the player can be attacked; proximity to enemy settlements and the relative strength of those settlements is still the primary determining factor.</RW_heatOffsetInfo>
+<RW_heatFrequency>Aggression reduction every {0} game hour</RW_heatFrequency>
+<RW_heatFrequencyInfo>Controls how quickly aggression points are reduced. Lowering this setting allows the AI to attack the player more often, while raising this value will decrease the frequency of attacks. This setting is applied *per AI settlement* and will not limit the number of times the player can be attacked; proximity to enemy settlements and the relative strength of those settlements is still the primary determining factor.</RW_heatFrequencyInfo>
+<RW_randomRival>Random Rival</RW_randomRival>
+<RW_randomRivalInfo>Completely randomizes the player's rival faction, which may result in the rival being a friendly faction. When it is disabled, the rival faction will always be a faction permanently hostile to the player.</RW_randomRivalInfo>
 
 <!-- ============ Game Start Settings =============-->
 <RW_playerVSworld>Player vs All</RW_playerVSworld>
@@ -72,7 +91,9 @@ Growth ({2})</RW_AttributeDisplay>
 <RW_randomizeFactionRelations>Randomize Faction Relations</RW_randomizeFactionRelations>
 <RW_randomizeFactionRelationsInfo>Randomizes relations between all factions. No default values are used. Factions permanently hostile to the player will remain hostile. Invisible factions are not affected. Faction relations are randomized after the game begins.</RW_randomizeFactionRelationsInfo>
 <RW_useRimWarVictory>Add Rim War Rival and Victory Condition</RW_useRimWarVictory>
-<RW_useRimWarVictoryInfo>Adds a new victory condition to destroy an enemy faction. The faction is currently randomly selected from permanently hostile factions.</RW_useRimWarVictoryInfo>
+<RW_useRimWarVictoryInfo>Adds a new victory condition to destroy an enemy faction. The faction is currently randomly selected from permanently hostile factions.
+
+**Only applies at the start of a new game**</RW_useRimWarVictoryInfo>
 <RW_randomizeFactionAttributes>Randomize Faction Attributes</RW_randomizeFactionAttributes>
 <RW_randomizeFactionAttributesInfo>Factions have random attributes that increases or decreases their combat power, movement speed, and growth speed.</RW_randomizeFactionAttributesInfo>
 
@@ -179,6 +200,16 @@ Current standing: {0}</RW_DeclarePeaceInfo>
 <RW_Attack_Verbatum>Attack</RW_Attack_Verbatum>
 <RW_TilesAway_Verbatum> tiles away</RW_TilesAway_Verbatum>
 <RW_UnitCamped>Camped (Resting)</RW_UnitCamped>
+<RW_CaravanDemand_DefendColony>Request: defend colony; cost {0} silver</RW_CaravanDemand_DefendColony>
+<RW_CaravanDemand_DefendColonyDisabledDistance>too far</RW_CaravanDemand_DefendColonyDisabledDistance>
+<RW_CaravanDemand_DefendColonyDisabled>cannot afford ({0})</RW_CaravanDemand_DefendColonyDisabled>
+<RW_CaravanDemand_AttackSettlement>Request: attack settlement {1}
+cost {0} silver</RW_CaravanDemand_AttackSettlement>
+<RW_CaravanDemand_AttackSettlementNone>no enemy settlement nearby</RW_CaravanDemand_AttackSettlementNone>
+<RW_CaravanDemand_AttackSettlementDisabled>cannot afford ({0})</RW_CaravanDemand_AttackSettlementDisabled>
+<RW_CaravanMeeting_TradeWithColony>Request: trade with colony; cost {0} silver</RW_CaravanMeeting_TradeWithColony>
+<RW_CaravanMeeting_TradeWithColonyDisabledDistance>too far</RW_CaravanMeeting_TradeWithColonyDisabledDistance>
+<RW_CaravanMeeting_TradeWithColonyDisabled>cannot afford ({0})</RW_CaravanMeeting_TradeWithColonyDisabled>
 
 <!-- ============ Custom Letters =============-->
 <RW_VictoryChallengeLabel>RimWar Victory Challenge</RW_VictoryChallengeLabel>

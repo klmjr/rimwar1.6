@@ -6,6 +6,15 @@
 	  <value>
 		<li Class = "RimWar.Planet.WorldObjectCompProperties_RimWarSettlement"></li>
 	  </value>
+	</Operation> 
+
+	<Operation Class="PatchOperationAdd">
+	  <xpath>*/WorldObjectDef[worldObjectClass = "Caravan"]</xpath>
+	  <value>
+		<comps>
+			<li Class = "RimWar.Planet.WorldObjectCompProperties_RimWarCaravan"></li>
+        </comps>           					
+	  </value>
 	</Operation> 	
 	
 	<Operation Class="PatchOperationSequence">

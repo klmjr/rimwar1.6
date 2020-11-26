@@ -15,6 +15,7 @@ using System.Reflection.Emit;
 using RimWar.Planet;
 using RimWar.Utility;
 using RimWar;
+using FactionColonies;
 
 namespace RimWar.Harmony
 {
@@ -53,6 +54,11 @@ namespace RimWar.Harmony
                 {
                     typeof(Caravan)
                 }, null), null, new HarmonyMethod(patchType, "Caravan_MoveOn_Prefix", null), null);
+            //harmonyInstance.Patch(AccessTools.Method(typeof(PlaySettings), "DoPlaySettingsGlobalControls", new Type[]
+            //    {
+            //        typeof(WidgetRow),
+            //        typeof(bool)
+            //    }, null), null, new HarmonyMethod(patchType, "WorldSettings_RimWarControls", null), null);
 
             //GET
 
@@ -96,8 +102,16 @@ namespace RimWar.Harmony
                     typeof(Map),
                     typeof(Faction)
                 }, null), new HarmonyMethod(patchType, "CallForAid_Replacement_Patch", null), null, null);
+
         }
 
+        //public static void WorldSettings_RimWarControls(PlaySettings __instance, ref WidgetRow row, bool worldView)
+        //{
+        //    if(worldView)
+        //    {
+        //        row.ToggleableIcon(ref Options.Settings.Instance.showAggressionMarkers, RimWarMatPool.Marker_ShowAggression, "test", SoundDefOf.Mouseover_ButtonToggle);
+        //    }
+        //}
 
         [HarmonyPatch(typeof(FactionDialogMaker), "FactionDialogFor")]
         public static class CommsConsole_RimWarOptions_Patch
@@ -310,7 +324,7 @@ namespace RimWar.Harmony
         {
             if (def == IncidentDefOf.TraderCaravanArrival && fireTick == (Find.TickManager.TicksGame + 120000))
             {
-                RimWarSettlementComp rwdTown = WorldUtility.GetClosestSettlementOfFaction(parms.faction, parms.target.Tile, 40);
+                RimWarSettlementComp rwdTown = WorldUtility.GetClosestSettlementOfFaction(parms.faction, parms.target.Tile, 100);
                 if (rwdTown != null)
                 {
                     WorldUtility.CreateTrader(Mathf.RoundToInt(rwdTown.RimWarPoints / 2), WorldUtility.GetRimWarDataForFaction(rwdTown.parent.Faction), rwdTown.parent as RimWorld.Planet.Settlement, rwdTown.parent.Tile, Find.WorldObjects.SettlementAt(parms.target.Tile), WorldObjectDefOf.Settlement);
@@ -457,6 +471,14 @@ namespace RimWar.Harmony
                     if (rwd.GetCapitol != null && rwd.GetCapitol == __instance)
                     {
                         text += "\n" + "RW_Capitol".Translate();
+                    }
+                    if (rwsc.RWD.behavior == RimWarBehavior.Player || rwsc.RWD.behavior == RimWarBehavior.Vassal)
+                    {
+                        text += "\n"+"RW_AggressionDefense".Translate(WorldUtility.Get_WCPT().minimumHeatForPlayerAction);
+                    }
+                    else
+                    {
+                        text += "\n"+"RW_AggressionPoints".Translate(rwsc.PlayerHeat);
                     }
                     __result += text;
                 }

@@ -12,6 +12,7 @@ using RimWar.RocketTools;
 using RimWar.Options;
 using System.Diagnostics;
 using System.Threading;
+using FactionColonies;
 
 namespace RimWar.Planet
 {
@@ -185,6 +186,7 @@ namespace RimWar.Planet
             //DrawOverlays();
             int currentTick = Find.TickManager.TicksGame;
             Options.SettingsRef settingsRef = new Options.SettingsRef();
+            WorldUtility.CopyData();
             if (!doOnce)
             {
                 doOnce = true;
@@ -198,6 +200,10 @@ namespace RimWar.Planet
             if (currentTick % 60 == 0)
             {
                 AdjustCaravanTargets();
+            }
+            if(currentTick % (int)settingsRef.heatFrequency == 0)
+            {
+                UpdatePlayerAggression();
             }
             if (currentTick % settingsRef.rwdUpdateFrequency == 0)
             {
@@ -236,7 +242,7 @@ namespace RimWar.Planet
                                 {
                                     rwsComp.nextEventTick = currentTick;
                                 }
-                                if (rwd.behavior != RimWarBehavior.Player && rwsComp.nextEventTick <= currentTick && ((!CaravanNightRestUtility.RestingNowAt(rwsComp.parent.Tile) && !rwd.movesAtNight) || (CaravanNightRestUtility.RestingNowAt(rwsComp.parent.Tile) && rwd.movesAtNight)))
+                                if (rwd.behavior != RimWarBehavior.Player && rwd.behavior != RimWarBehavior.Vassal && rwsComp.nextEventTick <= currentTick && ((!CaravanNightRestUtility.RestingNowAt(rwsComp.parent.Tile) && !rwd.movesAtNight) || (CaravanNightRestUtility.RestingNowAt(rwsComp.parent.Tile) && rwd.movesAtNight)))
                                 {
                                     if (rwd.rwdNextUpdateTick < currentTick)
                                     {
@@ -255,7 +261,7 @@ namespace RimWar.Planet
                                         this.objectsCreated++;
                                         if (Rand.Chance(.02f))
                                         {
-                                            rwsComp.RimWarPoints += Rand.Range(20, 200);
+                                            rwsComp.RimWarPoints += Rand.Range(10, 100);
                                             this.globalActions++;
                                         }
                                         if (newAction == RimWarAction.Caravan)
@@ -306,7 +312,7 @@ namespace RimWar.Planet
                                         }
                                         if (rwsComp.isCapitol)
                                         {
-                                            rwsComp.nextEventTick = currentTick + Mathf.RoundToInt((float)settingsRef.settlementEventDelay / 2f);
+                                            rwsComp.nextEventTick = currentTick + Mathf.RoundToInt((float)settingsRef.settlementEventDelay / 1.5f);
                                         }
                                         else
                                         {
@@ -375,7 +381,7 @@ namespace RimWar.Planet
                     {
                         if (!ctd.caravanTarget.interactable)
                         {
-                            Messages.Message("No longer able to interact with " + ctd.caravanTarget.Name + " - clearing target.", MessageTypeDefOf.RejectInput);
+                            //Messages.Message("No longer able to interact with " + ctd.caravanTarget.Name + " - clearing target.", MessageTypeDefOf.RejectInput);
                             this.caravanTargetData.Remove(ctd);
                         }
                         if (ctd.CaravanTargetTile != 0 && ctd.CaravanDestination != ctd.CaravanTargetTile)
@@ -407,6 +413,7 @@ namespace RimWar.Planet
                 }
             }
             CaravanTargetData ctd = new CaravanTargetData();
+            caravan.GetComponent<RimWarCaravanComp>().currentTarget = warObject;
             ctd.caravan = caravan;
             ctd.caravanTarget = warObject;
             this.caravanTargetData.Add(ctd);
@@ -415,7 +422,7 @@ namespace RimWar.Planet
         public void DoGlobalRWDAction()
         {
             RimWarData rwd = this.RimWarData.RandomElement();
-            if (rwd.behavior != RimWarBehavior.Player)
+            if (rwd.behavior != RimWarBehavior.Player && rwd.behavior != RimWarBehavior.Vassal)
             {
                 this.globalActions++;
                 RimWarAction newAction = rwd.GetWeightedSettlementAction();
@@ -425,12 +432,11 @@ namespace RimWar.Planet
                     RimWarSettlementComp rwsc = rwd.WorldSettlements.RandomElement().GetComponent<RimWarSettlementComp>();
                     if (rwsc != null)
                     {
-                        rwsc.RimWarPoints += Rand.Range(200, 500);
+                        rwsc.RimWarPoints += Rand.Range(100, 200);
                     }
                 }
                 else if (newAction == RimWarAction.Diplomat)
                 {
-
                     if (settingsRef.createDiplomats)
                     {
                         RimWarSettlementComp rwdSettlement = rwd.WorldSettlements.RandomElement().GetComponent<RimWarSettlementComp>();
@@ -440,16 +446,13 @@ namespace RimWar.Planet
                             WorldUtility.CreateDiplomat(WorldUtility.CalculateDiplomatPoints(rwdSettlement), rwd, rwdSettlement.parent as RimWorld.Planet.Settlement, rwdSettlement.parent.Tile, rwdPlayerSettlement, WorldObjectDefOf.Settlement);
                         }
                     }
-
                 }
                 else if (newAction == RimWarAction.LaunchedWarband)
                 {
-
                     RimWarSettlementComp rwdTown = rwd.WorldSettlements.RandomElement().GetComponent<RimWarSettlementComp>();
                     RimWorld.Planet.Settlement rwdPlayerSettlement = WorldUtility.GetRimWarDataForFaction(Faction.OfPlayer).WorldSettlements.RandomElement();
                     if (rwdTown != null && rwdPlayerSettlement != null && rwd.RimWarFaction.HostileTo(Faction.OfPlayerSilentFail))
                     {
-
                         int pts = WorldUtility.CalculateWarbandPointsForRaid(rwdPlayerSettlement.GetComponent<RimWarSettlementComp>());
                         if (rwd.behavior == RimWarBehavior.Cautious)
                         {
@@ -467,7 +470,7 @@ namespace RimWar.Planet
                 {
                     RimWarSettlementComp rwdTown = rwd.WorldSettlements.RandomElement().GetComponent<RimWarSettlementComp>();
                     RimWorld.Planet.Settlement rwdPlayerSettlement = WorldUtility.GetRimWarDataForFaction(Faction.OfPlayer).WorldSettlements.RandomElement();
-                    if (rwdTown != null && rwdPlayerSettlement != null)
+                    if (rwdTown != null && rwdPlayerSettlement != null && Find.WorldGrid.ApproxDistanceInTiles(rwdTown.parent.Tile, rwdPlayerSettlement.Tile) < 120)
                     {
                         int pts = WorldUtility.CalculateScoutMissionPoints(rwd, rwdPlayerSettlement.GetComponent<RimWarSettlementComp>().RimWarPoints);
 
@@ -521,10 +524,19 @@ namespace RimWar.Planet
                 {
                     for (int i = 0; i < allFactionsVisible.Count; i++)
                     {
-                        if (!rimwarFactions.Contains(allFactionsVisible[i]))
+                        bool duplicate = false;
+                        for(int k = 0; k < rimwarFactions.Count; k++)
+                        {
+                            if(allFactionsVisible[i].randomKey == rimwarFactions[i].randomKey)
+                            {
+                                duplicate = true;
+                            }
+                        }
+                        if (!duplicate)
                         {
                             AddRimWarFaction(allFactionsVisible[i]);
                         }
+
                         if (settingsRef.playerVS && allFactionsVisible[i] != Faction.OfPlayer)
                         {
                             allFactionsVisible[i].TryAffectGoodwillWith(Faction.OfPlayer, -80, true, true, "Rim War", null);
@@ -595,7 +607,7 @@ namespace RimWar.Planet
                     potentialFactions.Clear();
                     for (int i = 0; i < RimWarData.Count; i++)
                     {
-                        if (RimWarData[i].hatesPlayer && !RimWarData[i].RimWarFaction.def.hidden)
+                        if ((RimWarData[i].hatesPlayer || Options.Settings.Instance.randomRival) && !RimWarData[i].RimWarFaction.def.hidden)
                         {
                             potentialFactions.Add(RimWarData[i].RimWarFaction);
                         }
@@ -625,9 +637,13 @@ namespace RimWar.Planet
             }
         }
 
-        public void UpdateFactions()
+        public void UpdatePlayerAggression()
         {
-            this.minimumHeatForPlayerAction -= Rand.RangeInclusive(1, 2);
+            this.minimumHeatForPlayerAction = Mathf.Clamp(this.minimumHeatForPlayerAction - Rand.RangeInclusive(1, 2), 0, 10000);
+        }
+
+        public void UpdateFactions()
+        {            
             IncrementSettlementGrowth();
             ReconstituteSettlements();
             UpdateFactionSettlements(this.RimWarData.RandomElement());
@@ -642,10 +658,10 @@ namespace RimWar.Planet
                 RimWarData rwd = RimWarData[i];
                 if (rwd.behavior != RimWarBehavior.Player)
                 {
-                    float mult = (settingsref.rwdUpdateFrequency / 2500f);
+                    float mult = (settingsref.rwdUpdateFrequency / 10000f);  //default updaate frequency is 2500, mult = .25f
                     if (rwd.behavior == RimWarBehavior.Expansionist)
                     {
-                        mult = 1.1f;
+                        mult *= 1.1f;
                     }
                     for (int j = 0; j < rwd.WorldSettlements.Count; j++)
                     {
@@ -654,20 +670,41 @@ namespace RimWar.Planet
                         if (rwdTown != null)
                         {
                             int maxPts = 25000;
+                            if(rwd.behavior == RimWarBehavior.Vassal)
+                            {
+                                FactionFC component = Find.World.GetComponent<FactionFC>();
+                                if (component != null)
+                                {
+                                    SettlementFC sfc = component.returnSettlementByLocation(rwdTown.parent.Tile, Find.World.info.name);
+                                    if (sfc != null)
+                                    {
+                                        maxPts = sfc.settlementLevel * 500;
+                                        mult -= .1f;
+                                    }
+                                }
+                            }
                             if (rwdTown.parent.def.defName == "City_Citadel")
                             {
-                                maxPts += 15000;
-                                mult = 1.2f;
+                                maxPts += 5000;
+                                mult += .05f;
                             }
                             if (rwdTown.isCapitol)
                             {
-                                maxPts += 20000;
-                                mult += .2f;
+                                if (rwd.behavior == RimWarBehavior.Vassal)
+                                {
+                                    maxPts += 1000;
+                                    mult += .05f;
+                                }
+                                else
+                                {
+                                    maxPts += 5000;
+                                    mult += .075f;
+                                }
                             }
                             if (rwdTown.RimWarPoints <= maxPts)
                             {
-                                float pts = (Rand.Range(1, 3)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome);
-                                pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * Rand.Range(.2f, 1f) * rwd.growthAttribute;
+                                float pts = (Rand.Range(1f, 2f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome); //.1f - 3.5f
+                                pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute;
                                 rwdTown.RimWarPoints += Mathf.RoundToInt(pts);
                             }
                             if (rwdTown.PlayerHeat < 10000)
@@ -679,6 +716,25 @@ namespace RimWar.Planet
                                 }
                             }
                         }
+                    }
+                }
+
+                if(rwd.behavior == RimWarBehavior.Vassal)
+                {
+                    foreach (Faction f in Find.FactionManager.AllFactionsVisible)
+                    {
+                        if (f != rwd.RimWarFaction && f != Faction.OfPlayer)
+                        {                            
+                            FactionRelation frPlayer = Faction.OfPlayer.RelationWith(f);
+                            FactionRelation frVassal = rwd.RimWarFaction.RelationWith(f);
+                            FactionRelationKind frVassalKind = frVassal.kind;
+                            if (frPlayer !=null && frPlayer.kind != frVassalKind)
+                            {
+                                rwd.RimWarFaction.SetRelation(frPlayer);
+                                bool letterSent;
+                                rwd.RimWarFaction.Notify_RelationKindChanged(f, frVassalKind, false, "Vassal Alignment", rwd.GetCapitol, out letterSent);
+                            }
+                        }                        
                     }
                 }
             }
@@ -734,11 +790,11 @@ namespace RimWar.Planet
                 for (int i = 0; i < this.RimWarData.Count; i++)
                 {
                     //Log.Message("checking faction " + faction + " against rwd faction: " + this.RimWarData[i].RimWarFaction);
-                    if (RimWarData[i].RimWarFaction == faction)
+                    if (RimWarData[i].RandomKey == faction.randomKey)
                     {
                         return true;
                     }
-                    else if (RimWarData[i].RimWarFaction.HasName && RimWarData[i].RimWarFaction.Name == faction.Name)
+                    else if (RimWarData[i].RimWarFaction.HasName && RimWarData[i].RimWarFactionKey == (faction.Name + faction.randomKey).ToString())
                     {
                         //Log.Message("faction names same, factiond different");
                         RimWarData[i].RimWarFaction = faction;
@@ -811,9 +867,22 @@ namespace RimWar.Planet
                 rimwarObject.hatesPlayer = false;
                 rimwarObject.movesAtNight = false;
             }
+            else if(rimwarObject.RimWarFaction.def.defName == "PColony")
+            {
+                rimwarObject.behavior = RimWarBehavior.Vassal;
+                rimwarObject.createsSettlements = false;
+                rimwarObject.hatesPlayer = false;
+                rimwarObject.movesAtNight = false;
+                if (Options.Settings.Instance.randomizeAttributes)
+                {
+                    rimwarObject.combatAttribute = Rand.Range(.75f, 1.25f);
+                    rimwarObject.growthAttribute = Rand.Range(.75f, 1.25f);
+                    rimwarObject.movementAttribute = Rand.Range(.75f, 1.25f);
+                }
+            }
             else
             {
-                rimwarObject.behavior = (RimWarBehavior)Rand.RangeInclusive(0, 5);
+                rimwarObject.behavior = WorldUtility.GetRandomBehavior;
                 rimwarObject.createsSettlements = true;
                 rimwarObject.hatesPlayer = rimwarObject.RimWarFaction.def.permanentEnemy;
                 if (Options.Settings.Instance.randomizeAttributes)
@@ -834,7 +903,7 @@ namespace RimWar.Planet
                 for (int i = 0; i < worldObjects.Count; i++)
                 {
                     //Log.Message("faction for " + worldObjects[i] + " is " + rimwarObject);
-                    if (worldObjects[i].Faction == rimwarObject.RimWarFaction)
+                    if (worldObjects[i].Faction.randomKey == rimwarObject.RimWarFaction.randomKey)
                     {
                         WorldUtility.CreateRimWarSettlement(rimwarObject, worldObjects[i]);
                     }
@@ -852,7 +921,7 @@ namespace RimWar.Planet
                 for (int i = 0; i < worldObjects.Count; i++)
                 {
                     RimWorld.Planet.Settlement wos = worldObjects[i] as RimWorld.Planet.Settlement;
-                    if (WorldUtility.IsValidSettlement(wos) && wos.Faction == rwd.RimWarFaction)
+                    if (WorldUtility.IsValidSettlement(wos) && wos.Faction.randomKey == rwd.RimWarFaction.randomKey)
                     {
                         bool hasSettlement = false;
                         if (rwd.WorldSettlements != null && rwd.WorldSettlements.Count > 0)
@@ -881,7 +950,7 @@ namespace RimWar.Planet
                     for (int j = 0; j < worldObjects.Count; j++)
                     {
                         RimWorld.Planet.Settlement wos = worldObjects[j] as RimWorld.Planet.Settlement;
-                        if (wos != null && wos.Tile == rwdTown.Tile && wos.Faction == rwdTown.Faction)
+                        if (wos != null && wos.Tile == rwdTown.Tile && wos.Faction.randomKey == rwdTown.Faction.randomKey)
                         {
                             hasWorldObject = true;
                             break;
@@ -894,23 +963,13 @@ namespace RimWar.Planet
                     }
                 }
             }
-            else
-            {
-            }
         }
 
         private void AttemptWarbandActionAgainstTownOffMainThread(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false, ContextStorage context = null)
         {
             Options.SettingsRef settingsRef = new Options.SettingsRef();
-            int targetRange = Mathf.RoundToInt(rwsComp.RimWarPoints / (1.25f * settingsRef.settlementScanRangeDivider));
-            if (rwd.behavior == RimWarBehavior.Warmonger)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * 1.4f);
-            }
-            else if (rwd.behavior == RimWarBehavior.Cautious)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * .8f);
-            }
+            int targetRange = rwsComp.SettlementScanRange;
+
             List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
             if (settingsRef.forceRandomObject)
             {
@@ -983,7 +1042,7 @@ namespace RimWar.Planet
                             if (rwsComp.RimWarPoints * .85f >= pts || ignoreRestrictions)
                             {
                                 WorldUtility.CreateWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
-                                rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                                rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                                 if (targetTown.Faction == Faction.OfPlayer)
                                 {
                                     rwsComp.PlayerHeat = 0;
@@ -994,7 +1053,7 @@ namespace RimWar.Planet
                         else if (rwsComp.RimWarPoints * .75f >= pts || ignoreRestrictions)
                         {
                             WorldUtility.CreateWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
-                            rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                            rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                             if (targetTown.Faction == Faction.OfPlayer)
                             {
                                 rwsComp.PlayerHeat = 0;
@@ -1048,15 +1107,8 @@ namespace RimWar.Planet
         public void AttemptLaunchedWarbandAgainstTownOffMainThread(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false, ContextStorage context = null)
         {
             Options.SettingsRef settingsRef = new Options.SettingsRef();
-            int targetRange = Mathf.RoundToInt(rwsComp.RimWarPoints / (.5f * settingsRef.settlementScanRangeDivider));
-            if (rwd.behavior == RimWarBehavior.Warmonger)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * 1.25f);
-            }
-            else if (rwd.behavior == RimWarBehavior.Cautious)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * .8f);
-            }
+            int targetRange = rwsComp.SettlementScanRange * 2;
+
             List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
             if (settingsRef.forceRandomObject)
             {
@@ -1127,7 +1179,7 @@ namespace RimWar.Planet
                         if (rwsComp.RimWarPoints * .8f >= pts || ignoreRestrictions)
                         {
                             WorldUtility.CreateLaunchedWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
-                            rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                            rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                             if (targetTown.Faction == Faction.OfPlayer)
                             {
                                 rwsComp.PlayerHeat = 0;
@@ -1139,7 +1191,7 @@ namespace RimWar.Planet
                     {
                         //Log.Message("launching warband from " + rwsComp.RimWorld_Settlement.Name);
                         WorldUtility.CreateLaunchedWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
-                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                         if (targetTown.Faction == Faction.OfPlayer)
                         {
                             rwsComp.PlayerHeat = 0;
@@ -1199,7 +1251,7 @@ namespace RimWar.Planet
                     Caravan playerCaravan = wo as Caravan;
                     int pts = WorldUtility.CalculateScoutMissionPoints(rwd, Mathf.RoundToInt(playerCaravan.PlayerWealthForStoryteller / 200));
                     WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, WorldObjectDefOf.Caravan);
-                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                     rwsComp.PlayerHeat = 0;
                     minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
 
@@ -1213,7 +1265,7 @@ namespace RimWar.Planet
                         pts = Mathf.RoundToInt(pts * 1.2f);
                     }
                     WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, RimWarDefOf.RW_WarObject);
-                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                     if (wo.Faction == Faction.OfPlayer)
                     {
                         rwsComp.PlayerHeat = 0;
@@ -1229,7 +1281,7 @@ namespace RimWar.Planet
                         pts = Mathf.RoundToInt(pts * 1.2f);
                     }
                     WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, WorldObjectDefOf.Settlement);
-                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                     if (wo.Faction == Faction.OfPlayer)
                     {
                         rwsComp.PlayerHeat = 0;
@@ -1242,19 +1294,19 @@ namespace RimWar.Planet
         private void AttemptScoutOffMainThread(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayerTown = false, bool forcePlayerCaravan = false, bool ignoreRestrictions = false, ContextStorage context = null)
         {
             Options.SettingsRef settingsRef = new Options.SettingsRef();
-            int targetRange = Mathf.RoundToInt(rwsComp.RimWarPoints / settingsRef.settlementScanRangeDivider);
+            int targetRange = rwsComp.SettlementScanRange;
             bool shouldExecute = false;
             if (rwd.behavior == RimWarBehavior.Expansionist)
             {
-                targetRange = Mathf.RoundToInt(targetRange * 1.5f);
+                targetRange = Mathf.RoundToInt(targetRange * 1.3f);
             }
             else if (rwd.behavior == RimWarBehavior.Warmonger)
             {
-                targetRange = Mathf.RoundToInt(targetRange * 1.25f);
+                targetRange = Mathf.RoundToInt(targetRange * 1.2f);
             }
             else if (rwd.behavior == RimWarBehavior.Aggressive)
             {
-                targetRange = Mathf.RoundToInt(targetRange * 1.15f);
+                targetRange = Mathf.RoundToInt(targetRange * 1.1f);
             }
             List<WorldObject> woList = new List<WorldObject>();
             if (settingsRef.forceRandomObject)
@@ -1365,9 +1417,9 @@ namespace RimWar.Planet
         {
             Options.SettingsRef settingsRef = new Options.SettingsRef();
             bool shouldExecute = false;
-            if (rwsComp.RimWarPoints > 2000 || ignoreRestrictions)
+            if (rwsComp.RimWarPoints > 500 || ignoreRestrictions)
             {
-                int targetRange = Mathf.Clamp(Mathf.RoundToInt(rwsComp.RimWarPoints / settingsRef.settlementScanRangeDivider), 11, Mathf.Max((int)settingsRef.maxSettelementScanRange, 12));
+                int targetRange = Mathf.Clamp(rwsComp.SettlementScanRange, 11, Mathf.Max((int)settingsRef.maxSettelementScanRange, 12));
                 if (rwd.behavior == RimWarBehavior.Expansionist)
                 {
                     targetRange = Mathf.RoundToInt(targetRange * 1.2f);
@@ -1426,9 +1478,9 @@ namespace RimWar.Planet
             var destinationTile = context.destinationTile;
             if(shouldExecute)
             {
-                int pts = Mathf.RoundToInt(Rand.Range(.4f, .6f) * 2000);
+                int pts = Mathf.RoundToInt(Rand.Range(.4f, .6f) * 500);
                 WorldUtility.CreateSettler(pts, rwd, parentSettlement, parentSettlement.Tile, destinationTile, null);
-                rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
             }
         }
 
@@ -1469,19 +1521,8 @@ namespace RimWar.Planet
         public void AttemptTradeMissionOffMainThread(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false, ContextStorage context = null)
         {
             Options.SettingsRef settingsRef = new Options.SettingsRef();
-            int targetRange = Mathf.RoundToInt(rwsComp.RimWarPoints / settingsRef.settlementScanRangeDivider);
-            if (rwd.behavior == RimWarBehavior.Expansionist)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * 1.25f);
-            }
-            else if (rwd.behavior == RimWarBehavior.Warmonger)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * .8f);
-            }
-            else if (rwd.behavior == RimWarBehavior.Merchant)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * 1.5f);
-            }
+            int targetRange = rwsComp.SettlementScanRange;
+
             List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
             if (settingsRef.forceRandomObject)
             {
@@ -1539,7 +1580,7 @@ namespace RimWar.Planet
                     if (maxPts >= pts)
                     {
                         Trader tdr = WorldUtility.CreateTrader(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
-                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                         if (targetTown.Faction == Faction.OfPlayer)
                         {
                             rwsComp.PlayerHeat = 0;
@@ -1549,7 +1590,7 @@ namespace RimWar.Planet
                     else
                     {
                         Trader tdr = WorldUtility.CreateTrader(maxPts, rwd, rwsComp.parent as RimWorld.Planet.Settlement, rwsComp.parent.Tile, targetTown, WorldObjectDefOf.Settlement);
-                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - maxPts;
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(maxPts, rwd);
                         if (targetTown.Faction == Faction.OfPlayer)
                         {
                             rwsComp.PlayerHeat = 0;
@@ -1565,7 +1606,7 @@ namespace RimWar.Planet
             if (rwd != null && rwsComp != null && parentSettlement != null)
             {
                 Options.SettingsRef settingsRef = new Options.SettingsRef();
-                if (rwsComp.RimWarPoints > 500 || ignoreRestrictions)
+                if (rwsComp.RimWarPoints > 400 || ignoreRestrictions)
                 {
                     tasker.Register((Func<ContextStorage>)(() =>
                     {
@@ -1601,11 +1642,8 @@ namespace RimWar.Planet
         private void AttemptDiplomatMissionOffMainThread(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, ContextStorage context = null)
         {
             Options.SettingsRef settingsRef = new Options.SettingsRef();
-            int targetRange = Mathf.RoundToInt(rwsComp.RimWarPoints / settingsRef.settlementScanRangeDivider);
-            if (rwd.behavior == RimWarBehavior.Merchant || rwd.behavior == RimWarBehavior.Expansionist)
-            {
-                targetRange = Mathf.RoundToInt(targetRange * 1.25f);
-            }
+            int targetRange = rwsComp.SettlementScanRange;
+
             List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
             if (settingsRef.forceRandomObject)
             {
@@ -1650,7 +1688,7 @@ namespace RimWar.Planet
                     {
                         //Log.Message("sending warband from " + rwsComp.RimWorld_Settlement.Name);
                         WorldUtility.CreateDiplomat(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
-                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - pts;
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                         if (targetTown.Faction == Faction.OfPlayer)
                         {
                             rwsComp.PlayerHeat = 0;
@@ -1701,7 +1739,7 @@ namespace RimWar.Planet
 
         public int GetHeatForAction(RimWarAction action)
         {
-            int pts = 0;
+            float pts = 0;
             if (action == RimWarAction.Caravan)
             {
                 pts -= 50;
@@ -1729,13 +1767,13 @@ namespace RimWar.Planet
             Options.SettingsRef settingsRef = new Options.SettingsRef();
             if (settingsRef.storytellerBasedDifficulty)
             {
-                pts = (int)((float)pts / Find.Storyteller.difficulty.threatScale);
+                pts = pts / Find.Storyteller.difficulty.threatScale;
             }
             else
             {
-                pts = (int)((float)pts / settingsRef.rimwarDifficulty);
+                pts = pts / settingsRef.rimwarDifficulty;
             }
-            return pts;
+            return Mathf.RoundToInt(pts * settingsRef.heatMultiplier);
         }
     }
 }

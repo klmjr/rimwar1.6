@@ -43,7 +43,7 @@ namespace RimWar.Planet
         {
             lock (locker)
             {
-                _worldObjectsHolder = Find.WorldObjects.AllWorldObjects.ToList();
+                _worldObjectsHolder = Find.WorldObjects.AllWorldObjects;
             }
         }
 
@@ -56,7 +56,7 @@ namespace RimWar.Planet
                 {
                     for (int j = 0; j < wcpt.RimWarData.Count; j++)
                     {
-                        if (wcpt.RimWarData[j].RimWarFaction == faction)
+                        if (wcpt.RimWarData[j].RandomKey == faction.randomKey)
                         {
                             return wcpt.RimWarData[j];
                         }
@@ -187,7 +187,7 @@ namespace RimWar.Planet
                 {
                     Find.WorldObjects.Remove(wo);
                 }
-            }
+            }            
             WorldUtility.GetRimWarData().Remove(rwdFrom);
         }
 
@@ -657,7 +657,7 @@ namespace RimWar.Planet
         {
             if (faction != null)
             {
-                int sum = 300;
+                int sum = 100;
                 float techMultiplier = GetFactionTechLevelMultiplier(faction);
                 sum = Mathf.RoundToInt(sum / techMultiplier);
                 float biomeMultiplier = GetBiomeMultiplier(worldObject.Biome);
@@ -676,9 +676,9 @@ namespace RimWar.Planet
                 }
                 if (worldObject.def.defName == "City_Citadel")
                 {
-                    sum = Mathf.RoundToInt(sum * 2.75f);
+                    sum = Mathf.RoundToInt(sum * 1.75f);
                 }
-                return sum;
+                return Mathf.Clamp(sum, 100, 1000);
             }
             else
             {
@@ -728,7 +728,7 @@ namespace RimWar.Planet
 
             pointsNeeded = Mathf.RoundToInt(Rand.Range(.75f, 1.25f) * pointsNeeded);
 
-            return Mathf.Clamp(pointsNeeded, 200, 1000000);
+            return Mathf.Clamp(pointsNeeded, 400, 1000000);
         }
 
         public static int CalculateSettlerPoints(RimWarSettlementComp originTown)
@@ -763,7 +763,7 @@ namespace RimWar.Planet
         {
             if (faction != null)
             {
-                if (faction.def.techLevel != null && faction.def.techLevel != TechLevel.Animal && faction.def.techLevel != TechLevel.Undefined)
+                if (faction.def.techLevel != TechLevel.Animal && faction.def.techLevel != TechLevel.Undefined)
                 {
                     if (faction.def.techLevel == TechLevel.Neolithic)
                     {
@@ -813,6 +813,38 @@ namespace RimWar.Planet
                 return Mathf.Clamp(Find.Storyteller.difficulty.threatScale, .25f, 1.5f);
             }
             return settingsRef.rimwarDifficulty;
+        }
+
+        public static RimWarBehavior GetRandomBehavior
+        {
+            get
+            {
+                int rnd = Rand.RangeInclusive(0, 5);
+                if(rnd == 0)
+                {
+                    return RimWarBehavior.Expansionist;
+                }
+                else if(rnd == 1)
+                {
+                    return RimWarBehavior.Cautious;
+                }
+                else if(rnd == 2)
+                {
+                    return RimWarBehavior.Merchant;
+                }
+                else if(rnd == 3)
+                {
+                    return RimWarBehavior.Aggressive;
+                }
+                else if(rnd == 4)
+                {
+                    return RimWarBehavior.Warmonger;
+                }
+                else
+                {
+                    return RimWarBehavior.Random;
+                }
+            }
         }
 
         public static void CalculateFactionBehaviorWeights(RimWarData rimwarObject)
@@ -1009,7 +1041,7 @@ namespace RimWar.Planet
             //Ice Sheet = 0.18
             //Extreme Desert  = 0.1
 
-            return mult;
+            return Mathf.Clamp(mult, .5f, 5f);
         }
 
         public static List<RimWarSettlementComp> GetRimWarSettlements(List<RimWarData> rwdList)
@@ -1118,25 +1150,28 @@ namespace RimWar.Planet
             {
                 for (int i = 0; i < settlementsInRange.Count; i++)
                 {
-                    if (closestSettlement != null)
+                    if (Find.WorldGrid.ApproxDistanceInTiles(tile, settlementsInRange[i].parent.Tile) <= maxRange)
                     {
-                        //if(Find.WorldGrid.TraversalDistanceBetween(tile, settlementsInRange[i].Tile, false, maxRange) < Find.WorldGrid.TraversalDistanceBetween(tile, closestSettlement.Tile, false, maxRange))
-                        //{
-                        //    closestSettlement = settlementsInRange[i];
-                        //}
-
-                        float otherDist = Find.WorldGrid.ApproxDistanceInTiles(tile, settlementsInRange[i].parent.Tile);
-                        if (otherDist < closestDist)
+                        if (closestSettlement != null)
                         {
-                            closestDist = otherDist;
-                            closestSettlement = settlementsInRange[i];
-                        }
+                            //if(Find.WorldGrid.TraversalDistanceBetween(tile, settlementsInRange[i].Tile, false, maxRange) < Find.WorldGrid.TraversalDistanceBetween(tile, closestSettlement.Tile, false, maxRange))
+                            //{
+                            //    closestSettlement = settlementsInRange[i];
+                            //}
 
-                    }
-                    else
-                    {
-                        closestSettlement = settlementsInRange[i];
-                        closestDist = Find.WorldGrid.ApproxDistanceInTiles(tile, closestSettlement.parent.Tile);
+                            float otherDist = Find.WorldGrid.ApproxDistanceInTiles(tile, settlementsInRange[i].parent.Tile);
+                            if (otherDist < closestDist)
+                            {
+                                closestDist = otherDist;
+                                closestSettlement = settlementsInRange[i];
+                            }
+
+                        }
+                        else
+                        {
+                            closestSettlement = settlementsInRange[i];
+                            closestDist = Find.WorldGrid.ApproxDistanceInTiles(tile, closestSettlement.parent.Tile);
+                        }
                     }
                 }
             }
@@ -1173,7 +1208,7 @@ namespace RimWar.Planet
             return null;
         }
 
-        public static List<RimWorld.Planet.Settlement> GetHostileSettlementsInRange(int from, int range, Faction faction, List<RimWarData> rwdList, RimWarData rwd)
+        public static List<RimWorld.Planet.Settlement> GetHostileSettlementsInRange(int from, int range, Faction faction)
         {
             List<RimWorld.Planet.Settlement> settlementsInRange = GetRimWorldSettlementsInRange(from, range);
             List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
@@ -1191,7 +1226,7 @@ namespace RimWar.Planet
         public static List<RimWorld.Planet.Settlement> GetNonHostileRimWarSettlementsInRange(int from, int range, Faction faction, List<RimWarData> rwdList, RimWarData rwd)
         {
             List<RimWorld.Planet.Settlement> settlementsInRange = GetRimWorldSettlementsInRange(from, range);
-            List<RimWorld.Planet.Settlement> tmpSettlements = settlementsInRange.Except(GetHostileSettlementsInRange(from, range, faction, rwdList, rwd)).ToList();
+            List<RimWorld.Planet.Settlement> tmpSettlements = settlementsInRange.Except(GetHostileSettlementsInRange(from, range, faction)).ToList();
             return tmpSettlements;
         }
 
@@ -1264,7 +1299,15 @@ namespace RimWar.Planet
         {
             List<WarObject> warObjects = new List<WarObject>();
             warObjects.Clear();
-            List<WorldObject> worldObjects = Find.WorldObjects.AllWorldObjects.ToList();
+            //List<WorldObject> worldObjects = Find.WorldObjects.AllWorldObjects.ToList();
+            List<WorldObject> worldObjects = null;
+            //List<WorldObject> tmpObjects = Find.WorldObjects.AllWorldObjects;
+            if (WorldObjectsHolder == null)
+                CopyData();
+            lock (locker)
+            {
+                worldObjects = WorldObjectsHolder;
+            }
             if (worldObjects != null && worldObjects.Count > 0)
             {
                 for (int i = 0; i < worldObjects.Count; i++)
@@ -1281,49 +1324,68 @@ namespace RimWar.Planet
 
         public static List<WorldObject> GetWorldObjectsInRange(int from, float range)
         {
-            List<WorldObject> tmpObjects = new List<WorldObject>();
-            List<WorldObject> worldObjects;
+
+            List<WorldObject> tmpObjects = null;
+            //List<WorldObject> tmpObjects = Find.WorldObjects.AllWorldObjects;
             if (WorldObjectsHolder == null)
                 CopyData();
             lock (locker)
             {
-                worldObjects = WorldObjectsHolder.InRandomOrder().ToList();
+                tmpObjects = WorldObjectsHolder;
             }
-            for (int i = 0; i < worldObjects.Count; i++)
+            List<WorldObject> objectsInRange = new List<WorldObject>();
+            if (tmpObjects != null && tmpObjects.Count > 0)
             {
-                int to = worldObjects[i].Tile;
-                if (from == to)
-                {
-                    tmpObjects.Add(worldObjects[i]);
-                    continue;
-                }
-                //int distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, range);
-                float distance = Find.WorldGrid.ApproxDistanceInTiles(from, to);
-                //Log.Message("getting tile in range is an approx distance of " + Find.WorldGrid.ApproxDistanceInTiles(from, to) + " travel distance is " + distance + " and has a range cap of " + range);
-                if (distance <= range)
-                {
-                    tmpObjects.Add(worldObjects[i]);
+                List<WorldObject> worldObjects = tmpObjects.InRandomOrder().ToList();
+                //List<WorldObject> tmpObjects = Find.WorldObjects.AllWorldObjects;
+                //if (WorldObjectsHolder == null)
+                //    CopyData();
+                //lock (locker)
+                //{
+                //    worldObjects = WorldObjectsHolder.InRandomOrder().ToList();
+                //}
+                if (worldObjects != null)
+                {                    
+                    for (int i = 0; i < worldObjects.Count; i++)
+                    {
+                        int to = worldObjects[i].Tile;
+                        if (from == to)
+                        {
+                            objectsInRange.Add(worldObjects[i]);
+                            continue;
+                        }
+                        //int distance = Find.WorldGrid.TraversalDistanceBetween(from, to, false, range);
+                        float distance = Find.WorldGrid.ApproxDistanceInTiles(from, to);
+                        //Log.Message("getting tile in range is an approx distance of " + Find.WorldGrid.ApproxDistanceInTiles(from, to) + " travel distance is " + distance + " and has a range cap of " + range);
+                        if (distance <= range)
+                        {
+                            objectsInRange.Add(worldObjects[i]);
+                        }
+                    }
                 }
             }
-            return tmpObjects;
+            return objectsInRange;
         }
 
         public static List<WorldObject> GetAllWorldObjectsAt(int tile)
         {
             List<WorldObject> tmpObjects = new List<WorldObject>();
-            List<WorldObject> worldObjects;
+            List<WorldObject> worldObjects = null; // Find.WorldObjects.AllWorldObjects.ToList();
             if (WorldObjectsHolder == null)
                 CopyData();
             lock (locker)
             {
-                worldObjects = WorldObjectsHolder.ToList();
+                worldObjects = WorldObjectsHolder; ;
             }
-            for (int i = 0; i < worldObjects.Count; i++)
+            if (worldObjects != null)
             {
-                if (tile == worldObjects[i].Tile)
+                for (int i = 0; i < worldObjects.Count; i++)
                 {
-                    tmpObjects.Add(worldObjects[i]);
-                    continue;
+                    if (tile == worldObjects[i].Tile)
+                    {
+                        tmpObjects.Add(worldObjects[i]);
+                        continue;
+                    }
                 }
             }
             return tmpObjects;
@@ -1332,19 +1394,23 @@ namespace RimWar.Planet
         public static List<WorldObject> GetAllWorldObjectsAtExcept(int tile, WorldObject woThis)
         {
             List<WorldObject> tmpObjects = new List<WorldObject>();
-            List<WorldObject> worldObjects;
-            if (WorldObjectsHolder == null)
-                CopyData();
-            lock (locker)
+            List<WorldObject> worldObjects = Find.WorldObjects.AllWorldObjects.ToList();
+            //List<WorldObject> worldObjects = null; // Find.WorldObjects.AllWorldObjects.ToList();
+            //if (WorldObjectsHolder == null)
+            //    CopyData();
+            //lock (locker)
+            //{
+            //    worldObjects = WorldObjectsHolder.ToList();
+            //}
+            if (worldObjects != null)
             {
-                worldObjects = WorldObjectsHolder.ToList();
-            }
-            for (int i = 0; i < worldObjects.Count; i++)
-            {
-                if (tile == worldObjects[i].Tile && woThis != worldObjects[i])
+                for (int i = 0; i < worldObjects.Count; i++)
                 {
-                    tmpObjects.Add(worldObjects[i]);
-                    continue;
+                    if (tile == worldObjects[i].Tile && woThis != worldObjects[i])
+                    {
+                        tmpObjects.Add(worldObjects[i]);
+                        continue;
+                    }
                 }
             }
             return tmpObjects;
@@ -1390,13 +1456,12 @@ namespace RimWar.Planet
         {
             List<WarObject> tmpWarObjects = new List<WarObject>();
             tmpWarObjects.Clear();
-            List<WorldObject> tmpObjects;
+            List<WorldObject> tmpObjects = null; // Find.WorldObjects.AllWorldObjects.ToList();
+            if (WorldObjectsHolder == null)
+                CopyData();
             lock (locker)
             {
-                if (WorldObjectsHolder == null)
-                    CopyData();
-
-                tmpObjects = WorldObjectsHolder.ToList();
+                tmpObjects = WorldObjectsHolder;
             }
             if (tmpObjects != null && tmpObjects.Count > 0)
             {
@@ -1464,25 +1529,34 @@ namespace RimWar.Planet
 
         public static void ValidateObjectFactions(bool forced = false)
         {
-            List<WorldObject> woList = Find.WorldObjects.AllWorldObjects;
-            for (int i = 0; i < woList.Count; i++)
+            List<WorldObject> woList = null;// Find.WorldObjects.AllWorldObjects;
+            if (WorldObjectsHolder == null)
+                CopyData();
+            lock (locker)
             {
-                WarObject rwo = woList[i] as WarObject;
-                if (rwo != null)
+                woList = WorldObjectsHolder;
+            }
+            if (woList != null && woList.Count > 0)
+            {
+                for (int i = 0; i < woList.Count; i++)
                 {
-                    if (rwo.rimwarData != null && rwo.rimwarData.RimWarFaction != null)
+                    WarObject rwo = woList[i] as WarObject;
+                    if (rwo != null)
                     {
-                        List<RimWarData> rwdList = WorldUtility.Get_WCPT().RimWarData;
-                        for (int j = 0; j < rwdList.Count; j++)
+                        if (rwo.rimwarData != null && rwo.rimwarData.RimWarFaction != null)
                         {
-                            RimWarData rwd = rwdList[j];
-                            if (rwd != null && rwd.RimWarFaction != null)
+                            List<RimWarData> rwdList = WorldUtility.Get_WCPT().RimWarData;
+                            for (int j = 0; j < rwdList.Count; j++)
                             {
-                                if (rwd.RimWarFaction != rwo.Faction)
+                                RimWarData rwd = rwdList[j];
+                                if (rwd != null && rwd.RimWarFaction != null)
                                 {
-                                    if (rwd.RimWarFaction.Name == rwo.Faction.Name)
+                                    if (rwd.RimWarFaction != rwo.Faction)
                                     {
-                                        rwo.SetFaction(rwd.RimWarFaction);
+                                        if (rwd.RimWarFaction.Name == rwo.Faction.Name)
+                                        {
+                                            rwo.SetFaction(rwd.RimWarFaction);
+                                        }
                                     }
                                 }
                             }
@@ -1557,6 +1631,46 @@ namespace RimWar.Planet
                 }
             }
             return false;
+        }
+
+        public static int RelativePowerCostAdjustment(int pts, RimWarData thisRWD)
+        {
+            int adjustedCost = 0;
+            List<RimWarData> rwdList = Get_WCPT().RimWarData;
+            float totalPoints= 0;
+            float totalFactions = 0;
+            float averagePoints = 0;
+            float thisFactionPts = 0;
+            float relativePower = 1f;
+            
+            if(rwdList != null && rwdList.Count > 0)
+            {
+                for(int i = 0; i < rwdList.Count; i++)
+                {
+                    RimWarData rwd = rwdList[i];
+                    if(rwd.behavior != RimWarBehavior.Player && rwd.behavior != RimWarBehavior.Vassal && rwd.behavior != RimWarBehavior.Undefined)
+                    {
+                        totalFactions++;
+                        totalPoints += rwd.TotalFactionPoints;
+                        if(thisRWD.RimWarFactionKey == rwd.RimWarFactionKey)
+                        {
+                            thisFactionPts = rwd.TotalFactionPoints;
+                        }
+                    }
+                }
+
+                if (totalFactions != 0)
+                {
+                    averagePoints = totalPoints / totalFactions;
+                    if (averagePoints != 0)
+                    {
+                        relativePower = Mathf.Clamp(thisFactionPts / averagePoints, .75f, 1.25f);
+                        adjustedCost = Mathf.RoundToInt(relativePower * pts);
+                    }
+                }
+            }
+            
+            return adjustedCost;
         }
     }
 }

@@ -356,25 +356,35 @@ namespace RimWar.Planet
         {
             int num = (!moving || nextTile < 0 || !IsNextTilePassable()) ? warObject.Tile : nextTile;
             lastPathedTargetTile = destTile;
-            WorldPath worldPath = Verse.Find.WorldPathFinder.FindPath(num, destTile, null);
-            if (worldPath.Found && num != warObject.Tile)
+
+            try
             {
-                if (worldPath.NodesLeftCount >= 2 && worldPath.Peek(1) == warObject.Tile)
+                WorldPath worldPath = Verse.Find.WorldPathFinder.FindPath(num, destTile, null);
+                if (worldPath.Found && num != warObject.Tile)
                 {
-                    worldPath.ConsumeNextNode();
-                    if (moving)
+                    if (worldPath.NodesLeftCount >= 2 && worldPath.Peek(1) == warObject.Tile)
                     {
-                        previousTileForDrawingIfInDoubt = nextTile;
-                        nextTile = warObject.Tile;
-                        nextTileCostLeft = nextTileCostTotal - nextTileCostLeft;
+                        worldPath.ConsumeNextNode();
+                        if (moving)
+                        {
+                            previousTileForDrawingIfInDoubt = nextTile;
+                            nextTile = warObject.Tile;
+                            nextTileCostLeft = nextTileCostTotal - nextTileCostLeft;
+                        }
+                    }
+                    else
+                    {
+                        worldPath.AddNodeAtStart(warObject.Tile);
                     }
                 }
-                else
-                {
-                    worldPath.AddNodeAtStart(warObject.Tile);
-                }
+                return worldPath;
             }
-            return worldPath;
+            catch
+            {
+                warObject.pauseFor = 10;
+                return new WorldPath();
+            }
+            
         }
 
         private bool AtDestinationPosition()
@@ -394,8 +404,15 @@ namespace RimWar.Planet
             }
             for (int i = 0; i < 20 && i < curPath.NodesLeftCount; i++)
             {
-                int tileID = curPath.Peek(i);
-                if (Verse.Find.World.Impassable(tileID))
+                try
+                {
+                    int tileID = curPath.Peek(i);
+                    if (Verse.Find.World.Impassable(tileID))
+                    {
+                        return true;
+                    }
+                }
+                catch
                 {
                     return true;
                 }

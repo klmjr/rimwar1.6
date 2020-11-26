@@ -49,8 +49,9 @@ namespace RimWar.Utility
                         }
                     }                    
                 }
-                 
-                return woNearbyResult;
+
+                List<WarObject> orderedList = woNearbyResult.OrderBy(name => name.Name).ToList();
+                return orderedList;
             }
         }
 
@@ -62,7 +63,8 @@ namespace RimWar.Utility
         public override TaggedString GetExplanation()
         {
             StringBuilder stringBuilder = new StringBuilder();
-            foreach (WarObject wo in WONearbyResult)
+            List<WarObject> tmpList = WONearbyResult.OrderBy(s => s.Name).ToList();
+            foreach (WarObject wo in tmpList)
             {
                 Color colorSource = ColorUtility.GetColorForFaction(wo.Faction);
                 Color colorDest = ColorUtility.DefaultColor;

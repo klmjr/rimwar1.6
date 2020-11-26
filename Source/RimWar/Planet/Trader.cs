@@ -28,7 +28,9 @@ namespace RimWar.Planet
             Scribe_Values.Look<bool>(ref this.tradedWithTrader, "tradedWithTrader", false, false);
             Scribe_Values.Look<bool>(ref this.tradedWithPlayer, "tradedWithPlayer", false, false);
             Scribe_Defs.Look<TraderKindDef>(ref this.traderKind, "traderKind");
-        }        
+        }
+
+        public override WorldObjectDef GetDef => this.def;
 
         public Trader()
         {

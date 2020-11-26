@@ -21,7 +21,9 @@ namespace RimWar.Planet
             
             Scribe_Values.Look<int>(ref this.lastEventTick, "lastEventTick", 0, false);
             Scribe_Values.Look<int>(ref this.ticksPerMove, "ticksPerMove", 2800, false);                       
-        }        
+        }
+
+        public override WorldObjectDef GetDef => this.def;
 
         public Warband()
         {
@@ -108,7 +110,7 @@ namespace RimWar.Planet
         {
             if(car.Faction != null && car.Faction == Faction.OfPlayer && this.Faction.HostileTo(car.Faction))
             {
-                if (ShouldInteractWith(car, this) || ((car.PlayerWealthForStoryteller / 80) <= (int)(this.RimWarPoints) && CaravanDetected(car)))
+                if (ShouldInteractWith(car, this) || ((car.PlayerWealthForStoryteller / 80) <= (this.RimWarPoints) && CaravanDetected(car)))
                 {
                     this.interactable = false;
                     IncidentUtility.DoCaravanAttackWithPoints(this, car, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
@@ -146,49 +148,62 @@ namespace RimWar.Planet
                         if (wo.Faction == Faction.OfPlayer)
                         {
                             //Do Raid
-                            RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);
-                            Caravan playerCaravan = Find.World.worldObjects.PlayerControlledCaravanAt(this.Tile);
-                            if (playerSettlement != null)
+                            if (wo is Settlement)
                             {
-                                //Raid Player Map
-                                if (this.launched)
+                                //RimWorld.Planet.Settlement playerSettlement = Find.WorldObjects.SettlementAt(this.Tile);
+                                Settlement playerSettlement = wo as Settlement;
+                                if (playerSettlement != null)
                                 {
-                                    PawnsArrivalModeDef arrivalDef = PawnsArrivalModeDefOf.EdgeDrop;
-                                    if(Rand.Chance(.35f))
+                                    //Raid Player Map
+                                    if (this.launched)
                                     {
-                                        arrivalDef = PawnsArrivalModeDefOf.CenterDrop;
-                                    }
-                                    else if(Rand.Chance(.2f))
-                                    {
-                                        arrivalDef = PawnsArrivalModeDefOf.RandomDrop;
-                                    }
+                                        PawnsArrivalModeDef arrivalDef = PawnsArrivalModeDefOf.EdgeDrop;
+                                        if (Rand.Chance(.35f))
+                                        {
+                                            arrivalDef = PawnsArrivalModeDefOf.CenterDrop;
+                                        }
+                                        else if (Rand.Chance(.2f))
+                                        {
+                                            arrivalDef = PawnsArrivalModeDefOf.RandomDrop;
+                                        }
 
-                                    IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(arrivalDef));
-                                }
-                                else
-                                {
-                                    IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(arrivalDef));
+                                    }
+                                    else
+                                    {
+                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                    }
                                 }
                             }
-                            else if (playerCaravan != null)
+                            else if (wo is Caravan)
                             {
-                                //Raid player caravan
-                                IncidentUtility.DoCaravanAttackWithPoints(this, playerCaravan, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                //Caravan playerCaravan = Find.WorldObjects.PlayerControlledCaravanAt(this.Tile);
+                                Caravan playerCaravan = wo as Caravan;
+                                if (playerCaravan != null)
+                                {
+                                    //Raid player caravan
+                                    IncidentUtility.DoCaravanAttackWithPoints(this, playerCaravan, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                }
                             }
                         }
                         else
                         {
-                            RimWarSettlementComp settlement = WorldUtility.GetRimWarSettlementAtTile(this.Tile);
-                            if (settlement != null)
+                            if (wo is Settlement)
                             {
-                                if (settlement.parent.Faction == Faction.OfPlayer)
+                                Settlement factionSettlement = wo as Settlement;
+                                //RimWarSettlementComp settlement = WorldUtility.GetRimWarSettlementAtTile(this.Tile);
+                                RimWarSettlementComp rwsc = factionSettlement.GetComponent<RimWarSettlementComp>();
+                                if (rwsc != null)
                                 {
-                                    RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);
-                                    IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
-                                }
-                                else
-                                {
-                                    IncidentUtility.ResolveWarObjectAttackOnSettlement(this, this.ParentSettlement, settlement, WorldUtility.GetRimWarDataForFaction(this.Faction));
+                                    if (rwsc.parent.Faction == Faction.OfPlayer)
+                                    {
+                                        //RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);                                        
+                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, factionSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                    }
+                                    else
+                                    {
+                                        IncidentUtility.ResolveWarObjectAttackOnSettlement(this, this.ParentSettlement, rwsc, WorldUtility.GetRimWarDataForFaction(this.Faction));
+                                    }
                                 }
                             }
                             else if (wo is WarObject)
@@ -201,30 +216,34 @@ namespace RimWar.Planet
                     {
                         if (wo.Faction == Faction.OfPlayerSilentFail) // reinforce player
                         {
-                            RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);
-                            if (playerSettlement != null)
+                            //RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);
+                            if (wo is Settlement)
                             {
-                                //Raid Player Map
-                                if ((this.rimwarData.behavior == RimWarBehavior.Warmonger) || (this.rimwarData.behavior == RimWarBehavior.Aggressive && Rand.Chance(.5f)))
+                                Settlement playerSettlement = wo as Settlement;
+                                if (playerSettlement != null)
                                 {
-                                    if (this.launched)
+                                    //Raid Player Map
+                                    if ((this.rimwarData.behavior == RimWarBehavior.Warmonger) || (this.rimwarData.behavior == RimWarBehavior.Aggressive && Rand.Chance(.5f)))
                                     {
-                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.RandomDrop));
+                                        if (this.launched)
+                                        {
+                                            IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.RandomDrop));
+                                        }
+                                        else
+                                        {
+                                            IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                        }
                                     }
                                     else
                                     {
-                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
-                                    }
-                                }
-                                else
-                                {
-                                    if (this.launched)
-                                    {
-                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.CenterDrop));
-                                    }
-                                    else
-                                    {
-                                        IncidentUtility.DoReinforcementWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                        if (this.launched)
+                                        {
+                                            IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.CenterDrop));
+                                        }
+                                        else
+                                        {
+                                            IncidentUtility.DoReinforcementWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                        }
                                     }
                                 }
                             }

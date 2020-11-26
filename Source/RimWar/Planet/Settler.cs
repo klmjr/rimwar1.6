@@ -22,7 +22,9 @@ namespace RimWar.Planet
             base.ExposeData();
             Scribe_Values.Look<int>(ref this.lastEventTick, "lastEventTick", 0, false);            
             Scribe_Values.Look<int>(ref this.ticksPerMove, "ticksPerMove", 2500, false);                       
-        }        
+        }
+
+        public override WorldObjectDef GetDef => this.def;
 
         public Settler()
         {

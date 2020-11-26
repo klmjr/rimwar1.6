@@ -67,6 +67,7 @@
     <expandingIcon>true</expandingIcon>
     <expandingIconTexture>World/LaunchWarbandExpanded</expandingIconTexture>
     <expandingIconPriority>100</expandingIconPriority>
+	<expandingIconDrawSize>.8</expandingIconDrawSize>
     <expandMore>true</expandMore>
     <inspectorTabs>
     </inspectorTabs>
@@ -83,6 +84,7 @@
     <expandingIconTexture>World/WarbandExpanded</expandingIconTexture>
     <expandingIconPriority>100</expandingIconPriority>
     <expandMore>true</expandMore>
+	<expandingIconDrawSize>.7</expandingIconDrawSize>
     <inspectorTabs>
     </inspectorTabs>
   </WorldObjectDef>
@@ -98,6 +100,7 @@
     <expandingIconTexture>World/LaunchWarbandExpanded</expandingIconTexture>
     <expandingIconPriority>100</expandingIconPriority>
     <expandMore>true</expandMore>
+	<expandingIconDrawSize>.7</expandingIconDrawSize>
     <inspectorTabs>
     </inspectorTabs>
   </WorldObjectDef>
@@ -113,6 +116,7 @@
     <expandingIconTexture>World/ScoutExpanded</expandingIconTexture>
     <expandingIconPriority>100</expandingIconPriority>
     <expandMore>true</expandMore>
+	<expandingIconDrawSize>.7</expandingIconDrawSize>
     <inspectorTabs>
     </inspectorTabs>
   </WorldObjectDef>
@@ -128,6 +132,7 @@
     <expandingIconTexture>World/TraderExpanded</expandingIconTexture>
     <expandingIconPriority>100</expandingIconPriority>
     <expandMore>true</expandMore>
+	<expandingIconDrawSize>.7</expandingIconDrawSize>
     <inspectorTabs>
     </inspectorTabs>
   </WorldObjectDef>
@@ -143,6 +148,7 @@
     <expandingIconTexture>World/DiplomatExpanded</expandingIconTexture>
     <expandingIconPriority>100</expandingIconPriority>
     <expandMore>true</expandMore>
+	<expandingIconDrawSize>.7</expandingIconDrawSize>
     <inspectorTabs>
     </inspectorTabs>
   </WorldObjectDef>
@@ -158,6 +164,7 @@
     <expandingIconTexture>World/SettlerExpanded</expandingIconTexture>
     <expandingIconPriority>100</expandingIconPriority>
     <expandMore>true</expandMore>
+	<expandingIconDrawSize>.7</expandingIconDrawSize>
     <inspectorTabs>
     </inspectorTabs>
   </WorldObjectDef>

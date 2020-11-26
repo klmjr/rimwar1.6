@@ -17,5 +17,9 @@ namespace RimWar
         public static readonly Texture2D Icon_Scout = ContentFinder<Texture2D>.Get("World/ScoutExpanded", true);
         public static readonly Texture2D Icon_Warband = ContentFinder<Texture2D>.Get("World/WarbandExpanded", true);
         public static readonly Texture2D Icon_LaunchWarband = ContentFinder<Texture2D>.Get("World/LaunchWarbandExpanded", true);
+
+        public static readonly Texture2D Marker_ShowAggression = ContentFinder<Texture2D>.Get("World/WarbandExpanded");
+
+        public static readonly Material Material_Exclamation_Green = MaterialPool.MatFrom("World/Exclamation_Green");
     }
 }
