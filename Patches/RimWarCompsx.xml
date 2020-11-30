@@ -8,14 +8,38 @@
 	  </value>
 	</Operation> 
 
-	<Operation Class="PatchOperationAdd">
-	  <xpath>*/WorldObjectDef[worldObjectClass = "Caravan"]</xpath>
-	  <value>
-		<comps>
-			<li Class = "RimWar.Planet.WorldObjectCompProperties_RimWarCaravan"></li>
-        </comps>           					
-	  </value>
+    <Operation Class="PatchOperationSequence">
+	  <success>Always</success>
+		<operations>
+			<li Class="PatchOperationTest">
+				<xpath>*/WorldObjectDef[worldObjectClass = "Caravan"]/comps</xpath>
+				<success>Invert</success>
+			</li>
+			<li Class="PatchOperationAdd">
+			  <xpath>*/WorldObjectDef[worldObjectClass = "Caravan"]</xpath>
+			  <value>
+				<comps>
+					<li Class = "RimWar.Planet.WorldObjectCompProperties_RimWarCaravan"></li>
+				</comps>           					
+			  </value>
+			</li>
+		</operations>
 	</Operation> 	
+	
+	<Operation Class="PatchOperationSequence">
+	  <success>Always</success>
+		<operations>
+			<li Class="PatchOperationTest">
+			  <xpath>*/WorldObjectDef[worldObjectClass = "Caravan"]/comps</xpath>
+			</li>
+			<li Class="PatchOperationAdd">
+			  <xpath>*/WorldObjectDef[worldObjectClass = "Caravan"]/comps</xpath>
+			  <value>
+				 <li Class = "RimWar.Planet.WorldObjectCompProperties_RimWarCaravan"></li>         					
+			  </value>
+			</li>
+		</operations>
+	</Operation> 
 	
 	<Operation Class="PatchOperationSequence">
 	<success>Always</success>
@@ -31,5 +55,6 @@
 	  </li>
 	 </operations>
   </Operation>	
+  
 	
 </Patch>

@@ -121,6 +121,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base.cs" />
+    <Compile Include="ModCheck\Empire.cs" />
     <Compile Include="ModCheck\Validate.cs" />
     <Compile Include="Planet\RimWarCaravanComp.cs" />
     <Compile Include="Planet\SettlementUtility.cs" />

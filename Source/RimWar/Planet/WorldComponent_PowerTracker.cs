@@ -12,7 +12,7 @@ using RimWar.RocketTools;
 using RimWar.Options;
 using System.Diagnostics;
 using System.Threading;
-using FactionColonies;
+//using FactionColonies;
 
 namespace RimWar.Planet
 {
@@ -670,17 +670,12 @@ namespace RimWar.Planet
                         if (rwdTown != null)
                         {
                             int maxPts = 25000;
-                            if(rwd.behavior == RimWarBehavior.Vassal)
+                            if (rwd.behavior == RimWarBehavior.Vassal)
                             {
-                                FactionFC component = Find.World.GetComponent<FactionFC>();
-                                if (component != null)
+                                if(ModCheck.Empire.FactionFC_ComponentCheck(rwdTown.parent.Tile))
                                 {
-                                    SettlementFC sfc = component.returnSettlementByLocation(rwdTown.parent.Tile, Find.World.info.name);
-                                    if (sfc != null)
-                                    {
-                                        maxPts = sfc.settlementLevel * 500;
-                                        mult -= .1f;
-                                    }
+                                    maxPts = ModCheck.Empire.FactionFC_SettlementLevel(rwdTown.parent.Tile);
+                                    mult -= .1f;
                                 }
                             }
                             if (rwdTown.parent.def.defName == "City_Citadel")
@@ -903,7 +898,7 @@ namespace RimWar.Planet
                 for (int i = 0; i < worldObjects.Count; i++)
                 {
                     //Log.Message("faction for " + worldObjects[i] + " is " + rimwarObject);
-                    if (worldObjects[i].Faction.randomKey == rimwarObject.RimWarFaction.randomKey)
+                    if (worldObjects[i].Faction != null && rimwarObject != null && rimwarObject.RimWarFaction != null && worldObjects[i].Faction.randomKey == rimwarObject.RimWarFaction.randomKey)
                     {
                         WorldUtility.CreateRimWarSettlement(rimwarObject, worldObjects[i]);
                     }

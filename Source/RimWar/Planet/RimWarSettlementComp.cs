@@ -9,7 +9,7 @@ using HarmonyLib;
 using RimWar;
 using RimWorld;
 using RimWorld.Planet;
-using FactionColonies;
+//using FactionColonies;
 
 namespace RimWar.Planet
 {
@@ -124,15 +124,16 @@ namespace RimWar.Planet
                     }
                     if (this.RWD.behavior == RimWarBehavior.Vassal)
                     {
-                        FactionFC component = Find.World.GetComponent<FactionFC>();
-                        if (component != null)
-                        {
-                            SettlementFC sfc = component.returnSettlementByLocation(this.parent.Tile, Find.World.info.name);
-                            if (sfc != null)
-                            {
-                                this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, (sfc.settlementLevel * 500));
-                            }
-                        }
+                        this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, ModCheck.Empire.FactionFC_SettlementLevel(this.parent.Tile));
+                        //FactionFC component = Find.World.GetComponent<FactionFC>();
+                        //if (component != null)
+                        //{
+                        //    SettlementFC sfc = component.returnSettlementByLocation(this.parent.Tile, Find.World.info.name);
+                        //    if (sfc != null)
+                        //    {
+                        //        this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, (sfc.settlementLevel * 500));
+                        //    }
+                        //}
                     }
                 }
                 this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, 100000);
