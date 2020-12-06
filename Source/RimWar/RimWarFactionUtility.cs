@@ -62,7 +62,7 @@ namespace RimWar
             Rect rect = new Rect(35f, rowY, 300f, 160f);
             StringBuilder stringBuilder = new StringBuilder();
             RimWarData rwd = WorldUtility.GetRimWarDataForFaction(faction);
-            int costToAlly = rwd.TotalFactionPoints / 15;
+            int costToAlly = rwd.TotalFactionPoints / 10;
             int playerSilver = GetPlayerSilver;
             if (rwd != null && faction != null)
             {
@@ -400,23 +400,41 @@ namespace RimWar
 
         public static void TributeSilver(int amount)
         {
-            List<Zone> allZones = Find.AnyPlayerHomeMap.zoneManager.AllZones;
+            List<Thing> allZones = Find.AnyPlayerHomeMap.listerThings.AllThings;
             if (allZones != null && allZones.Count > 0)
             {
                 for (int i = 0; i < allZones.Count; i++)
                 {
-                    foreach (Thing t in allZones[i].AllContainedThings)
-                    {
+                    //foreach (Thing t in allZones[i].AllContainedThings)
+                    //{
+                    Thing t = allZones[i];
                         if (t.def == ThingDefOf.Silver && amount > 0)
                         {
-                            int splitAmount = amount > t.stackCount ? t.stackCount : amount;                            
+                            int splitAmount = amount > t.stackCount ? t.stackCount : amount;
                             t.SplitOff(splitAmount).Destroy(DestroyMode.Vanish);
                             amount -= splitAmount;
                             doOnce = false;
                         }
-                    }
+                    //}
                 }
             }
+            //List<Zone> allZones = Find.AnyPlayerHomeMap.zoneManager.AllZones;
+            //if (allZones != null && allZones.Count > 0)
+            //{
+            //    for (int i = 0; i < allZones.Count; i++)
+            //    {
+            //        foreach (Thing t in allZones[i].AllContainedThings)
+            //        {
+            //            if (t.def == ThingDefOf.Silver && amount > 0)
+            //            {
+            //                int splitAmount = amount > t.stackCount ? t.stackCount : amount;                            
+            //                t.SplitOff(splitAmount).Destroy(DestroyMode.Vanish);
+            //                amount -= splitAmount;
+            //                doOnce = false;
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         private static int hashSilver = 0;
@@ -428,18 +446,19 @@ namespace RimWar
                 if (Find.TickManager.TicksGame % 60 == 0 || doOnce)
                 {
                     int totalSilver = 0;
-                    List<Zone> allZones = Find.AnyPlayerHomeMap.zoneManager.AllZones;
+                    List<Thing> allZones = Find.AnyPlayerHomeMap.listerThings.AllThings;
                     if (allZones != null && allZones.Count > 0)
                     {
                         for (int i = 0; i < allZones.Count; i++)
                         {
-                            foreach (Thing t in allZones[i].AllContainedThings)
-                            {
+                            //foreach (Thing t in allZones[i].AllContainedThings)
+                            //{
+                            Thing t = allZones[i];
                                 if (t.def == ThingDefOf.Silver)
                                 {
                                     totalSilver += t.stackCount;
                                 }
-                            }
+                            //}
                         }
                     }
                     hashSilver = totalSilver;

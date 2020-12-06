@@ -734,8 +734,8 @@ namespace RimWar.Planet
         public static int CalculateSettlerPoints(RimWarSettlementComp originTown)
         {
             int pointsNeeded = Mathf.RoundToInt(originTown.RimWarPoints * .5f);
-            pointsNeeded = Mathf.RoundToInt(Rand.Range(.6f, 1.2f) * pointsNeeded);
-            return Mathf.Clamp(pointsNeeded, 1000, 1000000);
+            //pointsNeeded = Mathf.RoundToInt(Rand.Range(.6f, 1.2f) * pointsNeeded);
+            return Mathf.Clamp(pointsNeeded, 300, 1000000);
         }
 
         public static int CalculateDiplomatPoints(RimWarSettlementComp originTown)
@@ -747,7 +747,7 @@ namespace RimWar.Planet
         public static int CalculateScoutMissionPoints(RimWarData rwd, int targetPoints)
         {
             float pointsNeeded = 0;
-            pointsNeeded = Rand.Range(.9f, 1.3f) * targetPoints;
+            pointsNeeded = Rand.Range(.9f, 1.1f) * targetPoints;
             if (rwd.behavior == RimWarBehavior.Expansionist)
             {
                 pointsNeeded *= 1.15f;
@@ -1069,7 +1069,8 @@ namespace RimWar.Planet
             for (int i = 0; i < settlementList.Count; i++)
             {
                 RimWorld.Planet.Settlement wos = settlementList[i];
-                if (wos.Faction != null)
+                RimWarSettlementComp rwsc = wos.GetComponent<RimWarSettlementComp>();
+                if (wos.Faction != null && rwsc != null && rwsc.RWD.behavior != RimWarBehavior.Excluded)
                 {
                     if (wos.Faction.HostileTo(rwd.RimWarFaction))
                     {
@@ -1648,7 +1649,7 @@ namespace RimWar.Planet
                 for(int i = 0; i < rwdList.Count; i++)
                 {
                     RimWarData rwd = rwdList[i];
-                    if(rwd.behavior != RimWarBehavior.Player && rwd.behavior != RimWarBehavior.Vassal && rwd.behavior != RimWarBehavior.Undefined)
+                    if(rwd.behavior != RimWarBehavior.Player && rwd.behavior != RimWarBehavior.Vassal && rwd.behavior != RimWarBehavior.Undefined && rwd.behavior != RimWarBehavior.Excluded)
                     {
                         totalFactions++;
                         totalPoints += rwd.TotalFactionPoints;
@@ -1671,6 +1672,22 @@ namespace RimWar.Planet
             }
             
             return adjustedCost;
+        }
+
+        public static WorldObject ReturnCloserWorldObjectTo(WorldObject wo1, WorldObject wo2, int to)
+        {
+            float d1 = Find.WorldGrid.ApproxDistanceInTiles(wo1.Tile, to);
+            float d2 = Find.WorldGrid.ApproxDistanceInTiles(wo2.Tile, to);
+            return d1 <= d2 ? wo1 : wo2;
+        }
+
+        public static bool IsVassalFaction(Faction f)
+        {
+            if(f.def.defName == "PColony")
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

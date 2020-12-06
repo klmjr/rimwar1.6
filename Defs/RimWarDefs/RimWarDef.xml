@@ -71,5 +71,7 @@
         Warmonger,
         Random,
 		Player,  (only used for player faction)
+		Vassal, (only use if controlled by player)
+		Excluded, (only use for factions intended to be excluded by rimwar)
         Undefined
 	=============-->

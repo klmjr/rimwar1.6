@@ -118,8 +118,26 @@ namespace RimWar.Harmony
         {
             private static void Postfix(Pawn negotiator, Faction faction, ref DiaNode __result)
             {
-                __result.options.Remove(__result.options[0]);
-                __result.options.Remove(__result.options[0]);
+                List<DiaOption> removeList = new List<DiaOption>();
+                removeList.Clear();
+                foreach(DiaOption x in __result.options)
+                {
+                    string text = Traverse.Create(root: x).Field(name: "text").GetValue<string>();
+                    if(text.Contains("Request a trade caravan") && !removeList.Contains(x))
+                    {
+                        removeList.Add(x);
+                    }
+                    if (text.Contains("Request immediate military aid") && !removeList.Contains(x))
+                    {
+                        removeList.Add(x);
+                    }
+                }
+                for(int i = 0; i < removeList.Count; i++)
+                {
+                    __result.options.Remove(removeList[i]);
+                }
+                //__result.options.Remove(__result.options[0]);
+                //__result.options.Remove(__result.options[0]);
                 __result.options.Insert(0, FactionDialogReMaker.RequestTraderOption(negotiator.Map, faction, negotiator));
                 __result.options.Insert(1, FactionDialogReMaker.RequestMilitaryAid_Scouts_Option(negotiator.Map, faction, negotiator));
                 __result.options.Insert(2, FactionDialogReMaker.RequestMilitaryAid_Warband_Option(negotiator.Map, faction, negotiator));
@@ -589,8 +607,15 @@ namespace RimWar.Harmony
                 if (settingsRef.restrictEvents)
                 {
                     if (__instance != null && __instance.def.defName != "VisitorGroup" && __instance.def.defName != "VisitorGroupMax" && !__instance.def.defName.Contains("Cult") && parms.quest == null &&
-                        !parms.forced && !__instance.def.workerClass.ToString().StartsWith("Rumor_Code") && !(parms.faction != null && parms.faction.Hidden))
-                    {
+                        !parms.forced && !__instance.def.workerClass.ToString().StartsWith("Rumor_Code"))
+                    { 
+                        if(parms.faction != null)
+                        {
+                            if(parms.faction.Hidden || WorldUtility.GetRimWarDataForFaction(parms.faction).behavior == RimWarBehavior.Excluded)
+                            {
+                                return true;
+                            }
+                        }
                         if (__instance.def == IncidentDefOf.RaidEnemy || __instance.def == IncidentDefOf.RaidFriendly || __instance.def == IncidentDefOf.TraderCaravanArrival)
                         {
                             __result = false;

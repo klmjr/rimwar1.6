@@ -154,6 +154,53 @@ namespace RimWar.Utility
         }
 
         [DebugAction("Rim War", null, actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
+        private static void SpawnScoutToVassal()
+        {
+            int tile = GenWorld.MouseTile();
+            if (tile < 0 || Find.World.Impassable(tile))
+            {
+                Messages.Message("Impassable", MessageTypeDefOf.RejectInput, historical: false);
+            }
+            else
+            {
+                RimWorld.Planet.Settlement s = Find.WorldObjects.SettlementAt(tile);
+                if (s != null)
+                {
+                    RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
+                    if (rwsc != null)
+                    {
+                        List<Settlement> validVassalSettlements = new List<Settlement>();
+                        validVassalSettlements.Clear();
+                        for(int i =0; i < Find.WorldObjects.Settlements.Count; i++)
+                        {
+                            Settlement v = Find.WorldObjects.Settlements[i];
+                            if(WorldUtility.IsVassalFaction(v.Faction))
+                            {
+                                validVassalSettlements.Add(v);
+                            }
+                        }
+                        if(validVassalSettlements != null && validVassalSettlements.Count > 0)
+                        {
+                            Settlement closest = validVassalSettlements[0];
+                            for(int i = 1; i < validVassalSettlements.Count; i++)
+                            {
+                                closest = (Settlement)WorldUtility.ReturnCloserWorldObjectTo(closest, validVassalSettlements[i], tile);
+                            }
+                            if(closest != null)
+                            {
+                                WorldUtility.CreateScout(Rand.Range(100, 2000), rwsc.RWD, s, s.Tile, closest, WorldObjectDefOf.Settlement);
+                            }
+                        }
+                        else
+                        {
+                            Log.Message("No vassal settlements found");
+                        }
+                    }
+                }
+            }
+        }
+
+        [DebugAction("Rim War", null, actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
         private static void SpawnWarband()
         {
             int tile = GenWorld.MouseTile();

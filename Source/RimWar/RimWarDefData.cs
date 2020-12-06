@@ -12,6 +12,7 @@ namespace RimWar
         [MustTranslate]
         public string factionDefname;
         public RimWarBehavior behavior;
+        public bool forceBehavior = false;
         public bool createsSettlements = true;
         public bool hatesPlayer = false;
         public bool movesAtNight = false;
@@ -20,8 +21,6 @@ namespace RimWar
         public float growthBonus = 1f;
 
         //preferred biome
-        //movement multiplier
-        //faction offset with player
-        //difficulty multipler
+
     }
 }

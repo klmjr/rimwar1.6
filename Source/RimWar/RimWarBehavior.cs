@@ -17,6 +17,7 @@ namespace RimWar
         Random,
         Player,
         Vassal,
+        Excluded,
         Undefined
     }
 }

@@ -116,7 +116,7 @@ namespace RimWar
         {
             get
             {
-                if (capitol == null && WorldSettlements.Count > 0)
+                if (capitol == null && WorldSettlements.Count > 0 && behavior != RimWarBehavior.Excluded)
                 {
                     if (capitolTile != 0)
                     {
