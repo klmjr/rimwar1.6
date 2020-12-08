@@ -186,8 +186,16 @@ namespace RimWar.Planet
                     tmpSettlementsInRange = new List<Settlement>();
                     tmpSettlementsInRange.Clear();
                 }
-                settlementsInRange = tmpSettlementsInRange;
-                if (this.tmpSettlementsInRange.Count == 0 || this.nextSettlementScan <= Find.TickManager.TicksGame)
+                settlementsInRange.Clear();
+                foreach(Settlement s in tmpSettlementsInRange)
+                {
+                    if(!settlementsInRange.Contains(s))
+                    {
+                        settlementsInRange.Add(s);
+                    }
+                }
+                //settlementsInRange.AddRange(tmpSettlementsInRange);
+                if (this.settlementsInRange.Count == 0 || this.nextSettlementScan <= Find.TickManager.TicksGame)
                 {
                     WorldComponent_PowerTracker.tasker.Register(() =>
                     {
@@ -229,13 +237,20 @@ namespace RimWar.Planet
                 tmpSettlements.Clear();
                 if (OtherSettlementsInRange != null && OtherSettlementsInRange.Count > 0)
                 {
-                    for (int i = 0; i < OtherSettlementsInRange.Count; i++)
+                    try
                     {
-                        RimWarSettlementComp rwsc = OtherSettlementsInRange[i].GetComponent<RimWarSettlementComp>();
-                        if (OtherSettlementsInRange[i] != null && rwsc != null && rwsc.RimWarPoints > 0 && OtherSettlementsInRange[i].Faction != null && OtherSettlementsInRange[i].Faction.HostileTo(this.parent.Faction))
+                        for (int i = 0; i < OtherSettlementsInRange.Count; i++)
                         {
-                            tmpSettlements.Add(OtherSettlementsInRange[i]);
+                            RimWarSettlementComp rwsc = OtherSettlementsInRange[i].GetComponent<RimWarSettlementComp>();
+                            if (OtherSettlementsInRange[i] != null && rwsc != null && rwsc.RimWarPoints > 0 && OtherSettlementsInRange[i].Faction != null && OtherSettlementsInRange[i].Faction.HostileTo(this.parent.Faction))
+                            {
+                                tmpSettlements.Add(OtherSettlementsInRange[i]);
+                            }
                         }
+                    }
+                    catch
+                    {
+                        return tmpSettlements;
                     }
                 }
                 return tmpSettlements;
@@ -250,13 +265,21 @@ namespace RimWar.Planet
                 tmpSettlements.Clear();
                 if (OtherSettlementsInRange != null && OtherSettlementsInRange.Count > 0)
                 {
-                    for (int i = 0; i < OtherSettlementsInRange.Count; i++)
+                    try
                     {
-                        RimWarSettlementComp rwsc = OtherSettlementsInRange[i].GetComponent<RimWarSettlementComp>();
-                        if (OtherSettlementsInRange[i] != null && rwsc != null && rwsc.RimWarPoints > 0 && !OtherSettlementsInRange[i].Faction.HostileTo(this.parent.Faction))
+                        for (int i = 0; i < OtherSettlementsInRange.Count; i++)
                         {
-                            tmpSettlements.Add(OtherSettlementsInRange[i]);
+                            RimWarSettlementComp rwsc = OtherSettlementsInRange[i].GetComponent<RimWarSettlementComp>();
+                            if (OtherSettlementsInRange[i] != null && rwsc != null && rwsc.RimWarPoints > 0 && !OtherSettlementsInRange[i].Faction.HostileTo(this.parent.Faction))
+                            {
+                                Log.Message(OtherSettlementsInRange[i].Label);
+                                tmpSettlements.Add(OtherSettlementsInRange[i]);
+                            }
                         }
+                    }
+                    catch
+                    {
+                        return tmpSettlements;
                     }
                 }
                 return tmpSettlements;

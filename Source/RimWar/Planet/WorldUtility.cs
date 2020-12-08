@@ -664,7 +664,7 @@ namespace RimWar.Planet
                 sum = Mathf.RoundToInt(sum * biomeMultiplier);
                 if (worldObject.def.defName == "City_Faction")
                 {
-                    sum = Mathf.RoundToInt(sum * 1.35f);
+                    sum = Mathf.RoundToInt(sum * 1.15f);
                 }
                 if (worldObject.def.defName == "City_Abandoned")
                 {
@@ -676,7 +676,7 @@ namespace RimWar.Planet
                 }
                 if (worldObject.def.defName == "City_Citadel")
                 {
-                    sum = Mathf.RoundToInt(sum * 1.75f);
+                    sum = Mathf.RoundToInt(sum * 1.25f);
                 }
                 return Mathf.Clamp(sum, 100, 1000);
             }
@@ -723,12 +723,12 @@ namespace RimWar.Planet
             }
             else
             {
-                pointsNeeded = Mathf.RoundToInt(targetTown.RimWarPoints * .5f);
+                pointsNeeded = Mathf.RoundToInt(targetTown.RimWarPoints * .25f);
             }
 
             pointsNeeded = Mathf.RoundToInt(Rand.Range(.75f, 1.25f) * pointsNeeded);
 
-            return Mathf.Clamp(pointsNeeded, 400, 1000000);
+            return Mathf.Clamp(pointsNeeded, 200, 1000000);
         }
 
         public static int CalculateSettlerPoints(RimWarSettlementComp originTown)
@@ -1613,7 +1613,7 @@ namespace RimWar.Planet
             for (int i = 0; i < Find.FactionManager.AllFactionsListForReading.Count; i++)
             {
                 Faction x = Find.FactionManager.AllFactionsListForReading[i];
-                if (x == faction && !x.IsPlayer && !x.Hidden && x.def.humanlikeFaction && !x.temporary && x.def.caravanTraderKinds.Any())
+                if (x == faction && !x.IsPlayer && !x.Hidden && !x.temporary && x.def.humanlikeFaction && x.def.caravanTraderKinds.Any()) //  )
                 {
                     return !x.def.pawnGroupMakers.NullOrEmpty();
                 }

@@ -679,7 +679,7 @@ namespace RimWar.Planet
                         RimWarSettlementComp rwdTown = rwd.WorldSettlements[j].GetComponent<RimWarSettlementComp>();
                         if (rwdTown != null)
                         {
-                            int maxPts = 25000;
+                            int maxPts = 15000;
                             if (rwd.behavior == RimWarBehavior.Vassal)
                             {
                                 if(ModCheck.Empire.FactionFC_ComponentCheck(rwdTown.parent.Tile))
@@ -691,7 +691,7 @@ namespace RimWar.Planet
                             if (rwdTown.parent.def.defName == "City_Citadel")
                             {
                                 maxPts += 5000;
-                                mult += .05f;
+                                mult += .02f;
                             }
                             if (rwdTown.isCapitol)
                             {
@@ -1542,7 +1542,7 @@ namespace RimWar.Planet
             }
             else
             {
-                tmpSettlements = rwsComp.NearbyFriendlySettlements.ToList();
+                tmpSettlements.AddRange(rwsComp.NearbyFriendlySettlements);
             }
 
             context.targetRange = targetRange;
@@ -1571,7 +1571,7 @@ namespace RimWar.Planet
                             return;
                         }
                     }
-                    int pts = WorldUtility.CalculateTraderPoints(targetTown.GetComponent<RimWarSettlementComp>());
+                    int pts = WorldUtility.CalculateTraderPoints(parentSettlement.GetComponent<RimWarSettlementComp>());
                     if (rwd.behavior == RimWarBehavior.Cautious)
                     {
                         pts = Mathf.RoundToInt(pts * 1.1f);
@@ -1615,7 +1615,7 @@ namespace RimWar.Planet
             if (rwd != null && rwsComp != null && parentSettlement != null)
             {
                 Options.SettingsRef settingsRef = new Options.SettingsRef();
-                if (rwsComp.RimWarPoints > 400 || ignoreRestrictions)
+                if (rwsComp.RimWarPoints > 200 || ignoreRestrictions)
                 {
                     tasker.Register((Func<ContextStorage>)(() =>
                     {
