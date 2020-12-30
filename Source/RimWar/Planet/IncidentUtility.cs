@@ -380,7 +380,7 @@ namespace RimWar.Planet
                             endPointsDefender += endPointsAttacker * (Rand.Range(.35f, .55f)); //gain up to half the points of the attacker warband in combat power and disperse the warband
                             if (attacker.WarSettlementComp != null)
                             {
-                                ConsolidatePoints reconstitute = new ConsolidatePoints(Mathf.RoundToInt(Mathf.Min(Rand.Range(.3f, .5f) * endPointsAttacker, attacker.RimWarPoints)), Mathf.RoundToInt(Find.WorldGrid.TraversalDistanceBetween(attacker.Tile, attacker.ParentSettlement.Tile) * attacker.TicksPerMove) + Find.TickManager.TicksGame);
+                                ConsolidatePoints reconstitute = new ConsolidatePoints(Mathf.RoundToInt(Mathf.Min((Rand.Range(.3f, .5f) * endPointsAttacker)/2f, attacker.RimWarPoints)), Mathf.RoundToInt(Find.WorldGrid.TraversalDistanceBetween(attacker.Tile, attacker.ParentSettlement.Tile) * attacker.TicksPerMove) + Find.TickManager.TicksGame);
                                 attacker.WarSettlementComp.SettlementPointGains.Add(reconstitute);
                             }
                         }
@@ -583,7 +583,7 @@ namespace RimWar.Planet
                         {
                             if (rwd.WorldSettlements != null && rwd.WorldSettlements.Count > 0)
                             {
-                                ConsolidatePoints reconstitute = new ConsolidatePoints(points, 10 + Find.TickManager.TicksGame);
+                                ConsolidatePoints reconstitute = new ConsolidatePoints(Mathf.RoundToInt(points/2f), 10 + Find.TickManager.TicksGame);
                                 RimWarSettlementComp rwsc = rwd.WorldSettlements.RandomElement().GetComponent<RimWarSettlementComp>();
                                 if (rwsc != null)
                                 {

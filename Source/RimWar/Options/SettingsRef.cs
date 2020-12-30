@@ -17,6 +17,7 @@ namespace RimWar.Options
         public bool randomizeAttributes = Settings.Instance.randomizeAttributes;
         public float heatMultiplier = Settings.Instance.heatMultiplier;
         public float heatFrequency = Settings.Instance.heatFrequency;
+        public float settlementGrowthRate = Settings.Instance.settlementGrowthRate;
 
         public int maxFactionSettlements = Settings.Instance.maxFactionSettlements;
         public float settlementScanRangeDivider = Settings.Instance.settlementScanRangeDivider;

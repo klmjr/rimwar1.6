@@ -253,7 +253,7 @@ namespace RimWar.Planet
                         RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(this.Tile);
                         if(rwsc != null)
                         {
-                            rwsc.RimWarPoints += this.RimWarPoints;
+                            rwsc.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints/2f);
                             base.ArrivalAction();
                         }
                     }
@@ -270,7 +270,7 @@ namespace RimWar.Planet
                         //Log.Message("attempting to reinforce");
                         //Log.Message("map is spawn " + Find.World.worldObjects.MapParentAt(this.Tile).Spawned);
                         //Log.Message("map " + Find.World.worldObjects.MapParentAt(this.Tile).Map + " has faction " + Find.World.worldObjects.MapParentAt(this.Tile).Faction);
-                        this.WarSettlementComp.RimWarPoints += this.RimWarPoints;
+                        this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
                     }
                     else
                     {
@@ -279,7 +279,7 @@ namespace RimWar.Planet
                         {
 
                         }
-                        this.WarSettlementComp.RimWarPoints += this.RimWarPoints;
+                        this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints/2f);
                     }
                     base.ArrivalAction();
                 }

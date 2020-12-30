@@ -810,7 +810,7 @@ namespace RimWar.Planet
             Options.SettingsRef settingsRef = new Options.SettingsRef();
             if (settingsRef.storytellerBasedDifficulty)
             {
-                return Mathf.Clamp(Find.Storyteller.difficulty.threatScale, .25f, 1.5f);
+                return Mathf.Clamp(.5f + (.5f *Find.Storyteller.difficulty.threatScale), .75f, 1.25f);
             }
             return settingsRef.rimwarDifficulty;
         }
@@ -1671,7 +1671,7 @@ namespace RimWar.Planet
                 }
             }
             
-            return adjustedCost;
+            return Mathf.RoundToInt(adjustedCost/2f);
         }
 
         public static WorldObject ReturnCloserWorldObjectTo(WorldObject wo1, WorldObject wo2, int to)

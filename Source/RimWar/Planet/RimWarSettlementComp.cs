@@ -17,6 +17,7 @@ namespace RimWar.Planet
     {
         public bool isCapitol = false;
         private int rimwarPointsInt = 0;
+        private int pointDamageInt = 0;
         public int nextEventTick = 0;
         public int nextSettlementScan = 0;
         List<ConsolidatePoints> consolidatePoints;
@@ -37,6 +38,7 @@ namespace RimWar.Planet
         {
             base.PostExposeData();
             Scribe_Values.Look<int>(ref this.rimwarPointsInt, "rimwarPointsInt", 0, false);
+            Scribe_Values.Look<int>(ref this.pointDamageInt, "pointDamageInt", 0, false);
             Scribe_Values.Look<int>(ref this.playerHeat, "playerHeat", 0, false);
             Scribe_Values.Look<int>(ref this.nextEventTick, "nextEventTick", 0, false);
             Scribe_Values.Look<int>(ref this.nextSettlementScan, "nextSettlementScan", 0, false);
@@ -113,7 +115,7 @@ namespace RimWar.Planet
                             Options.SettingsRef settingsRef = new Options.SettingsRef();
                             if (settingsRef.storytellerBasedDifficulty)
                             {
-                                return Mathf.RoundToInt(StorytellerUtility.DefaultThreatPointsNow(map) * 1.2f * WorldUtility.GetDifficultyMultiplierFromStoryteller());
+                                return Mathf.RoundToInt(StorytellerUtility.DefaultThreatPointsNow(map) * WorldUtility.GetDifficultyMultiplierFromStoryteller());
                             }
                             return Mathf.RoundToInt(StorytellerUtility.DefaultThreatPointsNow(map) * settingsRef.rimwarDifficulty);
                         }
@@ -272,7 +274,7 @@ namespace RimWar.Planet
                             RimWarSettlementComp rwsc = OtherSettlementsInRange[i].GetComponent<RimWarSettlementComp>();
                             if (OtherSettlementsInRange[i] != null && rwsc != null && rwsc.RimWarPoints > 0 && !OtherSettlementsInRange[i].Faction.HostileTo(this.parent.Faction))
                             {
-                                Log.Message(OtherSettlementsInRange[i].Label);
+                                //Log.Message(OtherSettlementsInRange[i].Label);
                                 tmpSettlements.Add(OtherSettlementsInRange[i]);
                             }
                         }

@@ -17,7 +17,8 @@ namespace RimWar.Options
         public bool useRimWarVictory = true;
         public bool restrictEvents = true;
         public bool randomizeAttributes = true;
-        public float heatFrequency = 2500f;
+        public float heatFrequency = 3000f;
+        public float settlementGrowthRate = 1f;
 
         //limit controls
         public int maxFactionSettlements = 40;
@@ -75,6 +76,7 @@ namespace RimWar.Options
             Scribe_Values.Look<bool>(ref this.randomizeAttributes, "randomizeAttributes", true);
             Scribe_Values.Look<float>(ref this.heatMultiplier, "heatMultiplier", 1f, false);
             Scribe_Values.Look<float>(ref this.heatFrequency, "heatFrequency", 2500f, false);
+            Scribe_Values.Look<float>(ref this.settlementGrowthRate, "settlementGrowthRate", 1f, false);
         }
 
         public static Settings Instance;

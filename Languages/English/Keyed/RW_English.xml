@@ -62,6 +62,8 @@ Growth ({2})</RW_AttributeDisplay>
 <RW_settlementEventFrequencyInfo>Determines how often a single settlement may perform an action. Lowering the game hours between potential events will increase overall Rim War activity. Increasing this may also increase game difficulty and reduce performance. Faction capitol's can generate events 50% more often then a normal settlement.</RW_settlementEventFrequencyInfo>
 <RW_settlementScanFrequency>Settlement Scan Update Frequency (game hrs):</RW_settlementScanFrequency>
 <RW_settlementScanFrequencyInfo>Determines how often a settlement evaluates other world objects within range. This never needs to be lower than settlement event frequency. Increasing the number of game hours between scans may improve performance but may also introduce strange or oblivious AI behavior.</RW_settlementScanFrequencyInfo>
+<RW_settlementGrowthRate>Settlement Growth Rate</RW_settlementGrowthRate>
+<RW_settlementGrowthRateInfo>Modifies how quickly a settlement grows.</RW_settlementGrowthRateInfo>
 <RW_warobjectActionFrequency>Mobile Object Action Frequency (seconds):</RW_warobjectActionFrequency>
 <RW_warobjectActionFrequencyInfo>Determines how often Rim War units search surrounding tiles for other units or settlements. Scouts and Warbands may attack nearby units or caravans based on this scan; traders may perform trades. Decreasing the time between scans will make units more aware of their surroundings but will also make caravan travel more dangerous. More frequent scans will decrease performance.</RW_warobjectActionFrequencyInfo>
 <RW_maxScanObjects>Max Objects Scanned per Event</RW_maxScanObjects>

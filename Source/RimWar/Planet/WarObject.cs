@@ -18,6 +18,7 @@ namespace RimWar.Planet
         private int uniqueId = -1;
         private string nameInt;
         private int warPointsInt = -1;
+        private int pointDamageInt = 0;
         public int pauseFor = 0;
 
         public WarObject_PathFollower pather;
@@ -155,6 +156,7 @@ namespace RimWar.Planet
             Scribe_Values.Look<bool>(ref this.movesAtNight, "movesAtNight", false, false);
             Scribe_Values.Look<bool>(ref this.playerNotified, "playerNotified", false, false);
             Scribe_Values.Look<int>(ref this.warPointsInt, "warPointsInt", -1, false);
+            Scribe_Values.Look<int>(ref this.pointDamageInt, "pointDamageInt", 0, false);
             Scribe_Values.Look<int>(ref this.parentSettlementTile, "parentSettlementTile", -1, false);
             Scribe_Values.Look<int>(ref this.destinationTile, "destinationTile", -1, false);
             Scribe_Deep.Look(ref pather, "pather", this);
@@ -248,6 +250,18 @@ namespace RimWar.Planet
             set
             {
                 this.warPointsInt = Mathf.Max(0, value);
+            }
+        }
+
+        public virtual int PointDamage
+        {
+            get
+            {
+                return pointDamageInt;
+            }
+            set
+            {
+                pointDamageInt = value;
             }
         }
 

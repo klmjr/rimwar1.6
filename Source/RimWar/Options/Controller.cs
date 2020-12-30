@@ -241,6 +241,10 @@ namespace RimWar.Options
             Rect rowRect11 = UIHelper.GetRowRect(rowRect1, rowHeight, num);
             Widgets.CheckboxLabeled(rowRect11, "RW_forceRandomObject".Translate(), ref Settings.Instance.forceRandomObject, false);
             TooltipHandler.TipRegion(rowRect11, "RW_forceRandomObjectInfo".Translate());
+            Rect rowRect11ShiftRight = UIHelper.GetRowRect(rowRect, rowHeight, num);
+            rowRect11ShiftRight.x += rowRect.width + 56f;
+            Settings.Instance.settlementGrowthRate = Widgets.HorizontalSlider(rowRect11ShiftRight, Settings.Instance.settlementGrowthRate, 0f, 10f, false, "RW_settlementGrowthRate".Translate(((Settings.Instance.settlementGrowthRate)).ToString("P1")), "0%", "1000%", .1f);
+            TooltipHandler.TipRegion(rowRect11ShiftRight, "RW_settlementGrowhtRateInfo".Translate());
             //Widgets.CheckboxLabeled(rowRect11, "RW_createDiplomats".Translate(), ref Settings.Instance.createDiplomats, false);
             num++;
             Rect rowRect13 = UIHelper.GetRowRect(rowRect12, rowHeight, num);
@@ -304,10 +308,11 @@ namespace RimWar.Options
                 Settings.Instance.storytellerBasedDifficulty = true;
                 Settings.Instance.rimwarDifficulty = 1f;                
                 Settings.Instance.heatMultiplier = 1f;
-                Settings.Instance.heatFrequency = 2500f;
+                Settings.Instance.heatFrequency = 3000f;
                 Settings.Instance.randomizeFactionBehavior = false;              
                 Settings.Instance.createDiplomats = false;
                 Settings.Instance.forceRandomObject = false;
+                Settings.Instance.settlementGrowthRate = 1f;
                 
                 Settings.Instance.averageEventFrequency = 150;
 
@@ -389,7 +394,8 @@ namespace RimWar.Options
                 Settings.Instance.storytellerBasedDifficulty = false;
                 Settings.Instance.rimwarDifficulty = .75f;
                 Settings.Instance.heatMultiplier = 1.5f;
-                Settings.Instance.heatFrequency = 5000f;
+                Settings.Instance.heatFrequency = 4000f;
+                Settings.Instance.settlementGrowthRate = .8f;
                 Settings.Instance.randomizeFactionBehavior = true;
                 //Settings.Instance.createDiplomats = false;
                 //Settings.Instance.forceRandomObject = true;
@@ -417,8 +423,9 @@ namespace RimWar.Options
             {
                 Settings.Instance.storytellerBasedDifficulty = false;
                 Settings.Instance.rimwarDifficulty = 1.5f;
-                Settings.Instance.heatFrequency = 1250f;
-                Settings.Instance.heatMultiplier = .5f;
+                Settings.Instance.heatFrequency = 1500f;
+                Settings.Instance.heatMultiplier = .8f;
+                Settings.Instance.settlementGrowthRate = 1.4f;
                 Settings.Instance.randomizeFactionBehavior = true;
                 //Settings.Instance.createDiplomats = false;
                 //Settings.Instance.forceRandomObject = true;

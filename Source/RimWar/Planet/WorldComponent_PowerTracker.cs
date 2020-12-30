@@ -668,7 +668,7 @@ namespace RimWar.Planet
                 RimWarData rwd = RimWarData[i];
                 if (rwd.behavior != RimWarBehavior.Player && rwd.behavior != RimWarBehavior.Excluded)
                 {
-                    float mult = (settingsref.rwdUpdateFrequency / 10000f);  //default updaate frequency is 2500, mult = .25f
+                    float mult = (settingsref.rwdUpdateFrequency / 10000f);  //default update frequency is 2500, mult = .25f
                     if (rwd.behavior == RimWarBehavior.Expansionist)
                     {
                         mult *= 1.1f;
@@ -679,7 +679,7 @@ namespace RimWar.Planet
                         RimWarSettlementComp rwdTown = rwd.WorldSettlements[j].GetComponent<RimWarSettlementComp>();
                         if (rwdTown != null)
                         {
-                            int maxPts = 15000;
+                            int maxPts = 40000;
                             if (rwd.behavior == RimWarBehavior.Vassal)
                             {
                                 if(ModCheck.Empire.FactionFC_ComponentCheck(rwdTown.parent.Tile))
@@ -708,8 +708,8 @@ namespace RimWar.Planet
                             }
                             if (rwdTown.RimWarPoints <= maxPts)
                             {
-                                float pts = (Rand.Range(1f, 2f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome); //.1f - 3.5f
-                                pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute;
+                                float pts = (Rand.Range(2f, 3f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome); //.1f - 3.5f
+                                pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute * settingsref.settlementGrowthRate;
                                 rwdTown.RimWarPoints += Mathf.RoundToInt(pts);
                             }
                             if (rwdTown.PlayerHeat < 10000)

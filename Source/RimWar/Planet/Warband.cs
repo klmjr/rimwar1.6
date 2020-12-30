@@ -252,7 +252,7 @@ namespace RimWar.Planet
                 }
                 else
                 {
-                    this.WarSettlementComp.RimWarPoints += this.RimWarPoints;
+                    this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
                     List<Map> maps = Find.Maps;
                     for (int i =0; i < maps.Count; i++)
                     {
@@ -260,7 +260,7 @@ namespace RimWar.Planet
                         if(sBase != null && sBase.Faction != null && sBase.Tile == this.ParentSettlement.Tile)
                         {
                             //reinforcement against player
-                            this.WarSettlementComp.RimWarPoints -= this.RimWarPoints;
+                            this.WarSettlementComp.RimWarPoints -= Mathf.RoundToInt(this.RimWarPoints / 2f);
                             IncidentUtility.DoRaidWithPoints((WarSettlementComp.RimWarPoints - 1000), this.ParentSettlement, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                         }
                     }
@@ -278,7 +278,7 @@ namespace RimWar.Planet
                         //Log.Message("attempting to reinforce");
                         //Log.Message("map is spawn " + Find.World.worldObjects.MapParentAt(this.Tile).Spawned);
                         //Log.Message("map " + Find.World.worldObjects.MapParentAt(this.Tile).Map + " has faction " + Find.World.worldObjects.MapParentAt(this.Tile).Faction);
-                        this.WarSettlementComp.RimWarPoints += this.RimWarPoints;
+                        this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
                     }
                     else
                     {
@@ -287,7 +287,7 @@ namespace RimWar.Planet
                         {
 
                         }
-                        this.WarSettlementComp.RimWarPoints += this.RimWarPoints;
+                        this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
                     }
                     base.ArrivalAction();
                 }

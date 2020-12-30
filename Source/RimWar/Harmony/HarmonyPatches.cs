@@ -543,6 +543,14 @@ namespace RimWar.Harmony
                         !parms.forced && !__instance.def.workerClass.ToString().StartsWith("Rumor_Code") && !(parms.faction != null && parms.faction.Hidden))
                     {
                         __result = false;
+                        try
+                        {
+                            Log.Message("Filtered event: " + __instance.def.defName);
+                        }
+                        catch
+                        {
+                            Log.Message("filtered an event without a def...");
+                        }
                         return false;
                     }
                 }
@@ -562,6 +570,14 @@ namespace RimWar.Harmony
                         !parms.forced && !__instance.def.workerClass.ToString().StartsWith("Rumor_Code") && !(parms.faction != null && parms.faction.Hidden))
                     {
                         __result = false;
+                        try
+                        {
+                            Log.Message("Filtered event: " + __instance.def.defName);
+                        }
+                        catch
+                        {
+                            Log.Message("filtered an event without a def...");
+                        }
                         return false;
                     }
                 }
@@ -581,6 +597,14 @@ namespace RimWar.Harmony
                         !parms.forced && !__instance.def.workerClass.ToString().StartsWith("Rumor_Code") && !(parms.faction != null && parms.faction.Hidden))
                     {
                         __result = false;
+                        try
+                        {
+                            Log.Message("Filtered event: " + __instance.def.defName);
+                        }
+                        catch
+                        {
+                            Log.Message("filtered an event without a def...");
+                        }
                         return false;
                     }
                 }
@@ -588,15 +612,27 @@ namespace RimWar.Harmony
             }
         }
 
-        //[HarmonyPatch(typeof(IncidentWorker_QuestPeaceTalks), "CanFireNowSub", null)]
-        //public class CanFireNow_QuestPeaceTalks_RemovalPatch
-        //{
-        //    public static bool Prefix(IncidentWorker_QuestPeaceTalks __instance, IncidentParms parms, ref bool __result)
-        //    {
-        //        __result = false;
-        //        return false;
-        //    }
-        //}
+        [HarmonyPatch(typeof(SettlementProximityGoodwillUtility), "AppendProximityGoodwillOffsets", null)]
+        public class SettlementProximity_NoVassalDegradation_Patch
+        {
+            public static void Postfix(int tile, ref List<Pair<Settlement, int>> outOffsets, bool ignoreIfAlreadyMinGoodwill, bool ignorePermanentlyHostile)
+            {
+                List<Pair<Settlement, int>> rem = new List<Pair<Settlement, int>>(); 
+                for(int i = 0; i < outOffsets.Count; i++)
+                {
+                    if(WorldUtility.IsVassalFaction(outOffsets[i].First.Faction))
+                    {
+                        rem.Add(outOffsets[i]);
+                    }
+                }
+
+                for(int i = 0; i < rem.Count; i++)
+                {
+                    outOffsets.Remove(rem[i]);
+                }
+                
+            }
+        }
 
         [HarmonyPatch(typeof(IncidentWorker_PawnsArrive), "CanFireNowSub", null)]
         public class CanFireNow_PawnsArrive_RemovalPatch
@@ -619,6 +655,14 @@ namespace RimWar.Harmony
                         if (__instance.def == IncidentDefOf.RaidEnemy || __instance.def == IncidentDefOf.RaidFriendly || __instance.def == IncidentDefOf.TraderCaravanArrival)
                         {
                             __result = false;
+                            try
+                            {
+                                Log.Message("Filtered event: " + __instance.def.defName);
+                            }
+                            catch
+                            {
+                                Log.Message("filtered an event without a def...");
+                            }
                             return false;
                         }
                     }
