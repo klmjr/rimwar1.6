@@ -42,13 +42,15 @@ namespace RimWar.Utility
             return "LetterRelatedPawnsRaidEnemy".Translate(Faction.OfPlayer.def.pawnsPlural, parms.faction.def.pawnsPlural);
         }
 
-        public void TryExecuteCustomWorker(IncidentParms parms, PawnGroupKindDef _combat)
+        public void TryExecuteCustomWorker(IncidentParms parms, PawnGroupKindDef _combat, int _pointDamage = 0)
         {
+            parmsDamage = _pointDamage;
             combat = _combat;
             TryExecuteWorker(parms);
         }
 
         private PawnGroupKindDef combat = PawnGroupKindDefOf.Combat;
+        private int parmsDamage = 0;
 
         protected override bool TryExecuteWorker(IncidentParms parms)
         {
@@ -101,6 +103,16 @@ namespace RimWar.Utility
             }
             SendRimWarLetter(letterLabel, letterText, GetLetterDef(), parms, list2);
             parms.raidStrategy.Worker.MakeLords(parms, list);
+            if(parmsDamage > 0)
+            {
+                while(parmsDamage > 0)
+                {
+                    float ptDam = Mathf.Clamp(Rand.Range(2f, 10f), 0, parmsDamage);
+                    parmsDamage -= Mathf.RoundToInt(ptDam * 2f);
+                    DamageInfo dinfo = new DamageInfo(RimWarDefOf.RW_CombatInjury, ptDam);
+                    list.RandomElement().TakeDamage(dinfo);
+                }
+            }
             Find.TickManager.slower.SignalForceNormalSpeedShort();
             Find.StoryWatcher.statsRecord.numRaidsEnemy++;
             return true;

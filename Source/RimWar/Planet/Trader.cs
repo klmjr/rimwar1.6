@@ -6,6 +6,7 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
+using RimWar.Utility;
 
 namespace RimWar.Planet
 {
@@ -147,7 +148,7 @@ namespace RimWar.Planet
                             Caravan playerCaravan = wo as Caravan;
                             if (playerSettlement != null)
                             {
-                                IncidentUtility.DoRaidWithPoints(Mathf.RoundToInt(this.RimWarPoints * .8f), playerSettlement, this.rimwarData, PawnsArrivalModeDefOf.EdgeWalkIn, PawnGroupKindDefOf.Trader);
+                                IncidentUtility.DoRaidWithPoints(this, playerSettlement, this.rimwarData, PawnsArrivalModeDefOf.EdgeWalkIn, PawnGroupKindDefOf.Trader);
                             }
                             else if(playerCaravan != null)
                             {
@@ -181,10 +182,82 @@ namespace RimWar.Planet
                             if (playerSettlement != null)
                             {
                                 //Log.Message("Trader AA 7.1");
-                                IncidentUtility.DoSettlementTradeWithPoints(this, playerSettlement, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn), traderKind);
-                                if (this.WarSettlementComp != null)
+                                //return CaravanArrivalActionUtility.GetFloatMenuOptions(() => CanAttack(caravan, settlement), () => new CaravanArrivalAction_AttackSettlement(settlement), "AttackSettlement".Translate(settlement.Label), caravan, settlement.Tile, settlement, settlement.Faction.AllyOrNeutralTo(Faction.OfPlayer) ? ((Action<Action>)delegate (Action action)
+                                //{
+                                //    Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmAttackFriendlyFaction".Translate(settlement.LabelCap, settlement.Faction.Name), delegate
+                                //    {
+                                //        action();
+                                //    }));
+                                //}) : null);
+                                TaggedString threats = new TaggedString();
+                                bool delayTrader = true;
+                                Action permit = new Action(delegate
+                                    {
+                                        delayTrader = false;
+                                        IncidentUtility.DoSettlementTradeWithPoints(this, playerSettlement, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn), traderKind);
+                                        if (this.WarSettlementComp != null)
+                                        {
+                                            this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt((this.RimWarPoints / 2f) * (Rand.Range(1.05f, 1.25f)));
+                                            this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                                        }
+                                        base.ArrivalAction();
+                                    });
+                                Action delay4 = new Action(delegate
                                 {
-                                    this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt((this.RimWarPoints/2f) * (Rand.Range(1.05f, 1.25f)));
+                                    //Log.Message("delaying trader 4 hours");
+                                    this.pauseFor = 10000;
+                                });
+                                Action delay12 = new Action(delegate
+                                {
+                                    //Log.Message("delaying trader 12 hours");
+                                    this.pauseFor = 30000;
+                                });
+                                Action reject = new Action(delegate
+                                {
+                                    ValidateParentSettlement();
+                                    FindParentSettlement();
+                                    this.DestinationTarget = ParentSettlement;
+                                    PathToTarget(DestinationTarget);
+                                });
+                                
+                                if(WorldUtility.AnyThreatsOnMap(playerSettlement.Map, this.Faction, out threats))
+                                {
+                                    FactionDialogReMaker.RequestTradePermissionDialog(this.Faction, this, playerSettlement, playerSettlement.Map, threats, permit, delay4, delay12, reject);
+                                }
+                                else
+                                {
+                                    delayTrader = false;
+                                    permit();
+                                }
+                                
+                                //if (GenHostility.AnyHostileActiveThreatTo(playerSettlement.Map, this.Faction))
+                                //{
+                                //    Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("RW_ConfirmTradersEnterDangerous".Translate(this.Label), delegate
+                                //    {
+                                //        delayTrader = false;
+                                //        IncidentUtility.DoSettlementTradeWithPoints(this, playerSettlement, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn), traderKind);
+                                //        if (this.WarSettlementComp != null)
+                                //        {
+                                //            this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt((this.RimWarPoints / 2f) * (Rand.Range(1.05f, 1.25f)));
+                                //            this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                                //        }
+                                //    }));
+                                //}
+                                //else
+                                //{
+                                //    delayTrader = false;
+                                //    IncidentUtility.DoSettlementTradeWithPoints(this, playerSettlement, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn), traderKind);
+                                //    if (this.WarSettlementComp != null)
+                                //    {
+                                //        this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt((this.RimWarPoints / 2f) * (Rand.Range(1.05f, 1.25f)));
+                                //        this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                                //    }
+                                //}
+
+                                if(delayTrader)
+                                {
+                                    //Log.Message("exiting");
+                                    goto ExitArrivalAction;
                                 }
                             }
                         }
@@ -235,10 +308,12 @@ namespace RimWar.Planet
                                         bonusPts += 25;
                                     }
                                     rwsc.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f) + bonusPts;
+                                    rwsc.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
                                 }
                                 else
                                 {
                                     rwsc.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
+                                    rwsc.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
                                 }
                             }                            
                         }
@@ -248,6 +323,7 @@ namespace RimWar.Planet
             //Log.Message("Trader AA end");
             //Log.Message("ending arrival actions");
             base.ArrivalAction();
+            ExitArrivalAction:;
         }       
     }
 }

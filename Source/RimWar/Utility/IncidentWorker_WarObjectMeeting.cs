@@ -17,6 +17,7 @@ namespace RimWar.Utility
     {
         private const int MapSize = 100;
         WarObject wo = null;
+        int pointDamage = 0;
 
         private int RequestFee
         {
@@ -52,9 +53,10 @@ namespace RimWar.Utility
             }).TryRandomElement(out faction);
         }
 
-        public bool PreExecuteWorker(IncidentParms parms, WarObject _wo)
+        public bool PreExecuteWorker(IncidentParms parms, WarObject _wo, int _pointDamage = 0)
         {
             this.wo = _wo;
+            this.pointDamage = _pointDamage;
             return TryExecuteWorker(parms);
         }
 
@@ -160,6 +162,13 @@ namespace RimWar.Utility
                     Find.TickManager.Notify_GeneratedPotentiallyHostileMap();
                     CameraJumper.TryJumpAndSelect(t2);
                     PawnRelationUtility.Notify_PawnsSeenByPlayer_Letter_Send(list2, "LetterRelatedPawnsGroupGeneric".Translate(Faction.OfPlayer.def.pawnsPlural), LetterDefOf.NeutralEvent, informEvenIfSeenBefore: true);
+                    while(pointDamage > 0)
+                    {
+                        float ptDam = Mathf.Clamp(Rand.Range(2f, 10f), 0, pointDamage);
+                        pointDamage -= Mathf.RoundToInt(ptDam * 2f);
+                        DamageInfo dinfo = new DamageInfo(RimWarDefOf.RW_CombatInjury, ptDam);
+                        list.RandomElement().TakeDamage(dinfo);
+                    }
                     wo.Destroy();
                 }, "GeneratingMapForNewEncounter", false, null);
             };

@@ -13,12 +13,14 @@
 <RW_WarObjectInspectString>{0} {1} {2}</RW_WarObjectInspectString>
 <RW_SettlerInspectString>{0} {1}</RW_SettlerInspectString>
 <RW_SettlementPoints>Settlement points: {0}</RW_SettlementPoints>
+<RW_SettlementPointsDamaged>Settlement points: {0} ({1})</RW_SettlementPointsDamaged>
 <RW_WarbandName>Warband of {0}</RW_WarbandName>
 <RW_ScoutName>Scouting party of {0}</RW_ScoutName>
 <RW_TraderName>Trading Caravan of {0}</RW_TraderName>
 <RW_SettlerName>Settler of {0}</RW_SettlerName>
 <RW_DiplomatName>Diplomat of {0}</RW_DiplomatName>
 <RW_CombatPower>Combat power: {0}</RW_CombatPower>
+<RW_CombatPowerDamaged>Combat power: {0} ({1})</RW_CombatPowerDamaged>
 <RW_Capitol>Faction Capitol</RW_Capitol>
 <RW_AggressionDefense>Min. amount for AI Aggression: {0}</RW_AggressionDefense>
 <RW_AggressionPoints>Aggression amount: {0}</RW_AggressionPoints>
@@ -62,8 +64,8 @@ Growth ({2})</RW_AttributeDisplay>
 <RW_settlementEventFrequencyInfo>Determines how often a single settlement may perform an action. Lowering the game hours between potential events will increase overall Rim War activity. Increasing this may also increase game difficulty and reduce performance. Faction capitol's can generate events 50% more often then a normal settlement.</RW_settlementEventFrequencyInfo>
 <RW_settlementScanFrequency>Settlement Scan Update Frequency (game hrs):</RW_settlementScanFrequency>
 <RW_settlementScanFrequencyInfo>Determines how often a settlement evaluates other world objects within range. This never needs to be lower than settlement event frequency. Increasing the number of game hours between scans may improve performance but may also introduce strange or oblivious AI behavior.</RW_settlementScanFrequencyInfo>
-<RW_settlementGrowthRate>Settlement Growth Rate</RW_settlementGrowthRate>
-<RW_settlementGrowthRateInfo>Modifies how quickly a settlement grows.</RW_settlementGrowthRateInfo>
+<RW_settlementGrowthRate>Settlement Growth Rate {0}</RW_settlementGrowthRate>
+<RW_settlementGrowthRateInfo>Modifies how quickly a settlement accumulates points.</RW_settlementGrowthRateInfo>
 <RW_warobjectActionFrequency>Mobile Object Action Frequency (seconds):</RW_warobjectActionFrequency>
 <RW_warobjectActionFrequencyInfo>Determines how often Rim War units search surrounding tiles for other units or settlements. Scouts and Warbands may attack nearby units or caravans based on this scan; traders may perform trades. Decreasing the time between scans will make units more aware of their surroundings but will also make caravan travel more dangerous. More frequent scans will decrease performance.</RW_warobjectActionFrequencyInfo>
 <RW_maxScanObjects>Max Objects Scanned per Event</RW_maxScanObjects>
@@ -98,6 +100,8 @@ Growth ({2})</RW_AttributeDisplay>
 **Only applies at the start of a new game**</RW_useRimWarVictoryInfo>
 <RW_randomizeFactionAttributes>Randomize Faction Attributes</RW_randomizeFactionAttributes>
 <RW_randomizeFactionAttributesInfo>Factions have random attributes that increases or decreases their combat power, movement speed, and growth speed.</RW_randomizeFactionAttributesInfo>
+<RW_noPermanentEnemies>No permanent enemies</RW_noPermanentEnemies>
+<RW_noPermanentEnemiesInfo>Removes the permanent enemy tag from all faction defs. Requires a RimWorld restart before launching a new game.</RW_noPermanentEnemiesInfo>
 
 <!-- ============ Diplomacy Requests =============-->
 <RW_SendTrader>Send Trader</RW_SendTrader>
@@ -170,6 +174,7 @@ Current standing: {0}</RW_DeclarePeaceInfo>
 <RW_engagingWarObject>Interacting with {0}</RW_engagingWarObject>
 
 <RW_LetterBattle>Field Battle</RW_LetterBattle>
+<RW_LetterBattleFailText>A battle involving {0} resulted in mutual destruction - any remaining survivors have abandoned their faction.</RW_LetterBattleFailText>
 <RW_LetterBattleText>{0} with a combat power of {1} {2} {3} with a combat power of {4}.</RW_LetterBattleText>
 <RW_LetterSettlementBattle>Settlement Assault</RW_LetterSettlementBattle>
 <RW_LetterSettlementBattleText>{0} with combat power of {1} {4} {2} with combat power of {3}.</RW_LetterSettlementBattleText>
@@ -193,6 +198,7 @@ Current standing: {0}</RW_DeclarePeaceInfo>
 <RW_CaravanTradeText>{0} traded with {1}</RW_CaravanTradeText>
 <RW_SettlementTrade>Settlement Trade</RW_SettlementTrade>
 <RW_SettlementTradeText>{0} traded with {1}</RW_SettlementTradeText>
+<RW_SettlementUnderAttackText>Attacking forces: {0}</RW_SettlementUnderAttackText>
 
 <RW_CaravanMeeting_TradeUnwilling>{0} views you with open hostility and is unwilling to trade.</RW_CaravanMeeting_TradeUnwilling>
 <RW_CaravanMeeting_FactionIncapableOfTrade>There are no traders defined for this faction - trading is administratively disabled to prevent errors.</RW_CaravanMeeting_FactionIncapableOfTrade>
@@ -212,6 +218,28 @@ cost {0} silver</RW_CaravanDemand_AttackSettlement>
 <RW_CaravanMeeting_TradeWithColony>Request: trade with colony; cost {0} silver</RW_CaravanMeeting_TradeWithColony>
 <RW_CaravanMeeting_TradeWithColonyDisabledDistance>too far</RW_CaravanMeeting_TradeWithColonyDisabledDistance>
 <RW_CaravanMeeting_TradeWithColonyDisabled>cannot afford ({0})</RW_CaravanMeeting_TradeWithColonyDisabled>
+
+<RW_JoinBattle>Join battle</RW_JoinBattle>
+<RW_CaravanJoiningBattle>Joining battle</RW_CaravanJoiningBattle>
+<RW_LetterLabelAttackBattleSite>Field battle joined.</RW_LetterLabelAttackBattleSite>
+<RW_LetterAttackBattleSite>{0} has entered a battled against the following forces: {1}.</RW_LetterAttackBattleSite>
+<RW_LetterDropOnBattleSite>Drop pods have landed on a battle with {0}</RW_LetterDropOnBattleSite>
+<RW_CommandAttackBattleSite>Join Battle</RW_CommandAttackBattleSite>
+<RW_CommandAttackBattleSiteDesc>Joins a free-for-all battle between combating forces in open terrain</RW_CommandAttackBattleSiteDesc>
+
+<RW_ReinforceSite>Reinforce</RW_ReinforceSite>
+<RW_ReinforceShuttle>Reinforce {0}: Shuttle</RW_ReinforceShuttle>
+<RW_ReinforceAndDropAtEdge>Reinforce {0}: Drop at edge</RW_ReinforceAndDropAtEdge>
+<RW_ReinforceAndDropInCenter>Reinforce {0}: Drop in center</RW_ReinforceAndDropInCenter>
+<RW_ReinforceSiteDesc>Sends reinforcements to a map. Does not trigger hostilities. Only available when a friendly or neutral site is under attack by a faction hostile to the player. Be cautious with collateral damage, friendly factions can quickly become hostile in a chaotic battle.</RW_ReinforceSiteDesc>
+
+<RW_GiveSuppliesViaTransportPods>Give as combat supplies to {0} ({1})</RW_GiveSuppliesViaTransportPods>
+
+<RW_ConfirmTradersEnterDangerous>{0} is looking to trade with {1} but is concerned about dangerous conditions: {2}\n\nWhat should they do?</RW_ConfirmTradersEnterDangerous>
+<RW_PermitTrader>Assure safety.</RW_PermitTrader>
+<RW_DelayTrader4>Wait 4 hours.</RW_DelayTrader4>
+<RW_DelayTrader12>Wait 12 hours.</RW_DelayTrader12>
+<RW_RejectTrader>Send trader away.</RW_RejectTrader>
 
 <!-- ============ Custom Letters =============-->
 <RW_VictoryChallengeLabel>RimWar Victory Challenge</RW_VictoryChallengeLabel>

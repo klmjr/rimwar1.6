@@ -7,12 +7,15 @@ using Verse.Profile;
 using Verse.Sound;
 using RimWar.Planet;
 using HarmonyLib;
+using System;
+using System.Linq;
+using System.Text;
 
 namespace RimWar.Options
 {
     public class RimWarSettingsWindow : Window
     {
-
+        private bool rivalButton = false;
         public Page_CreateWorldParams page_ref;
 
         private static readonly float[] PlanetCoverages = new float[9]
@@ -57,7 +60,6 @@ namespace RimWar.Options
 
         public override void DoWindowContents(Rect canvas)
         {
-
             GUI.BeginGroup(canvas);
             Text.Font = GameFont.Small;
             float num = 0f;
@@ -93,13 +95,51 @@ namespace RimWar.Options
             }
             TooltipHandler.TipRegionByKey(new Rect(0f, num, rect3.xMax, rect3.height), "PlanetCoverageTip");
             num += 36f;
+            Rect rect11 = new Rect(0f, num, 200f, 30f);
+            Widgets.Label(rect11, "Rival");
+            //Widgets.CheckboxLabeled(rect11, "RW_randomRival".Translate(), ref Settings.Instance.randomRival, false);
+            TooltipHandler.TipRegion(rect11, "RW_randomRivalInfo".Translate());
+            Rect rect11ShiftRight = new Rect(200f, num, 200f, 30f);
+            rivalButton = Widgets.ButtonText(rect11ShiftRight, Settings.Instance.factionDefForRival == null ? "Random" : Settings.Instance.factionDefForRival.LabelCap.ToString(), true, false, true);
+            if (rivalButton)
+            {
+                List<FloatMenuOption> listF = new List<FloatMenuOption>();
+                List<FactionDef> rivalFactions = (from fDef in DefDatabase<FactionDef>.AllDefs
+                                                  where !fDef.isPlayer && !fDef.hidden
+                                                  select fDef).ToList();
+                for (int i = 0; i < rivalFactions.Count + 1; i++)
+                {
+                    FactionDef fR;
+                    if (i == rivalFactions.Count)
+                    {
+                        FactionDef randomFaction = new FactionDef();
+                        randomFaction.defName = "RW_Random";
+                        randomFaction.label = "Random";
+                        fR = randomFaction;
+                    }
+                    else
+                    {
+                        fR = rivalFactions[i];
+                    }
+
+                    listF.Add(new FloatMenuOption(fR.LabelCap, delegate
+                    {
+                        if (fR.defName == "RW_Random")
+                        {
+                            Settings.Instance.factionDefForRival = null;
+                        }
+                        else
+                        {
+                            Settings.Instance.factionDefForRival = fR;
+                        }
+                    }));
+                }
+                Find.WindowStack.Add(new FloatMenu(listF));
+            }
+            num += 36f;
             Rect rect10 = new Rect(0f, num, 400f, 30f);
             Widgets.CheckboxLabeled(rect10, "RW_useRimWarVictory".Translate(), ref Settings.Instance.useRimWarVictory, false);
             TooltipHandler.TipRegion(rect10, "RW_useRimWarVictoryInfo".Translate());
-            num += 36f;
-            Rect rect11 = new Rect(0f, num, 400f, 30f);
-            Widgets.CheckboxLabeled(rect11, "RW_randomRival".Translate(), ref Settings.Instance.randomRival, false);
-            TooltipHandler.TipRegion(rect11, "RW_randomRivalInfo".Translate());
             num += 36f;
             Rect rect7 = new Rect(0f, num, 400f, 30f);
             Widgets.CheckboxLabeled(rect7, "RW_playerVSworld".Translate(), ref Settings.Instance.playerVS, false);
@@ -112,7 +152,10 @@ namespace RimWar.Options
             Rect rect9 = new Rect(0f, num, 400f, 30f);
             Widgets.CheckboxLabeled(rect9, "RW_randomizeFactionAttributes".Translate(), ref Settings.Instance.randomizeAttributes, false);
             TooltipHandler.TipRegion(rect9, "RW_randomizeFactionAttributesInfo".Translate());
-
+            //num += 36f;
+            //Rect rect6 = new Rect(0f, num, 400f, 30f);
+            //Widgets.CheckboxLabeled(rect6, "RW_noPermanentEnemies".Translate(), ref Settings.Instance.noPermanentEnemies, false);
+            //TooltipHandler.TipRegion(rect6, "RW_noPermanentEnemiesInfo".Translate());
             GUI.EndGroup();
         }
     }

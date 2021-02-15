@@ -123,6 +123,14 @@
     <Compile Include="Base.cs" />
     <Compile Include="ModCheck\Empire.cs" />
     <Compile Include="ModCheck\Validate.cs" />
+    <Compile Include="Planet\CaravanArrivalAction_JoinBattle.cs" />
+    <Compile Include="Planet\TransportPodsArrivalAction_GiveSupplies.cs" />
+    <Compile Include="Planet\TransportPodsArrivalAction_ReinforceSettlement.cs" />
+    <Compile Include="Planet\TransportPodsArrivalAction_Shuttle_ReinforceSettlement.cs" />
+    <Compile Include="Planet\TransportPodsArrivalAction_Shuttle_JoinBattle.cs" />
+    <Compile Include="Planet\TransportPodsArrivalAction_JoinBattle.cs" />
+    <Compile Include="Planet\RimWarSite.cs" />
+    <Compile Include="Planet\BattleSite.cs" />
     <Compile Include="Planet\RimWarCaravanComp.cs" />
     <Compile Include="Planet\SettlementUtility.cs" />
     <Compile Include="Planet\RimWarSettlementComp.cs" />

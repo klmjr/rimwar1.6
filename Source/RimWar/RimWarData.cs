@@ -110,29 +110,61 @@ namespace RimWar
             }
         }
 
-        private CapitolBuilding capBuilding = null;
+        //private CapitolBuilding capBuilding = null;
+
+        public bool AnyCapitol
+        {
+            get
+            {
+                if (capitol != null && !capitol.Destroyed && capitol.Faction == this.RimWarFaction)
+                {
+                    RimWarSettlementComp rwsc = capitol.GetComponent<RimWarSettlementComp>();
+                    if (rwsc != null && rwsc.isCapitol)
+                    {                        
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (WarSettlementComps != null && WarSettlementComps.Count > 0 && behavior != RimWarBehavior.Excluded)
+                    {
+                        foreach(RimWarSettlementComp rwsc in WarSettlementComps)
+                        {
+                            if(rwsc.isCapitol)
+                            {
+                                if(capitol == null)
+                                {
+                                    capitol = (Settlement)rwsc.parent;
+                                }
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+
+        public void ClearCapitol()
+        {
+            foreach (RimWarSettlementComp rwsc in WarSettlementComps)
+            {
+                rwsc.isCapitol = false;
+            }
+        }
+
         private Settlement capitol = null;
         public Settlement GetCapitol
         {
             get
             {
+                if(AnyCapitol)
+                {
+                    return capitol;
+                }
                 if (capitol == null && WorldSettlements.Count > 0 && behavior != RimWarBehavior.Excluded)
                 {
-                    if (capitolTile != 0)
-                    {
-                        capitol = Find.WorldObjects.SettlementAt(capitolTile);
-                        foreach (WorldObject obj in Find.WorldObjects.AllWorldObjects)
-                        {
-                            if (obj is CapitolBuilding && obj.Tile == capitolTile)
-                            {
-                                capBuilding = obj as CapitolBuilding;
-                            }
-                        }
-                    }
-                    if (capitol == null || capitol.Faction != this.RimWarFaction)
-                    {
-                        AssignRWDCapitol();
-                    }
+                    AssignRWDCapitol();
                 }
                 return capitol;
             }
@@ -142,9 +174,10 @@ namespace RimWar
         {
             int bestPts = 0;
             Settlement bestSelection = null;
-            int index = 0;
+            int index = 0;            
             if (WarSettlementComps != null && WarSettlementComps.Count > 0)
             {
+                ClearCapitol();
                 for (int i = 0; i < WarSettlementComps.Count; i++)
                 {
                     if (bestSelection != null)
@@ -165,16 +198,6 @@ namespace RimWar
                 }
                 if (bestSelection != null)
                 {
-                    CapitolBuilding cap = (CapitolBuilding)WorldObjectMaker.MakeWorldObject(RimWarDefOf.RW_CapitolBuilding);
-                    cap.Tile = bestSelection.Tile;
-                    Find.WorldObjects.Add(cap);
-                    if (cap != null)
-                    {
-                        cap.SetFaction(this.RimWarFaction);
-                        capBuilding = cap;
-                    }
-                    capitol = bestSelection;
-                    capitolTile = capitol.Tile;
                     WarSettlementComps[index].isCapitol = true;
                 }
             }

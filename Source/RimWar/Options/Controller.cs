@@ -23,6 +23,21 @@ namespace RimWar.Options
             Controller.Instance = this;
             Settings.Instance = base.GetSettings<Settings>();
             LongEventHandler.ExecuteWhenFinished(new Action(Controller.AddGroupPawnMakers));
+            LongEventHandler.ExecuteWhenFinished(new Action(Controller.FactionAdjustments));
+        }
+
+        private static void FactionAdjustments()
+        {
+            //if(Settings.Instance.noPermanentEnemies)
+            //{
+            //    IEnumerable<FactionDef> enumerable = from def in DefDatabase<FactionDef>.AllDefs
+            //                                         where (!def.hidden && !def.isPlayer && def.humanlikeFaction)
+            //                                         select def;
+            //    foreach(FactionDef fdef in enumerable)
+            //    {
+            //        fdef.permanentEnemy = false;
+            //    }
+            //}
         }
 
         private static void AddGroupPawnMakers()
@@ -243,8 +258,8 @@ namespace RimWar.Options
             TooltipHandler.TipRegion(rowRect11, "RW_forceRandomObjectInfo".Translate());
             Rect rowRect11ShiftRight = UIHelper.GetRowRect(rowRect, rowHeight, num);
             rowRect11ShiftRight.x += rowRect.width + 56f;
-            Settings.Instance.settlementGrowthRate = Widgets.HorizontalSlider(rowRect11ShiftRight, Settings.Instance.settlementGrowthRate, 0f, 10f, false, "RW_settlementGrowthRate".Translate(((Settings.Instance.settlementGrowthRate)).ToString("P1")), "0%", "1000%", .1f);
-            TooltipHandler.TipRegion(rowRect11ShiftRight, "RW_settlementGrowhtRateInfo".Translate());
+            Settings.Instance.settlementGrowthRate = Widgets.HorizontalSlider(rowRect11ShiftRight, Settings.Instance.settlementGrowthRate, 0f, 10f, false, "RW_settlementGrowthRate".Translate(Settings.Instance.settlementGrowthRate.ToString("P0")), "0%", "1000%", .1f);
+            TooltipHandler.TipRegion(rowRect11ShiftRight, "RW_settlementGrowthRateInfo".Translate());
             //Widgets.CheckboxLabeled(rowRect11, "RW_createDiplomats".Translate(), ref Settings.Instance.createDiplomats, false);
             num++;
             Rect rowRect13 = UIHelper.GetRowRect(rowRect12, rowHeight, num);

@@ -167,27 +167,6 @@ namespace RimWar.Planet
 
         }
 
-        public List<int> capitolTiles;
-        private void DrawOverlays()
-        {
-            if (capitolTiles == null)
-            {
-                capitolTiles = new List<int>();
-                capitolTiles.Clear();
-            }
-            if (rwdInitialized)
-            {
-                if (Find.TickManager.TicksGame % 300 == 0)
-                {
-                    capitolTiles.Clear();
-                    foreach (RimWarData rwd in this.RimWarData)
-                    {
-                        capitolTiles.Add(rwd.GetCapitol.Tile);
-                    }
-                }
-            }
-        }
-
         private bool doOnce = false;
         public override void WorldComponentTick()
         {
@@ -197,6 +176,10 @@ namespace RimWar.Planet
             WorldUtility.CopyData();
             if (!doOnce)
             {
+                if(this.victoryFaction != null)
+                {
+                    this.victoryFaction.def.naturalColonyGoodwill = new IntRange(-100, -100);
+                }
                 doOnce = true;
             }
             if (currentTick >= 10 && !this.rwdInitialized)
@@ -297,7 +280,6 @@ namespace RimWar.Planet
                                         }
                                         else if (newAction == RimWarAction.Settler && rwd.WorldSettlements.Count < settingsRef.maxFactionSettlements)
                                         {
-
                                             AttemptSettlerMission(rwd, settlement, rwsComp);
                                         }
                                         else if (newAction == RimWarAction.Warband)
@@ -617,14 +599,25 @@ namespace RimWar.Planet
                     potentialFactions.Clear();
                     for (int i = 0; i < Active_RWD.Count; i++)
                     {
-                        if ((Active_RWD[i].hatesPlayer || Options.Settings.Instance.randomRival) && !Active_RWD[i].RimWarFaction.def.hidden)
+                        if (Settings.Instance.factionDefForRival == null)
                         {
-                            potentialFactions.Add(Active_RWD[i].RimWarFaction);
+                            if (!Active_RWD[i].RimWarFaction.def.hidden && Active_RWD[i].RimWarFaction.def.humanlikeFaction)
+                            {
+                                potentialFactions.Add(Active_RWD[i].RimWarFaction);
+                            }
+                        }
+                        else
+                        {
+                            if(Active_RWD[i].RimWarFaction.def.defName == Settings.Instance.factionDefForRival.defName)
+                            {
+                                potentialFactions.Add(Active_RWD[i].RimWarFaction);
+                            }
                         }
                     }
                     if (potentialFactions.Count > 0)
                     {
                         this.victoryFaction = potentialFactions.RandomElement();
+                        this.victoryFaction.def.naturalColonyGoodwill = new IntRange(-100, -100);
                         List<RimWorld.Planet.Settlement> wosList = WorldUtility.GetRimWarDataForFaction(this.victoryFaction).WorldSettlements;
                         if (wosList != null)
                         {
@@ -633,7 +626,7 @@ namespace RimWar.Planet
                                 RimWarSettlementComp rwsc = wosList[j].GetComponent<RimWarSettlementComp>();
                                 if (rwsc != null)
                                 {
-                                    rwsc.RimWarPoints = Mathf.RoundToInt(rwsc.RimWarPoints * Rand.Range(1.5f, 1.8f));
+                                    rwsc.RimWarPoints = Mathf.RoundToInt(rwsc.RimWarPoints * Rand.Range(1.3f, 1.8f));
                                 }
                             }
                         }
@@ -706,11 +699,18 @@ namespace RimWar.Planet
                                     mult += .075f;
                                 }
                             }
-                            if (rwdTown.RimWarPoints <= maxPts)
+                            if (rwdTown.PointDamage > 0)
                             {
-                                float pts = (Rand.Range(2f, 3f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome); //.1f - 3.5f
-                                pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute * settingsref.settlementGrowthRate;
-                                rwdTown.RimWarPoints += Mathf.RoundToInt(pts);
+                                rwdTown.PointDamage = Mathf.RoundToInt(Mathf.Clamp(rwdTown.PointDamage - (Rand.Range(.012f, .015f) * rwdTown.RimWarPoints), 0, rwdTown.RimWarPoints));
+                            }
+                            else
+                            {
+                                if (rwdTown.RimWarPoints <= maxPts)
+                                {
+                                    float pts = (Rand.Range(2f, 3f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome); //.1f - 3.5f
+                                    pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute * settingsref.settlementGrowthRate;
+                                    rwdTown.RimWarPoints += Mathf.RoundToInt(pts);
+                                }
                             }
                             if (rwdTown.PlayerHeat < 10000)
                             {

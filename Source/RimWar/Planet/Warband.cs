@@ -131,7 +131,7 @@ namespace RimWar.Planet
             if (rwo.Faction != null && rwo.Faction.HostileTo(this.Faction))
             {
                 IncidentUtility.ResolveRimWarBattle(this, rwo);
-                ImmediateAction(rwo);                
+                //ImmediateAction(rwo);                
             }
         }
 
@@ -167,11 +167,11 @@ namespace RimWar.Planet
                                             arrivalDef = PawnsArrivalModeDefOf.RandomDrop;
                                         }
 
-                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(arrivalDef));
+                                        IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(arrivalDef));
                                     }
                                     else
                                     {
-                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                        IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                                     }
                                 }
                             }
@@ -198,7 +198,7 @@ namespace RimWar.Planet
                                     if (rwsc.parent.Faction == Faction.OfPlayer)
                                     {
                                         //RimWorld.Planet.Settlement playerSettlement = Find.World.worldObjects.SettlementAt(this.Tile);                                        
-                                        IncidentUtility.DoRaidWithPoints(this.RimWarPoints, factionSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                        IncidentUtility.DoRaidWithPoints(this, factionSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                                     }
                                     else
                                     {
@@ -227,22 +227,22 @@ namespace RimWar.Planet
                                     {
                                         if (this.launched)
                                         {
-                                            IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.RandomDrop));
+                                            IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.RandomDrop));
                                         }
                                         else
                                         {
-                                            IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                            IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                                         }
                                     }
                                     else
                                     {
                                         if (this.launched)
                                         {
-                                            IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.CenterDrop));
+                                            IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.CenterDrop));
                                         }
                                         else
                                         {
-                                            IncidentUtility.DoReinforcementWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                            IncidentUtility.DoReinforcementWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                                         }
                                     }
                                 }
@@ -253,6 +253,7 @@ namespace RimWar.Planet
                 else
                 {
                     this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
+                    this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
                     List<Map> maps = Find.Maps;
                     for (int i =0; i < maps.Count; i++)
                     {
@@ -261,7 +262,8 @@ namespace RimWar.Planet
                         {
                             //reinforcement against player
                             this.WarSettlementComp.RimWarPoints -= Mathf.RoundToInt(this.RimWarPoints / 2f);
-                            IncidentUtility.DoRaidWithPoints((WarSettlementComp.RimWarPoints - 1000), this.ParentSettlement, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                            this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                            IncidentUtility.DoRaidWithPoints(this, this.ParentSettlement, this.rimwarData, IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                         }
                     }
                 }
@@ -279,6 +281,8 @@ namespace RimWar.Planet
                         //Log.Message("map is spawn " + Find.World.worldObjects.MapParentAt(this.Tile).Spawned);
                         //Log.Message("map " + Find.World.worldObjects.MapParentAt(this.Tile).Map + " has faction " + Find.World.worldObjects.MapParentAt(this.Tile).Faction);
                         this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
+                        this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                        //IncidentUtility.DoRaidWithPoints(this, this.ParentSettlement, this.rimwarData, PawnsArrivalModeDefOf.EdgeWalkIn, PawnGroupKindDefOf.Combat);
                     }
                     else
                     {
@@ -288,8 +292,19 @@ namespace RimWar.Planet
 
                         }
                         this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
+                        this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
                     }
                     base.ArrivalAction();
+                }
+                else
+                {
+                    RimWarSettlementComp _rwsc = wo.GetComponent<RimWarSettlementComp>();
+                    if (_rwsc != null && _rwsc.parent != null && _rwsc.parent.Faction == this.Faction)
+                    {
+                        _rwsc.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
+                        _rwsc.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                        base.ArrivalAction();
+                    }
                 }
                 ValidateParentSettlement();
                 FindParentSettlement();

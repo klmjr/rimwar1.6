@@ -42,6 +42,39 @@
     </inspectorTabs>
   </WorldObjectDef>
   
+  <WorldObjectDef Name="RW_Site">
+    <defName>RW_Site</defName>
+    <label>Interactive Site</label>
+    <description>Interactive site.</description>
+    <worldObjectClass>RimWar.Planet.RimWarSite</worldObjectClass>
+    <texture>World/BattleSite</texture>
+    <useDynamicDrawer>true</useDynamicDrawer>
+    <expandingIcon>true</expandingIcon>
+    <expandingIconTexture>World/BattleSiteExpanded</expandingIconTexture>
+    <expandingIconPriority>100</expandingIconPriority>
+    <expandMore>true</expandMore>
+	<selectable>true</selectable>
+	<neverMultiSelect>true</neverMultiSelect>
+	<comps>
+      <li Class="WorldObjectCompProperties_FormCaravan" />
+	  <li Class="WorldObjectCompProperties_EnterCooldown" />
+    </comps>
+    <inspectorTabs>
+    </inspectorTabs>
+  </WorldObjectDef>
+  
+  <WorldObjectDef ParentName = "RW_Site"> 
+    <defName>RW_BattleSite</defName>
+    <label>Battle Site</label>
+    <description>Site of an ongoing battle.</description>
+    <worldObjectClass>RimWar.Planet.BattleSite</worldObjectClass>
+    <texture>World/BattleSite</texture>
+    <expandingIconTexture>World/BattleSiteExpanded</expandingIconTexture>
+    <expandingIconPriority>100</expandingIconPriority>
+    <inspectorTabs>
+    </inspectorTabs>
+  </WorldObjectDef>
+  
   <WorldObjectDef>
     <defName>RW_WarObject</defName>
     <label>RimWar world object</label>

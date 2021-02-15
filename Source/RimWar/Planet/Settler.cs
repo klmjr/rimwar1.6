@@ -203,7 +203,7 @@ namespace RimWar.Planet
                                 if (playerSettlement != null)
                                 {
                                     //Raid Player Map
-                                    IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                    IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                                 }
                                 else if (playerCaravan != null)
                                 {
@@ -240,6 +240,7 @@ namespace RimWar.Planet
                             if(rwsc != null)
                             {
                                 rwsc.RimWarPoints += this.RimWarPoints;
+                                rwsc.PointDamage += this.PointDamage;
                             }
                         }
                     }

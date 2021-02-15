@@ -18,6 +18,7 @@ namespace RimWar.Options
         public float heatMultiplier = Settings.Instance.heatMultiplier;
         public float heatFrequency = Settings.Instance.heatFrequency;
         public float settlementGrowthRate = Settings.Instance.settlementGrowthRate;
+        public bool noPermanentEnemies = Settings.Instance.noPermanentEnemies;
 
         public int maxFactionSettlements = Settings.Instance.maxFactionSettlements;
         public float settlementScanRangeDivider = Settings.Instance.settlementScanRangeDivider;

@@ -43,6 +43,33 @@ namespace RimWar.Utility
             }
         }
 
+        [DebugAction("Rim War", "Damage 100", actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
+        private static void Add100PtDamage()
+        {
+            int tile = GenWorld.MouseTile();
+            if (tile < 0 || Find.World.Impassable(tile))
+            {
+                Messages.Message("Impassable", MessageTypeDefOf.RejectInput, historical: false);
+            }
+            else
+            {
+                RimWorld.Planet.Settlement s = Find.WorldObjects.SettlementAt(tile);
+                if (s != null && s.Faction != Faction.OfPlayer)
+                {
+                    RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
+                    if (rwsc != null && rwsc.parent.Faction != Faction.OfPlayer)
+                    {
+                        rwsc.PointDamage += 100;
+                    }
+                }
+                WarObject rwo = Find.WorldObjects.WorldObjectAt(tile, RimWarDefOf.RW_WarObject) as WarObject;
+                if (rwo != null)
+                {
+                    rwo.PointDamage += 100;
+                }
+            }
+        }
+
         [DebugAction("Rim War", null, actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
         private static void SpawnTrader()
         {
@@ -461,6 +488,30 @@ namespace RimWar.Utility
         private static void DebugRimWarSettlementData()
         {
             Debug_FixRimWarSettlements(true, true);
+        }
+
+        [DebugAction("Rim War - Debug", "Reset Capitols", actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
+        private static void DebugRimWarLegacyCapitols()
+        {
+            foreach(RimWarData rwd in WorldUtility.GetRimWarData())
+            {
+                rwd.ClearCapitol();
+            }
+            List<WorldObject> remList = new List<WorldObject>();
+            for(int i = 0; i < Find.WorldObjects.AllWorldObjects.Count; i++)
+            {
+                if(Find.WorldObjects.AllWorldObjects[i] is CapitolBuilding)
+                {
+                    remList.Add(Find.WorldObjects.AllWorldObjects[i]);
+                }
+            }
+            if(remList.Count > 0)
+            {
+                for(int i = 0; i < remList.Count; i++)
+                {
+                    remList[i].Destroy();
+                }
+            }
         }
 
 

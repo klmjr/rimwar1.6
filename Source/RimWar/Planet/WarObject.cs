@@ -43,6 +43,43 @@ namespace RimWar.Planet
         public bool canReachDestination = true;
         public bool playerNotified = false;
 
+        private List<Pawn> pawns;
+        public List<Pawn> Pawns
+        {
+            get
+            {
+                if (pawns == null)
+                {
+                    pawns = new List<Pawn>();
+                    pawns.Clear();
+                }
+                return pawns;
+            }
+            set
+            {
+                if (pawns == null)
+                {
+                    pawns = new List<Pawn>();
+                    pawns.Clear();
+                }
+                pawns = value;
+            }
+        }
+
+        public float PointsPerPawn
+        {
+            get
+            {
+                float pc = Pawns.Count;
+                float rwp = RimWarPoints;
+                if (pc >= 1)
+                {
+                    return rwp / pc;
+                }
+                return 0f;
+            }
+        }
+
         public class ContextStorage
         {
             internal bool shouldExecute;
@@ -162,6 +199,7 @@ namespace RimWar.Planet
             Scribe_Deep.Look(ref pather, "pather", this);
             Scribe_References.Look<RimWorld.Planet.Settlement>(ref this.parentSettlement, "parentSettlement");
             Scribe_References.Look<WorldObject>(ref this.targetWorldObject, "targetWorldObject");
+            Scribe_Collections.Look<Pawn>(ref this.pawns, "pawns", LookMode.Reference);
         }
 
         public RimWarSettlementComp WarSettlementComp
@@ -262,6 +300,14 @@ namespace RimWar.Planet
             set
             {
                 pointDamageInt = value;
+            }
+        }
+
+        public int EffectivePoints
+        {
+            get
+            {
+                return RimWarPoints - PointDamage;
             }
         }
 
@@ -417,6 +463,14 @@ namespace RimWar.Planet
         public override void Tick()
         {
             base.Tick();
+            if(this.PointDamage > 0 && Find.TickManager.TicksGame % 1001 == 0)
+            {
+                this.PointDamage = Mathf.RoundToInt(Mathf.Clamp(this.PointDamage - (Rand.Range(.008f, .012f) * this.RimWarPoints), 0, this.RimWarPoints));
+            }
+            if(this.EffectivePoints <= 0)
+            {
+                this.ArrivalAction();
+            }
             if (pauseFor <= 0)
             {
                 if ((Find.TickManager.TicksGame) >= this.NextSearchTick)
@@ -532,6 +586,11 @@ namespace RimWar.Planet
                                 }
                                 break;
                             }
+                            else if(wo is RimWarSite)
+                            {
+                                InteractWithSite(wo);
+                                break;
+                            }
                             else if (wo is WarObject)
                             {
                                 EngageNearbyWarObject(wo as WarObject);
@@ -598,6 +657,19 @@ namespace RimWar.Planet
 
         }
 
+        public virtual void InteractWithSite(WorldObject wo)
+        {
+            if(wo is BattleSite)
+            {
+                BattleSite bs = wo as BattleSite;
+                if(bs != null)
+                {
+                    bs.Units.Add(this);
+                    this.ImmediateDestroy();
+                }
+            }
+        }
+
         public virtual void EngageCaravan(Caravan car)
         {
             if (car != null && car.Faction == Faction.OfPlayer)
@@ -645,6 +717,11 @@ namespace RimWar.Planet
         public virtual void ArrivalAction()
         {
             //Log.Message("arrival action for " + this.Name + "; dest " + DestinationTarget + " parent " + this.ParentSettlement);
+            this.ImmediateDestroy();
+        }
+
+        public virtual void ImmediateDestroy()
+        {
             if (!this.Destroyed)
             {
                 this.Destroy();
@@ -703,7 +780,14 @@ namespace RimWar.Planet
             {
                 stringBuilder.AppendLine();
             }
-            stringBuilder.Append("RW_CombatPower".Translate(this.RimWarPoints));
+            if (PointDamage > 0)
+            {
+                stringBuilder.Append("RW_CombatPowerDamaged".Translate(this.RimWarPoints, PointDamage));
+            }
+            else
+            {
+                stringBuilder.Append("RW_CombatPower".Translate(this.RimWarPoints));
+            }
             stringBuilder.Append("\n" + this.Faction.PlayerRelationKind.ToString());
             if (!pather.MovingNow)
             {
@@ -840,6 +924,24 @@ namespace RimWar.Planet
                     Destroy();
                 };
                 gizmoIE.Add(command_Action1);
+
+                Command_Action command_Action2 = new Command_Action();
+                command_Action2.defaultLabel = "Dev: Damage 100";
+                command_Action2.defaultDesc = "Damages the war object by 100 combat points.";
+                command_Action2.action = delegate
+                {
+                    this.PointDamage += 100;
+                };
+                gizmoIE.Add(command_Action2);
+
+                Command_Action command_Action3 = new Command_Action();
+                command_Action3.defaultLabel = "Dev: Add 1k";
+                command_Action3.defaultDesc = "Adds 1000 combat points.";
+                command_Action3.action = delegate
+                {
+                    this.RimWarPoints += 1000;
+                };
+                gizmoIE.Add(command_Action3);
                 return gizmoIE;
             }
             return base.GetGizmos();

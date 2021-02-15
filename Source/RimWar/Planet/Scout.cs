@@ -86,6 +86,18 @@ namespace RimWar.Planet
                                 //Log.Message(this.Label + " engaging nearby warband " + wo.Label);
                             }
                         }
+                        if (wo is BattleSite)
+                        {
+                            BattleSite bs = wo as BattleSite;
+                            foreach (WarObject rwo in bs.Units)
+                            {
+                                if (rwo.Faction == bs.Faction)
+                                {
+                                    this.DestinationTarget = wo;
+                                    break;
+                                }
+                            }
+                        }
                         if (wo is WarObject && this.Faction.HostileTo(wo.Faction))
                         {
                             WarObject warObject = wo as WarObject;
@@ -126,8 +138,9 @@ namespace RimWar.Planet
 
         public override void EngageNearbyWarObject(WarObject rwo)
         {
+            //Log.Message("" + this.Label + " engaging nearby " + rwo.Label);
             IncidentUtility.ResolveRimWarBattle(this, rwo);
-            ImmediateAction(rwo);            
+            //ImmediateAction(rwo);            
         }
 
         public Scout()
@@ -195,7 +208,7 @@ namespace RimWar.Planet
                             if (playerSettlement != null)
                             {
                                 //Raid Player Map
-                                IncidentUtility.DoRaidWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                                 base.ArrivalAction();
                             }
                         }
@@ -220,7 +233,7 @@ namespace RimWar.Planet
                             RimWarSettlementComp rwscDefender = wos.GetComponent<RimWarSettlementComp>();
                             if (wos.Faction == Faction.OfPlayer)
                             {
-                                IncidentUtility.DoRaidWithPoints(this.RimWarPoints, wos, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                                IncidentUtility.DoRaidWithPoints(this, wos, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                                 base.ArrivalAction();
                             }
                             else if (rwscDefender != null)
@@ -234,6 +247,12 @@ namespace RimWar.Planet
                             IncidentUtility.ResolveWorldEngagement(this, wo);
                             base.ArrivalAction();
                         }
+                        if (wo is BattleSite)
+                        {
+                            BattleSite bs = wo as BattleSite;
+                            bs.Units.Add(this);
+                            base.ArrivalAction();
+                        }
                     }                
                 }
                 else
@@ -244,7 +263,7 @@ namespace RimWar.Planet
                         if (playerSettlement != null)
                         {
                             //Raid Player Map
-                            IncidentUtility.DoReinforcementWithPoints(this.RimWarPoints, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
+                            IncidentUtility.DoReinforcementWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.EdgeWalkIn));
                             base.ArrivalAction();
                         }
                     }
@@ -254,6 +273,7 @@ namespace RimWar.Planet
                         if(rwsc != null)
                         {
                             rwsc.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints/2f);
+                            rwsc.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
                             base.ArrivalAction();
                         }
                     }
@@ -261,7 +281,7 @@ namespace RimWar.Planet
             }
             else
             {
-                //Log.Message("this tile: " + this.Tile + " parent settlement tile: " + this.ParentSettlement.Tile);
+                //Log.Message("this tile: " + this.Tile + " parent settlement tile: " + this.ParentSettlement.Tile + " pather destination " + this.pather.Destination);
                 if(this.Tile == ParentSettlement.Tile)
                 {
                     if(Find.World.worldObjects.AnyMapParentAt(this.Tile))
@@ -271,6 +291,8 @@ namespace RimWar.Planet
                         //Log.Message("map is spawn " + Find.World.worldObjects.MapParentAt(this.Tile).Spawned);
                         //Log.Message("map " + Find.World.worldObjects.MapParentAt(this.Tile).Map + " has faction " + Find.World.worldObjects.MapParentAt(this.Tile).Faction);
                         this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
+                        this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                        //IncidentUtility.DoRaidWithPoints(this, this.ParentSettlement, this.rimwarData, PawnsArrivalModeDefOf.EdgeWalkIn, PawnGroupKindDefOf.Combat);
                     }
                     else
                     {
@@ -280,9 +302,24 @@ namespace RimWar.Planet
 
                         }
                         this.WarSettlementComp.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints/2f);
+                        this.WarSettlementComp.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
                     }
                     base.ArrivalAction();
                 }
+                else
+                {
+                    RimWarSettlementComp _rwsc = wo.GetComponent<RimWarSettlementComp>();
+                    if(_rwsc != null && _rwsc.parent != null && _rwsc.parent.Faction == this.Faction)
+                    {
+                        _rwsc.RimWarPoints += Mathf.RoundToInt(this.RimWarPoints / 2f);
+                        _rwsc.PointDamage += Mathf.RoundToInt(this.PointDamage / 2f);
+                        base.ArrivalAction();
+                    }
+                }
+                ValidateParentSettlement();
+                FindParentSettlement();
+                this.DestinationTarget = ParentSettlement;
+                PathToTarget(DestinationTarget);
             }
             //Log.Message("ending arrival actions");
         }       

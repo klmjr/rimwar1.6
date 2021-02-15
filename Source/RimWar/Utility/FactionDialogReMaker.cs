@@ -535,5 +535,27 @@ namespace RimWar.Utility
                 linkLateBind = ResetToRoot(faction, negotiator)
             };
         }
+
+        public static void RequestTradePermissionDialog(Faction f, WarObject wo, Settlement playerSettlement, Map map, TaggedString threats, Action permit, Action delay4, Action delay12, Action refuse)
+        {
+            var text = "RW_ConfirmTradersEnterDangerous".Translate(wo.Label, playerSettlement.Label, threats);
+
+            DiaNode diaNode = new DiaNode(text);
+            DiaOption diaOption = new DiaOption("RW_PermitTrader".Translate()) { action = permit, resolveTree = true };
+            diaNode.options.Add(diaOption);
+
+            DiaOption diaOption2 = new DiaOption("RW_DelayTrader4".Translate()) { action = delay4, resolveTree = true };
+            diaNode.options.Add(diaOption2);
+
+            DiaOption diaOption3 = new DiaOption("RW_DelayTrader12".Translate()) { action = delay12, resolveTree = true };
+            diaNode.options.Add(diaOption3);
+
+            DiaOption diaOption4 = new DiaOption("RW_RejectTrader".Translate()) { action = refuse, resolveTree = true };
+            diaNode.options.Add(diaOption4);
+
+            string title = "RW_SettlementTrade".Translate(playerSettlement.Label);
+            Find.WindowStack.Add(new Dialog_NodeTree(diaNode, true, true, title));
+
+        }
     }
 }

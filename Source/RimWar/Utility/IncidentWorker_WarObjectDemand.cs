@@ -17,6 +17,7 @@ namespace RimWar.Utility
     {
         private const int MapSize = 100;
         WarObject wo = null;
+        int pointDamage = 0;
 
         private static readonly FloatRange DemandAsPercentageOfCaravan = new FloatRange(0.05f, 0.2f);
         private static readonly FloatRange IncidentPointsFactorRange = new FloatRange(1f, 1.7f);
@@ -39,9 +40,10 @@ namespace RimWar.Utility
             return false;
         }
 
-        public bool PreExecuteWorker(IncidentParms parms, WarObject _wo)
+        public bool PreExecuteWorker(IncidentParms parms, WarObject _wo, int _pointDamage = 0)
         {
             this.wo = _wo;
+            this.pointDamage = _pointDamage;
             return TryExecuteWorker(parms);
         }
 
@@ -402,6 +404,13 @@ namespace RimWar.Utility
                 if (lordJob_AssaultColony != null)
                 {
                     LordMaker.MakeNewLord(enemyFaction, lordJob_AssaultColony, map, attackers);
+                }
+                while(this.pointDamage > 0)
+                {
+                    float ptDam = Mathf.Clamp(Rand.Range(2f, 10f), 0, pointDamage);
+                    pointDamage -= Mathf.RoundToInt(ptDam *2f);
+                    DamageInfo dinfo = new DamageInfo(RimWarDefOf.RW_CombatInjury, ptDam);
+                    attackers.RandomElement().TakeDamage(dinfo);
                 }
                 Find.TickManager.Notify_GeneratedPotentiallyHostileMap();
                 CameraJumper.TryJump(attackers[0]);

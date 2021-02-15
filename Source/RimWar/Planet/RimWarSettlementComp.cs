@@ -19,8 +19,80 @@ namespace RimWar.Planet
         private int rimwarPointsInt = 0;
         private int pointDamageInt = 0;
         public int nextEventTick = 0;
+        public int nextCombatTick = 0;
         public int nextSettlementScan = 0;
         List<ConsolidatePoints> consolidatePoints;
+        private List<WarObject> atkos;
+        public bool preventRelationChange = false;
+
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+            Scribe_Values.Look<int>(ref this.rimwarPointsInt, "rimwarPointsInt", 0, false);
+            Scribe_Values.Look<int>(ref this.pointDamageInt, "pointDamageInt", 0, false);
+            Scribe_Values.Look<int>(ref this.playerHeat, "playerHeat", 0, false);
+            Scribe_Values.Look<int>(ref this.nextEventTick, "nextEventTick", 0, false);
+            Scribe_Values.Look<int>(ref this.nextCombatTick, "nextCombatTick", 0, false);
+            Scribe_Values.Look<int>(ref this.nextSettlementScan, "nextSettlementScan", 0, false);
+            Scribe_Collections.Look<RimWorld.Planet.Settlement>(ref this.settlementsInRange, "settlementsInRange", LookMode.Reference, new object[0]);
+            Scribe_Collections.Look<ConsolidatePoints>(ref this.consolidatePoints, "consolidatePoints", LookMode.Deep, new object[0]);
+            Scribe_Collections.Look<WarObject>(ref this.atkos, "atkos", LookMode.Deep, new object[0]);
+            Scribe_Values.Look<bool>(ref this.isCapitol, "isCapitol", false);
+        }
+
+        public List<WarObject> AttackingUnits
+        {
+            get
+            {
+                if(atkos == null)
+                {
+                    atkos = new List<WarObject>();
+                    atkos.Clear();
+                }
+                return atkos;
+            }
+            set
+            {
+                if(atkos == null)
+                {
+                    atkos = new List<WarObject>();
+                    atkos.Clear();
+                }
+                atkos = value;
+            }
+        }
+
+        public bool UnderAttack
+        {
+            get
+            {
+                if (atkos != null)
+                {
+                    return atkos.Count > 0;
+                }
+                return false;
+            }
+        }
+
+        public bool Reinforceable
+        {
+            get
+            {
+                if(UnderAttack && !parent.Faction.HostileTo(Faction.OfPlayer))
+                {                    
+                    foreach(WarObject attacker in AttackingUnits)
+                    {
+                        if(attacker.Faction.HostileTo(Faction.OfPlayer))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+
+
         private int playerHeat = 0;
         public int PlayerHeat
         {
@@ -32,19 +104,6 @@ namespace RimWar.Planet
             {
                 playerHeat = Mathf.Clamp(value, 0, 10000);
             }
-        }
-
-        public override void PostExposeData()
-        {
-            base.PostExposeData();
-            Scribe_Values.Look<int>(ref this.rimwarPointsInt, "rimwarPointsInt", 0, false);
-            Scribe_Values.Look<int>(ref this.pointDamageInt, "pointDamageInt", 0, false);
-            Scribe_Values.Look<int>(ref this.playerHeat, "playerHeat", 0, false);
-            Scribe_Values.Look<int>(ref this.nextEventTick, "nextEventTick", 0, false);
-            Scribe_Values.Look<int>(ref this.nextSettlementScan, "nextSettlementScan", 0, false);
-            Scribe_Collections.Look<RimWorld.Planet.Settlement>(ref this.settlementsInRange, "settlementsInRange", LookMode.Reference, new object[0]);
-            Scribe_Collections.Look<ConsolidatePoints>(ref this.consolidatePoints, "consolidatePoints", LookMode.Deep, new object[0]);
-            Scribe_Values.Look<bool>(ref this.isCapitol, "isCapitol", false);
         }
 
         public List<ConsolidatePoints> SettlementPointGains
@@ -81,18 +140,17 @@ namespace RimWar.Planet
             }
         }
 
-        //public override void PostDrawExtraSelectionOverlays()
-        //{
-        //    if(isCapitol)
-        //    {
-        //        Vector3 tileCenter = Find.WorldGrid.GetTileCenter(this.parent.Tile);
-        //        Vector3 s = new Vector3(3f, 1f, 3f);
-        //        Matrix4x4 matrix = default(Matrix4x4);
-        //        matrix.SetTRS(tileCenter, Quaternion.identity, s);
-        //        Graphics.DrawMesh(MeshPool.plane10, matrix, RimWarMatPool.Settlement_CapitolStar, WorldCameraManager.WorldLayer);
-        //    }
-        //    base.PostDrawExtraSelectionOverlays();
-        //}
+        public int PointDamage
+        {
+            get
+            {
+                return pointDamageInt;
+            }
+            set
+            {
+                pointDamageInt = value;
+            }
+        }
 
         public int RimWarPoints
         {
@@ -149,7 +207,45 @@ namespace RimWar.Planet
             {
                 this.rimwarPointsInt = Mathf.Max(0, value);
             }
-        }        
+        }
+        
+        public int EffectivePoints
+        {
+            get
+            {
+                return RimWarPoints - PointDamage;
+            }
+        }
+
+        public List<Pawn> FactionPawnsOnMap
+        {
+            get
+            {
+                IEnumerable<Map> maps = (from x in Find.Maps
+                                         where x.Tile == this.parent.Tile
+                                         select x);
+                if (!maps.Any())
+                {
+                    return null;
+                }
+                Map map = maps.FirstOrDefault();
+                return map.mapPawns.SpawnedPawnsInFaction(this.parent.Faction);
+            }
+        }
+
+        public float PointsPerPawn
+        {
+            get
+            {
+                float pc = FactionPawnsOnMap.Count;
+                float rwp = RimWarPoints;
+                if (pc >= 1)
+                {
+                    return rwp / pc;
+                }
+                return 0f;
+            }
+        }
 
         public int ReinforcementPoints
         {
@@ -295,6 +391,66 @@ namespace RimWar.Planet
             this.settlementsInRange.Clear();
         }
 
+        public override void CompTick()
+        {
+            if (RWD != null)
+            {
+                if (RWD.behavior != RimWarBehavior.Player && RWD.behavior != RimWarBehavior.Vassal)
+                {
+                    if (nextCombatTick < Find.TickManager.TicksGame)
+                    {
+                        nextCombatTick = Find.TickManager.TicksGame + 2500; //every game hour
+                        if (!ParentHasMap)
+                        {
+                            if (AttackingUnits.Count > 0)
+                            {
+                                for (int i = 0; i < AttackingUnits.Count; i++)
+                                {
+                                    WarObject waro = AttackingUnits[i];
+                                    if (this.EffectivePoints > 0)
+                                    {
+                                        IncidentUtility.ResolveCombat_Settlement(this, waro);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            IncidentUtility.UpdateUnitCombatStatus(AttackingUnits);
+                            UpdateUnitCombatStatus();
+                        }
+                    }
+                }
+            }
+        }
+
+        public void UpdateUnitCombatStatus()
+        {
+            if (FactionPawnsOnMap != null && FactionPawnsOnMap.Count > 0)
+            {
+                //Log.Message("updating settlement units " + FactionPawnsOnMap.Count);
+                float tmpPoints = 0f;
+                foreach (Pawn p in FactionPawnsOnMap)
+                {
+                    if (!p.DestroyedOrNull())
+                    {
+                        if (p.Dead || p.Downed)
+                        {
+                            tmpPoints += this.PointsPerPawn;
+                        }
+                        else
+                        {
+                            //Log.Message("summary health for " + p.LabelShort + " is " + p.health.summaryHealth.SummaryHealthPercent);
+                            tmpPoints += (this.PointsPerPawn * (1f - p.health.summaryHealth.SummaryHealthPercent));
+                        }
+                    }
+                }
+
+                //Log.Message("setting point damage to " + tmpPoints + " for " + this.RimWarPoints);
+                this.PointDamage = Mathf.RoundToInt(tmpPoints);                
+            }
+        }
+
         WorldObjectDef sendTypeDef = null;
         public override IEnumerable<Gizmo> GetGizmos()
         {
@@ -371,6 +527,47 @@ namespace RimWar.Planet
                     StartChoosingRequestDestination();
                 };
                 yield return (Gizmo)command_LaunchWarband;
+            }
+        }
+
+        public override IEnumerable<Gizmo> GetCaravanGizmos(Caravan caravan)
+        {
+            foreach (Gizmo g in base.GetCaravanGizmos(caravan))
+            {
+                yield return g;
+            }
+            if (Reinforceable)
+            {
+                Command_Action command_Action = new Command_Action();
+                command_Action.icon = RimWarMatPool.Icon_ReinforceSite;
+                command_Action.defaultLabel = "RW_ReinforceSite".Translate();
+                command_Action.defaultDesc = "RW_ReinforceSiteDesc".Translate();
+                command_Action.action = delegate
+                {
+                    this.preventRelationChange = true;
+                    RimWorld.Planet.SettlementUtility.Attack(caravan, (Settlement)this.parent);
+                };
+                yield return (Gizmo)command_Action;
+            }
+        }
+
+        public override IEnumerable<FloatMenuOption> GetTransportPodsFloatMenuOptions(IEnumerable<IThingHolder> pods, CompLaunchable representative)
+        {
+            foreach (FloatMenuOption transportPodsFloatMenuOption in base.GetTransportPodsFloatMenuOptions(pods, representative))
+            {
+                yield return transportPodsFloatMenuOption;
+            }
+            foreach (FloatMenuOption floatMenuOption2 in TransportPodsArrivalAction_GiveSupplies.GetFloatMenuOptions(representative, pods, (Settlement)this.parent))
+            {
+                yield return floatMenuOption2;
+            }
+            if (!ParentHasMap)
+            {
+                foreach (FloatMenuOption floatMenuOption3 in TransportPodsArrivalAction_ReinforceSettlement.GetFloatMenuOptions(representative, pods, (Settlement)this.parent))
+                {
+                    yield return floatMenuOption3;
+                }
+                
             }
         }
 
@@ -552,5 +749,19 @@ namespace RimWar.Planet
             }
             base.PostDrawExtraSelectionOverlays();
         }
+
+        //public override void PostDrawExtraSelectionOverlays()
+        //{
+        //    if(isCapitol)
+        //    {
+        //        Vector3 tileCenter = Find.WorldGrid.GetTileCenter(this.parent.Tile);
+        //        Vector3 s = new Vector3(3f, 1f, 3f);
+        //        Matrix4x4 matrix = default(Matrix4x4);
+        //        matrix.SetTRS(tileCenter, Quaternion.identity, s);
+        //        Graphics.DrawMesh(MeshPool.plane10, matrix, RimWarMatPool.Settlement_CapitolStar, WorldCameraManager.WorldLayer);
+        //    }
+        //    base.PostDrawExtraSelectionOverlays();
+        //}
+
     }
 }

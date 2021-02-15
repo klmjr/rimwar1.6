@@ -22,6 +22,7 @@ namespace RimWar
         public static WorldObjectDef RW_Diplomat;
         public static WorldObjectDef RW_Trader;
         public static WorldObjectDef RW_CapitolBuilding;
+        public static WorldObjectDef RW_BattleSite;
 
         public static RW_LetterDef RimWar_HostileEvent;
         public static RW_LetterDef RimWar_NeutralEvent;
@@ -29,6 +30,9 @@ namespace RimWar
         public static RW_LetterDef RimWar_SettlementEvent;
         public static RW_LetterDef RimWar_FriendlyEvent;
         public static RW_LetterDef RimWar_WarningEvent;
+
+        public static DamageDef RW_CombatInjury;
+        public static HediffDef RW_CombatInjuryHD;
 
     }
 }

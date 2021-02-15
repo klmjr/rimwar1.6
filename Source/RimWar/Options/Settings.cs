@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using RimWorld;
 
 namespace RimWar.Options
 {
@@ -19,6 +20,7 @@ namespace RimWar.Options
         public bool randomizeAttributes = true;
         public float heatFrequency = 3000f;
         public float settlementGrowthRate = 1f;
+        public bool noPermanentEnemies = false;
 
         //limit controls
         public int maxFactionSettlements = 40;
@@ -47,6 +49,7 @@ namespace RimWar.Options
         public float planetCoverageCustom = .12f;
         public bool randomizeFactionRelations = false;
         public bool randomRival = false;
+        public FactionDef factionDefForRival = null;
 
         //toggle world controls
         public bool showAggressionMarkers = false;
@@ -77,6 +80,7 @@ namespace RimWar.Options
             Scribe_Values.Look<float>(ref this.heatMultiplier, "heatMultiplier", 1f, false);
             Scribe_Values.Look<float>(ref this.heatFrequency, "heatFrequency", 2500f, false);
             Scribe_Values.Look<float>(ref this.settlementGrowthRate, "settlementGrowthRate", 1f, false);
+            Scribe_Values.Look<bool>(ref this.noPermanentEnemies, "noPermanentEnemies", false, true);
         }
 
         public static Settings Instance;

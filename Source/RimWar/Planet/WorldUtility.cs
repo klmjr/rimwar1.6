@@ -101,7 +101,7 @@ namespace RimWar.Planet
             }
         }
 
-        public static void CreateRimWarSettlementWithPoints(RimWarData rwd, WorldObject wo, int points, bool displayLetter = false)
+        public static void CreateRimWarSettlementWithPoints(RimWarData rwd, WorldObject wo, int points, bool displayLetter = false, int pointDamage = 0)
         {
             if (rwd != null && Find.FactionManager.AllFactions.Contains(rwd.RimWarFaction) && !rwd.RimWarFaction.defeated)
             {
@@ -109,6 +109,7 @@ namespace RimWar.Planet
                 if (rwsc != null)
                 {
                     rwsc.RimWarPoints = points;
+                    rwsc.PointDamage = pointDamage;
                     if (Find.TickManager.TicksGame > 20 && displayLetter)
                     {
                         RW_Letter let = RW_LetterMaker.Make_RWLetter(RimWarDefOf.RimWar_SettlementEvent);
@@ -160,7 +161,7 @@ namespace RimWar.Planet
             return false;
         }
 
-        public static void ConvertSettlement(RimWorld.Planet.Settlement worldSettlement, RimWarData rwdFrom, RimWarData rwdTo, int points)
+        public static void ConvertSettlement(RimWorld.Planet.Settlement worldSettlement, RimWarData rwdFrom, RimWarData rwdTo, int points, int pointDamage = 0)
         {
             int tile = worldSettlement.Tile;
             if (worldSettlement != null && rwdFrom != null && rwdTo != null)
@@ -169,7 +170,7 @@ namespace RimWar.Planet
                 rwdFrom.rwdNextUpdateTick = Find.TickManager.TicksGame;
                 Find.World.WorldUpdate();
                 RimWorld.Planet.Settlement newSettlement = SettlementUtility.AddNewHome(tile, rwdTo.RimWarFaction, worldSettlement.def);
-                CreateRimWarSettlementWithPoints(rwdTo, newSettlement, points, false);
+                CreateRimWarSettlementWithPoints(rwdTo, newSettlement, points, false, pointDamage);
                 Find.World.WorldUpdate();
                 if (rwdFrom.RimWarFaction.defeated || rwdFrom.WorldSettlements.Count <= 0)
                 {
@@ -224,20 +225,20 @@ namespace RimWar.Planet
             return warObject;
         }
 
-        public static void CreateWarObjectOfType(WarObject warObject, int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, int destinationTile = 0, bool _launched = false, bool _interactable = true)
+        public static void CreateWarObjectOfType(WarObject warObject, int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, int destinationTile = 0, bool _launched = false, bool _interactable = true, int _pointDamage = 0)
         {
             if (warObject is Warband)
             {
-                CreateWarband(power, rwd, parentSettlement, startingTile, destination, worldDef, _launched, _interactable);
+                CreateWarband(power, rwd, parentSettlement, startingTile, destination, worldDef, _launched, _interactable, _pointDamage);
             }
             else if (warObject is Scout)
             {
                 //Log.Message("creating scout from war object");
-                CreateScout(power, rwd, parentSettlement, startingTile, destination, worldDef, _interactable);
+                CreateScout(power, rwd, parentSettlement, startingTile, destination, worldDef, _interactable, _pointDamage);
             }
             else if (warObject is Trader)
             {
-                CreateTrader(power, rwd, parentSettlement, startingTile, destination, worldDef, _interactable);
+                CreateTrader(power, rwd, parentSettlement, startingTile, destination, worldDef, _interactable, _pointDamage);
             }
             else if (warObject is Diplomat)
             {
@@ -249,7 +250,7 @@ namespace RimWar.Planet
                 {
                     destinationTile = destination.Tile;
                 }
-                CreateSettler(power, rwd, parentSettlement, startingTile, destinationTile, worldDef, _interactable);
+                CreateSettler(power, rwd, parentSettlement, startingTile, destinationTile, worldDef, _interactable, _pointDamage);
             }
             else
             {
@@ -334,7 +335,7 @@ namespace RimWar.Planet
             return warband;
         }
 
-        public static Warband CreateWarband(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, bool _launched = false, bool _interactable = true)
+        public static Warband CreateWarband(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, bool _launched = false, bool _interactable = true, int pointDamage = 0)
         {
             //Log.Message("generating warband for " + rwd.RimWarFaction.Name + " from " + startingTile + " to " + destinationTile);
             try
@@ -346,6 +347,7 @@ namespace RimWar.Planet
                 warband.ParentSettlement = parentSettlement;
                 warband.MovesAtNight = rwd.movesAtNight;
                 warband.RimWarPoints = power;
+                warband.PointDamage = pointDamage;
                 warband.launched = _launched;
                 warband.TicksPerMove = Mathf.RoundToInt((float)warband.TicksPerMove / settingsRef.objectMovementMultiplier);
                 warband.DestinationTarget = destination;
@@ -435,7 +437,7 @@ namespace RimWar.Planet
             return warband;
         }
 
-        public static void CreateScout(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, bool _interactable = true)
+        public static void CreateScout(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, bool _interactable = true, int pointDamage  = 0)
         {
             //Log.Message("generating scout for " + rwd.RimWarFaction.Name);
             //Log.Message(" from " + startingTile + " to " + destination.Label);
@@ -448,6 +450,7 @@ namespace RimWar.Planet
                 scout.ParentSettlement = parentSettlement;
                 scout.MovesAtNight = rwd.movesAtNight;
                 scout.RimWarPoints = power;
+                scout.PointDamage = pointDamage;
                 scout.DestinationTarget = destination;
                 scout.TicksPerMove = Mathf.RoundToInt((float)scout.TicksPerMove / settingsRef.objectMovementMultiplier);
                 if (rwd.behavior == RimWarBehavior.Expansionist)
@@ -471,7 +474,7 @@ namespace RimWar.Planet
             }
             catch (NullReferenceException ex)
             {
-                Log.Message("failed to create warband\n rwd: " + rwd + " parent " + parentSettlement + " start " + startingTile + " end " + destination.Tile + " def " + worldDef + "\n" + ex);
+                Log.Message("failed to create scout\n rwd: " + rwd + " parent " + parentSettlement + " start " + startingTile + " end " + destination + " def " + worldDef + "\n" + ex);
             }
             //Log.Message("end create scout");
         }
@@ -493,7 +496,7 @@ namespace RimWar.Planet
             return scout;
         }
 
-        public static Trader CreateTrader(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, bool _interactable = true)
+        public static Trader CreateTrader(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, WorldObject destination, WorldObjectDef worldDef, bool _interactable = true, int pointDamage = 0)
         {
             //Log.Message("generating trader for " + rwd.RimWarFaction.Name + " from " + startingTile + " to " + destinationTile);
             try
@@ -505,6 +508,7 @@ namespace RimWar.Planet
                 trader.ParentSettlement = parentSettlement;
                 trader.MovesAtNight = rwd.movesAtNight;
                 trader.RimWarPoints = power;
+                trader.PointDamage = pointDamage;
                 trader.TicksPerMove = Mathf.RoundToInt((float)trader.TicksPerMove / settingsRef.objectMovementMultiplier);
                 if (rwd.behavior == RimWarBehavior.Expansionist)
                 {
@@ -602,7 +606,7 @@ namespace RimWar.Planet
             return diplomat;
         }
 
-        public static void CreateSettler(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, int destinationTile, WorldObjectDef worldDef, bool _interactable = true)
+        public static void CreateSettler(int power, RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, int startingTile, int destinationTile, WorldObjectDef worldDef, bool _interactable = true, int pointDamage = 0)
         {
             //Log.Message("generating Settler for " + rwd.RimWarFaction.Name + " from " + startingTile + " to " + destinationTile); 
             Options.SettingsRef settingsRef = new Options.SettingsRef();
@@ -612,6 +616,7 @@ namespace RimWar.Planet
             settler.ParentSettlement = parentSettlement;
             settler.MovesAtNight = rwd.movesAtNight;
             settler.RimWarPoints = power;
+            settler.PointDamage = pointDamage;
             settler.DestinationTile = destinationTile;
             settler.TicksPerMove = Mathf.RoundToInt((float)settler.TicksPerMove / settingsRef.objectMovementMultiplier);
             if (rwd.behavior == RimWarBehavior.Expansionist)
@@ -1688,6 +1693,45 @@ namespace RimWar.Planet
                 return true;
             }
             return false;
+        }
+
+        public static bool AnyThreatsOnMap(Map map, Faction faction, out TaggedString threats)
+        {
+            var fallout = map.GameConditionManager.ConditionIsActive(GameConditionDefOf.ToxicFallout);
+            var potentiallyDangerous = map.mapPawns.AllPawnsSpawned.Where(p => !p.Dead && !p.IsPrisoner && !p.Downed && !p.Position.Fogged(map) && !p.InContainerEnclosed).ToArray();
+            var hostileFactions = potentiallyDangerous.Where(p => p.Faction != null).Select(p => p.Faction).Where(f => f.HostileTo(Faction.OfPlayer) || f.HostileTo(faction)).ToArray();
+            var winter = map.GameConditionManager.ConditionIsActive(GameConditionDefOf.VolcanicWinter);
+            var temp = faction.def.allowedArrivalTemperatureRange.Includes(map.mapTemperature.OutdoorTemp) && faction.def.allowedArrivalTemperatureRange.Includes(map.mapTemperature.SeasonalTemp);
+            var manhunters = potentiallyDangerous.Where(p => p.InAggroMentalState);
+
+            threats = null;
+
+            if (temp && !fallout && !winter && !hostileFactions.Any() && !manhunters.Any())
+            {
+                return false;
+            }
+
+            var reasonList = new List<string>();
+            if (fallout) reasonList.Add("- " + GameConditionDefOf.ToxicFallout.LabelCap);
+            if (winter) reasonList.Add("- " + GameConditionDefOf.VolcanicWinter.LabelCap);
+            if (!temp) reasonList.Add("- " + "Temperature".Translate());
+
+            foreach (var f in hostileFactions)
+            {
+                reasonList.Add("- " + f.def.pawnsPlural.CapitalizeFirst());
+            }
+
+            var manhunterNames = manhunters.GroupBy(p => p.MentalStateDef);
+            foreach (var manhunter in manhunterNames)
+            {
+                if (manhunter.Count() > 1)
+                    reasonList.Add($"- {manhunter.First().GetKindLabelPlural()} ({manhunter.First().MentalStateDef.label})");
+                else if (manhunter.Count() == 1)
+                    reasonList.Add($"- {manhunter.First().LabelShort} ({manhunter.First().MentalStateDef.label})");
+            }
+
+            threats = reasonList.Distinct().Aggregate((a, b) => a + "\n" + b);
+            return true;
         }
     }
 }

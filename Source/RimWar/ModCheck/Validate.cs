@@ -15,10 +15,10 @@ namespace RimWar.ModCheck
         {
             get
             {
-                foreach(ModMetaData mods in ModsConfig.ActiveModsInLoadOrder)
-                {
-                    Log.Message("mod id is: " + mods.PackageId);
-                }
+                //foreach(ModMetaData mods in ModsConfig.ActiveModsInLoadOrder)
+                //{
+                //    Log.Message("mod id is: " + mods.PackageId);
+                //}
                 return ModsConfig.IsActive("FactionColonies");
             }
         }
