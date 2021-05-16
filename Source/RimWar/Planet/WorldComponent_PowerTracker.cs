@@ -173,7 +173,10 @@ namespace RimWar.Planet
             //DrawOverlays();
             int currentTick = Find.TickManager.TicksGame;
             Options.SettingsRef settingsRef = new Options.SettingsRef();
-            WorldUtility.CopyData();
+            //if (Options.Settings.Instance.threadingEnabled)
+            //{
+                WorldUtility.CopyData();
+            //}
             if (!doOnce)
             {
                 if(this.victoryFaction != null)
@@ -198,17 +201,28 @@ namespace RimWar.Planet
             }
             if (currentTick % settingsRef.rwdUpdateFrequency == 0)
             {
-                tasker.Register(() =>
+                if (Options.Settings.Instance.threadingEnabled)
+                {
+                    tasker.Register(() =>
+                    {
+                        UpdateFactions();
+                        if (settingsRef.useRimWarVictory && !victoryDeclared && this.rwdInitVictory)
+                        {
+                            CheckVictoryConditions();
+                        }
+                        return null;
+                    }, (context) =>
+                    {
+                    });
+                }
+                else
                 {
                     UpdateFactions();
                     if (settingsRef.useRimWarVictory && !victoryDeclared && this.rwdInitVictory)
                     {
                         CheckVictoryConditions();
                     }
-                    return null;
-                }, (context) =>
-                {
-                });                
+                }
             }
             if (currentTick % 60000 == 0)
             {
@@ -255,49 +269,70 @@ namespace RimWar.Planet
                                             rwsComp.RimWarPoints += Rand.Range(10, 100);
                                             this.globalActions++;
                                         }
-                                        if (newAction == RimWarAction.Caravan)
+                                        bool requestedReinforcement = false;
+                                        if (rwsComp.ShouldRequestReinforcements)
                                         {
-                                            AttemptTradeMission(rwd, settlement, rwsComp);
-                                        }
-                                        else if (newAction == RimWarAction.Diplomat)
-                                        {
-                                            if (settingsRef.createDiplomats)
+                                            List<Settlement> reinforcementSettlements = rwsComp.NearbyFriendlySettlementsWithinRange(50);
+                                            if (reinforcementSettlements != null && reinforcementSettlements.Count > 0)
                                             {
-                                                AttemptDiplomatMission(rwd, settlement, rwsComp);
-                                            }
-                                            else
-                                            {
-                                                this.creationAttempts++;
-                                            }
-                                        }
-                                        else if (newAction == RimWarAction.LaunchedWarband)
-                                        {
-                                            AttemptLaunchedWarbandAgainstTown(rwd, settlement, rwsComp);
-                                        }
-                                        else if (newAction == RimWarAction.ScoutingParty)
-                                        {
-                                            AttemptScoutMission(rwd, settlement, rwsComp);
-                                        }
-                                        else if (newAction == RimWarAction.Settler && rwd.WorldSettlements.Count < settingsRef.maxFactionSettlements)
-                                        {
-                                            AttemptSettlerMission(rwd, settlement, rwsComp);
-                                        }
-                                        else if (newAction == RimWarAction.Warband)
-                                        {
-                                            AttemptWarbandActionAgainstTown(rwd, settlement, rwsComp);
-                                        }
-                                        else
-                                        {
-                                            if (rwd.WorldSettlements.Count >= settingsRef.maxFactionSettlements)
-                                            {
-                                                if (Rand.Chance(.3f))
+                                                foreach (Settlement s in reinforcementSettlements)
                                                 {
-                                                    AttemptTradeMission(rwd, settlement, rwsComp);
+                                                    RimWarSettlementComp rwsc = s.GetComponent<RimWarSettlementComp>();
+                                                    if (rwsc != null && !rwsc.ShouldRequestReinforcements && rwsc.RimWarPoints > 500)
+                                                    {
+                                                        //Log.Message("" + settlement.Label + " requested reinforcements from " + s.Label);
+                                                        AttemptReinforcement(rwd, s, rwsc, settlement);
+                                                        //requestedReinforcement = true;
+                                                    }
+                                                }
+                                            }                                            
+                                        }
+                                        if (!requestedReinforcement)
+                                        {
+                                            if (newAction == RimWarAction.Caravan)
+                                            {
+                                                AttemptTradeMission(rwd, settlement, rwsComp);
+                                            }
+                                            else if (newAction == RimWarAction.Diplomat)
+                                            {
+                                                if (settingsRef.createDiplomats)
+                                                {
+                                                    AttemptDiplomatMission(rwd, settlement, rwsComp);
+                                                }
+                                                else
+                                                {
+                                                    this.creationAttempts++;
                                                 }
                                             }
+                                            else if (newAction == RimWarAction.LaunchedWarband)
+                                            {
+                                                AttemptLaunchedWarbandAgainstTown(rwd, settlement, rwsComp);
+                                            }
+                                            else if (newAction == RimWarAction.ScoutingParty)
+                                            {
+                                                AttemptScoutMission(rwd, settlement, rwsComp);
+                                            }
+                                            else if (newAction == RimWarAction.Settler && rwd.WorldSettlements.Count < settingsRef.maxFactionSettlements)
+                                            {
+                                                AttemptSettlerMission(rwd, settlement, rwsComp);
+                                            }
+                                            else if (newAction == RimWarAction.Warband)
+                                            {
+                                                AttemptWarbandActionAgainstTown(rwd, settlement, rwsComp);
+                                            }
                                             else
                                             {
-                                                Log.Warning("attempted to generate undefined RimWar settlement action");
+                                                if (rwd.WorldSettlements.Count >= settingsRef.maxFactionSettlements)
+                                                {
+                                                    if (Rand.Chance(.3f))
+                                                    {
+                                                        AttemptTradeMission(rwd, settlement, rwsComp);
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Log.Warning("attempted to generate undefined RimWar settlement action");
+                                                }
                                             }
                                         }
                                         if (rwsComp.isCapitol)
@@ -319,7 +354,10 @@ namespace RimWar.Planet
                     }
                 }
             }
-            tasker.Tick();
+            if (Options.Settings.Instance.threadingEnabled)
+            {
+                tasker.Tick();
+            }
             base.WorldComponentTick();
         }
 
@@ -601,7 +639,7 @@ namespace RimWar.Planet
                     {
                         if (Settings.Instance.factionDefForRival == null)
                         {
-                            if (!Active_RWD[i].RimWarFaction.def.hidden && Active_RWD[i].RimWarFaction.def.humanlikeFaction)
+                            if (!Active_RWD[i].RimWarFaction.def.hidden && Active_RWD[i].RimWarFaction.def.humanlikeFaction && Active_RWD[i].RimWarFaction != Faction.OfPlayer && !WorldUtility.IsVassalFaction(Active_RWD[i].RimWarFaction))
                             {
                                 potentialFactions.Add(Active_RWD[i].RimWarFaction);
                             }
@@ -672,15 +710,14 @@ namespace RimWar.Planet
                         RimWarSettlementComp rwdTown = rwd.WorldSettlements[j].GetComponent<RimWarSettlementComp>();
                         if (rwdTown != null)
                         {
-                            int maxPts = 40000;
-                            if (rwd.behavior == RimWarBehavior.Vassal)
-                            {
-                                if(ModCheck.Empire.FactionFC_ComponentCheck(rwdTown.parent.Tile))
-                                {
-                                    maxPts = ModCheck.Empire.FactionFC_SettlementLevel(rwdTown.parent.Tile);
-                                    mult -= .1f;
-                                }
-                            }
+                            int maxPts = 50000;
+                            //if (rwd.behavior == RimWarBehavior.Vassal)
+                            //{
+                            //    if(ModCheck.Empire.FactionFC_ComponentCheck(rwdTown.parent.Tile))
+                            //    {
+                            //        maxPts = ModCheck.Empire.FactionFC_SettlementLevel(rwdTown.parent.Tile);
+                            //    }
+                            //}
                             if (rwdTown.parent.def.defName == "City_Citadel")
                             {
                                 maxPts += 5000;
@@ -709,7 +746,12 @@ namespace RimWar.Planet
                                 {
                                     float pts = (Rand.Range(2f, 3f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwdTown.parent.Tile].biome); //.1f - 3.5f
                                     pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute * settingsref.settlementGrowthRate;
-                                    rwdTown.RimWarPoints += Mathf.RoundToInt(pts);
+                                    rwdTown.RimWarPoints += Mathf.RoundToInt(Mathf.Clamp(pts, 1f, 100f));
+                                    if(rwdTown.bonusGrowthCount > 0)
+                                    {
+                                        rwdTown.RimWarPoints += 10;
+                                        rwdTown.bonusGrowthCount--;
+                                    }
                                 }
                             }
                             if (rwdTown.PlayerHeat < 10000)
@@ -1077,38 +1119,145 @@ namespace RimWar.Planet
                 Log.Warning("Found null when attempting to generate a warband: rwd " + rwd + " rwsComp " + rwsComp);
             }
         }
-
-        public void AttemptWarbandActionAgainstTown(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false)
+        public void AttemptWarbandActionAgainstTown_UnThreaded(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false)
         {
-            if (rwd != null && rwsComp != null)
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+            int targetRange = rwsComp.SettlementScanRange;
+
+            List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
+            if (settingsRef.forceRandomObject)
             {
-                tasker.Register((Func<ContextStorage>)(() =>
-                {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
-                    var context = new ContextStorage();
-                    this.AttemptWarbandActionAgainstTownOffMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
-
-                    stopwatch.Stop();
-                    if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                        string.Format("RIMWAR: warband against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                    return context;
-                }),
-                (Action<ContextStorage>)((context) =>
-                {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    this.AttemptWarbandActionAgainstTownOnMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
-
-                    stopwatch.Stop();
-                    if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                        string.Format("RIMWAR: warband against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                }));
+                tmpSettlements = rwd.HostileSettlements;
+            }
+            else if (forcePlayer)
+            {
+                tmpSettlements.AddRange(WorldUtility.GetRimWarDataForFaction(Faction.OfPlayer).WorldSettlements);
             }
             else
             {
-                Log.Warning("Found null when attempting to generate a scout: rwd " + rwd + " rwsComp " + rwsComp);
+                tmpSettlements = rwsComp.NearbyHostileSettlements;
+            }
+            if (rwd.IsAtWar)
+            {
+                RimWorld.Planet.Settlement warSettlement = WorldUtility.GetClosestSettlementInRWDTo(rwd, rwsComp.parent.Tile, Mathf.Min(Mathf.RoundToInt((rwsComp.RimWarPoints * 1.5f) / (settingsRef.settlementScanRangeDivider)), (int)settingsRef.maxSettelementScanRange));
+                if (warSettlement != null)
+                {
+                    tmpSettlements.Add(warSettlement);
+                }
+                targetRange = Mathf.RoundToInt(targetRange * 1.5f);
+            }
+
+            if (rwd != null && rwsComp != null)
+            {
+                if (tmpSettlements != null && tmpSettlements.Count > 0)
+                {
+                    RimWorld.Planet.Settlement targetTown = tmpSettlements.RandomElement();
+                    if (targetTown != null && (Find.WorldGrid.ApproxDistanceInTiles(parentSettlement.Tile, targetTown.Tile) <= targetRange || ignoreRestrictions))
+                    {
+                        if (targetTown.Faction == Faction.OfPlayer && preventActionsAgainstPlayerUntilTick > Find.TickManager.TicksGame && !ignoreRestrictions)
+                        {
+                            return;
+                        }
+                        if (targetTown.Faction == Faction.OfPlayer && rwsComp.PlayerHeat < minimumHeatForPlayerAction && !ignoreRestrictions)
+                        {
+                            return;
+                        }
+                        if (targetTown.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
+                        {
+                            if (!forcePlayer)
+                            {
+                                return;
+                            }
+                        }
+                        int pts = WorldUtility.CalculateWarbandPointsForRaid(targetTown.GetComponent<RimWarSettlementComp>());
+                        if (rwd.behavior == RimWarBehavior.Cautious)
+                        {
+                            pts = Mathf.RoundToInt(pts * 1.1f);
+                        }
+                        else if (rwd.behavior == RimWarBehavior.Warmonger)
+                        {
+                            pts = Mathf.RoundToInt(pts * 1.25f);
+                        }
+
+                        if (rwd.IsAtWarWith(targetTown.Faction))
+                        {
+                            pts = Mathf.RoundToInt(pts * 1.2f);
+                            if (rwsComp.RimWarPoints * .85f >= pts || ignoreRestrictions)
+                            {
+                                WorldUtility.CreateWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
+                                rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                                if (targetTown.Faction == Faction.OfPlayer)
+                                {
+                                    rwsComp.PlayerHeat = 0;
+                                    minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Warband);
+                                }
+                            }
+                        }
+                        else if (rwsComp.RimWarPoints * .75f >= pts || ignoreRestrictions)
+                        {
+                            WorldUtility.CreateWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
+                            rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                            if (targetTown.Faction == Faction.OfPlayer)
+                            {
+                                rwsComp.PlayerHeat = 0;
+                                minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Warband);
+                            }
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+                Log.Warning("Found null when attempting to generate a warband: rwd " + rwd + " rwsComp " + rwsComp);
+            }
+        }
+
+        public void AttemptWarbandActionAgainstTown(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false)
+        {
+            if (Options.Settings.Instance.threadingEnabled)
+            {
+                if (rwd != null && rwsComp != null)
+                {
+                    tasker.Register((Func<ContextStorage>)(() =>
+                    {
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+
+                        var context = new ContextStorage();
+                        this.AttemptWarbandActionAgainstTownOffMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
+
+                        stopwatch.Stop();
+                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                            string.Format("RIMWAR: warband against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                        return context;
+                    }),
+                    (Action<ContextStorage>)((context) =>
+                    {
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+                        this.AttemptWarbandActionAgainstTownOnMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
+
+                        stopwatch.Stop();
+                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                            string.Format("RIMWAR: warband against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                    }));
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a scout: rwd " + rwd + " rwsComp " + rwsComp);
+                }
+            }
+            else
+            {
+                if (rwd != null && rwsComp != null)
+                {
+                    this.AttemptWarbandActionAgainstTown_UnThreaded(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions);
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a scout: rwd " + rwd + " rwsComp " + rwsComp);
+                }
             }
         }
 
@@ -1210,46 +1359,149 @@ namespace RimWar.Planet
             }
         }
 
+        public void AttemptLaunchedWarbandAgainstTown_UnThreaded(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false)
+        {
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+            int targetRange = rwsComp.SettlementScanRange * 2;
+
+            List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
+            if (settingsRef.forceRandomObject)
+            {
+                tmpSettlements = rwd.HostileSettlements;
+            }
+            else if (forcePlayer)
+            {
+                tmpSettlements.AddRange(WorldUtility.GetRimWarDataForFaction(Faction.OfPlayer).WorldSettlements);
+            }
+            else
+            {
+                tmpSettlements = rwsComp.NearbyHostileSettlements;
+            }
+            if (rwd.IsAtWar)
+            {
+                RimWorld.Planet.Settlement warSettlement = WorldUtility.GetClosestSettlementInRWDTo(rwd, parentSettlement.Tile, Mathf.Min(Mathf.RoundToInt(targetRange), (int)settingsRef.maxSettelementScanRange));
+                if (warSettlement != null)
+                {
+                    tmpSettlements.Add(warSettlement);
+                }
+                targetRange = Mathf.RoundToInt(targetRange * 1.5f);
+            }
+
+            if (tmpSettlements != null && tmpSettlements.Count > 0)
+            {
+                RimWorld.Planet.Settlement targetTown = tmpSettlements.RandomElement();
+                if (targetTown != null && (Find.WorldGrid.ApproxDistanceInTiles(parentSettlement.Tile, targetTown.Tile) <= targetRange || ignoreRestrictions))
+                {
+                    if (targetTown.Faction == Faction.OfPlayer && preventActionsAgainstPlayerUntilTick > Find.TickManager.TicksGame && !ignoreRestrictions)
+                    {
+                        return;
+                    }
+                    if (targetTown.Faction == Faction.OfPlayer && rwsComp.PlayerHeat < minimumHeatForPlayerAction && !ignoreRestrictions)
+                    {
+                        return;
+                    }
+                    if (targetTown.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
+                    {
+                        if (!forcePlayer)
+                        {
+                            return;
+                        }
+                    }
+                    int pts = WorldUtility.CalculateWarbandPointsForRaid(targetTown.GetComponent<RimWarSettlementComp>());
+                    if (rwd.behavior == RimWarBehavior.Cautious)
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.1f);
+                    }
+                    else if (rwd.behavior == RimWarBehavior.Warmonger)
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.2f);
+                    }
+
+                    if (rwd.IsAtWarWith(targetTown.Faction))
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.1f);
+                        if (rwsComp.RimWarPoints * .8f >= pts || ignoreRestrictions)
+                        {
+                            WorldUtility.CreateLaunchedWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
+                            rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                            if (targetTown.Faction == Faction.OfPlayer)
+                            {
+                                rwsComp.PlayerHeat = 0;
+                                minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.LaunchedWarband);
+                            }
+                        }
+                    }
+                    else if (rwsComp.RimWarPoints * .6f >= pts || ignoreRestrictions)
+                    {
+                        //Log.Message("launching warband from " + rwsComp.RimWorld_Settlement.Name);
+                        WorldUtility.CreateLaunchedWarband(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                        if (targetTown.Faction == Faction.OfPlayer)
+                        {
+                            rwsComp.PlayerHeat = 0;
+                            minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.LaunchedWarband);
+                        }
+                    }
+                }
+            }
+        }
+
         public void AttemptLaunchedWarbandAgainstTown(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false)
         {
-            if (rwsComp.RimWarPoints >= 1000 || ignoreRestrictions)
+            if (Options.Settings.Instance.threadingEnabled)
             {
-                if (rwd != null && rwsComp != null)
+                if (rwsComp.RimWarPoints >= 1000 || ignoreRestrictions)
                 {
-                    tasker.Register((Func<ContextStorage>)(() =>
+                    if (rwd != null && rwsComp != null)
                     {
-                        Stopwatch stopwatch = new Stopwatch();
-                        stopwatch.Start();
+                        tasker.Register((Func<ContextStorage>)(() =>
+                        {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
 
-                        var context = new ContextStorage();
-                        this.AttemptLaunchedWarbandAgainstTownOffMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
+                            var context = new ContextStorage();
+                            this.AttemptLaunchedWarbandAgainstTownOffMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
 
-                        stopwatch.Stop();
-                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                            string.Format("RIMWAR: warband lauched against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                        return context;
-                    }),
-                    (Action<ContextStorage>)((context) =>
+                            stopwatch.Stop();
+                            if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                                string.Format("RIMWAR: warband lauched against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                            return context;
+                        }),
+                        (Action<ContextStorage>)((context) =>
+                        {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
+                            this.AttemptLaunchedWarbandAgainstTownOnMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
+
+                            stopwatch.Stop();
+                            if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                                string.Format("RIMWAR: warband lauched against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                        }));
+                    }
+                    else
                     {
-                        Stopwatch stopwatch = new Stopwatch();
-                        stopwatch.Start();
-                        this.AttemptLaunchedWarbandAgainstTownOnMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
-
-                        stopwatch.Stop();
-                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                            string.Format("RIMWAR: warband lauched against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                    }));
+                        Log.Warning("Found null when attempting to generate a warband: rwd " + rwd + " rwdTown " + rwsComp);
+                    }
                 }
-                else
+            }
+            else
+            {
+                if (rwsComp.RimWarPoints >= 1000 || ignoreRestrictions)
                 {
-                    Log.Warning("Found null when attempting to generate a warband: rwd " + rwd + " rwdTown " + rwsComp);
+                    if (rwd != null && rwsComp != null)
+                    {
+                        this.AttemptLaunchedWarbandAgainstTown_UnThreaded(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions);
+                    }
+                    else
+                    {
+                        Log.Warning("Found null when attempting to generate a warband: rwd " + rwd + " rwdTown " + rwsComp);
+                    }
                 }
             }
         }
 
         private void AttemptScoutOnMainThread(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayerTown = false, bool forcePlayerCaravan = false, bool ignoreRestrictions = false, ContextStorage context = null)
         {
-
             var wo = context.destinationTarget;
             var shouldExecute = context.shouldExecute;
             if (shouldExecute)
@@ -1388,36 +1640,182 @@ namespace RimWar.Planet
             context.shouldExecute = shouldExecute;
         }
 
-        public void AttemptScoutMission(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayerTown = false, bool forcePlayerCaravan = false, bool ignoreRestrictions = false)
+        public void AttemptScoutMission_UnThreaded(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayerTown = false, bool forcePlayerCaravan = false, bool ignoreRestrictions = false)
         {
-            if (rwd != null && rwsComp != null)
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+            int targetRange = rwsComp.SettlementScanRange;
+            bool shouldExecute = false;
+            if (rwd.behavior == RimWarBehavior.Expansionist)
             {
-                tasker.Register((Func<ContextStorage>)(() =>
-                {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
-                    var context = new ContextStorage();
-                    this.AttemptScoutOffMainThread((RimWarData)rwd, (Settlement)parentSettlement, (RimWarSettlementComp)rwsComp, (bool)forcePlayerTown, (bool)forcePlayerCaravan, (bool)ignoreRestrictions, (ContextStorage)context);
-
-                    stopwatch.Stop();
-                    if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                        string.Format("RIMWAR: scouting mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                    return context;
-                }),
-                (Action<ContextStorage>)((context) =>
-                {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    this.AttemptScoutOnMainThread((RimWarData)rwd, (Settlement)parentSettlement, (RimWarSettlementComp)rwsComp, (bool)forcePlayerTown, (bool)forcePlayerCaravan, (bool)ignoreRestrictions, (ContextStorage)context);
-                    stopwatch.Stop();
-                    if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                        string.Format("RIMWAR: scouting mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                }));
+                targetRange = Mathf.RoundToInt(targetRange * 1.3f);
+            }
+            else if (rwd.behavior == RimWarBehavior.Warmonger)
+            {
+                targetRange = Mathf.RoundToInt(targetRange * 1.2f);
+            }
+            else if (rwd.behavior == RimWarBehavior.Aggressive)
+            {
+                targetRange = Mathf.RoundToInt(targetRange * 1.1f);
+            }
+            List<WorldObject> woList = new List<WorldObject>();
+            if (settingsRef.forceRandomObject)
+            {
+                woList.Add(Find.WorldObjects.AllWorldObjects.RandomElement());
+            }
+            else if (forcePlayerCaravan)
+            {
+                woList.Add(Find.WorldObjects.Caravans.RandomElement());
+            }
+            else if (forcePlayerTown)
+            {
+                woList.Add(WorldUtility.GetClosestSettlementOfFaction(Faction.OfPlayer, parentSettlement.Tile, 500).parent);
             }
             else
             {
-                Log.Warning("Found null when attempting to generate a scout: rwd " + rwd + " rwsComp " + rwsComp);
+                woList = WorldUtility.GetWorldObjectsInRange(parentSettlement.Tile, targetRange);
+            }
+            WorldObject wo = null;
+            for (int i = 0; i < woList.Count; i++)
+            {
+                wo = woList[i];
+                if (wo.Faction != null && ((wo.Faction.HostileTo(rwd.RimWarFaction) && Find.WorldGrid.ApproxDistanceInTiles(parentSettlement.Tile, wo.Tile) <= targetRange) || ignoreRestrictions))
+                {
+                    if (wo.Faction == Faction.OfPlayer && preventActionsAgainstPlayerUntilTick > Find.TickManager.TicksGame && !ignoreRestrictions)
+                    {
+                        continue;
+                    }
+                    if (wo.Faction == Faction.OfPlayer && rwsComp.PlayerHeat < minimumHeatForPlayerAction && !ignoreRestrictions)
+                    {
+                        continue;
+                    }
+                    if (wo.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
+                    {
+                        if (!forcePlayerCaravan && !forcePlayerTown)
+                        {
+                            continue;
+                        }
+                    }
+                    if (wo is Caravan)
+                    {
+                        Caravan playerCaravan = wo as Caravan;
+                        if ((playerCaravan.PlayerWealthForStoryteller / 200) <= (rwsComp.RimWarPoints * .5f) && ((Find.WorldGrid.TraversalDistanceBetween(wo.Tile, parentSettlement.Tile) <= Mathf.RoundToInt(targetRange * playerCaravan.Visibility)) || ignoreRestrictions))
+                        {
+                            shouldExecute = true;
+                            break;
+                        }
+                    }
+                    else if (wo is WarObject)
+                    {
+                        WarObject warObject = wo as WarObject;
+                        if (warObject.RimWarPoints <= (rwsComp.RimWarPoints * .5f) || ignoreRestrictions)
+                        {
+                            shouldExecute = true;
+                            break;
+                        }
+                    }
+                    else if (wo is RimWorld.Planet.Settlement)
+                    {
+                        RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(wo.Tile);
+                        if (rwsc != null && (rwsc.RimWarPoints <= (rwsComp.RimWarPoints * .5f) || ignoreRestrictions))
+                        {
+                            shouldExecute = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (shouldExecute && wo != null)
+            {
+                if (wo is Caravan)
+                {
+                    Caravan playerCaravan = wo as Caravan;
+                    int pts = WorldUtility.CalculateScoutMissionPoints(rwd, Mathf.RoundToInt(playerCaravan.PlayerWealthForStoryteller / 200));
+                    WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, WorldObjectDefOf.Caravan);
+                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                    rwsComp.PlayerHeat = 0;
+                    minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
+
+                }
+                else if (wo is WarObject)
+                {
+                    WarObject warObject = wo as WarObject;
+                    int pts = WorldUtility.CalculateScoutMissionPoints(rwd, warObject.RimWarPoints);
+                    if (rwd.IsAtWarWith(warObject.Faction))
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.2f);
+                    }
+                    WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, RimWarDefOf.RW_WarObject);
+                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                    if (wo.Faction == Faction.OfPlayer)
+                    {
+                        rwsComp.PlayerHeat = 0;
+                        minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
+                    }
+                }
+                else if (wo is RimWorld.Planet.Settlement)
+                {
+                    RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(wo.Tile);
+                    int pts = WorldUtility.CalculateScoutMissionPoints(rwd, rwsc.RimWarPoints);
+                    if (rwd.IsAtWarWith(rwsc.parent.Faction))
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.2f);
+                    }
+                    WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, WorldObjectDefOf.Settlement);
+                    rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                    if (wo.Faction == Faction.OfPlayer)
+                    {
+                        rwsComp.PlayerHeat = 0;
+                        minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
+                    }
+                }
+            }
+        }
+
+        public void AttemptScoutMission(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayerTown = false, bool forcePlayerCaravan = false, bool ignoreRestrictions = false)
+        {
+            if (Options.Settings.Instance.threadingEnabled)
+            {
+                if (rwd != null && rwsComp != null)
+                {
+                    tasker.Register((Func<ContextStorage>)(() =>
+                    {
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+
+                        var context = new ContextStorage();
+                        this.AttemptScoutOffMainThread((RimWarData)rwd, (Settlement)parentSettlement, (RimWarSettlementComp)rwsComp, (bool)forcePlayerTown, (bool)forcePlayerCaravan, (bool)ignoreRestrictions, (ContextStorage)context);
+
+                        stopwatch.Stop();
+                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                            string.Format("RIMWAR: scouting mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                        return context;
+                    }),
+                    (Action<ContextStorage>)((context) =>
+                    {
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+                        this.AttemptScoutOnMainThread((RimWarData)rwd, (Settlement)parentSettlement, (RimWarSettlementComp)rwsComp, (bool)forcePlayerTown, (bool)forcePlayerCaravan, (bool)ignoreRestrictions, (ContextStorage)context);
+                        stopwatch.Stop();
+                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                            string.Format("RIMWAR: scouting mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                    }));
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a scout: rwd " + rwd + " rwsComp " + rwsComp);
+                }
+            }
+            else
+            {
+                if (rwd != null && rwsComp != null)
+                {
+                    this.AttemptScoutMission_UnThreaded((RimWarData)rwd, (Settlement)parentSettlement, (RimWarSettlementComp)rwsComp, (bool)forcePlayerTown, (bool)forcePlayerCaravan, (bool)ignoreRestrictions);
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a scout: rwd " + rwd + " rwsComp " + rwsComp);
+                }
             }
         }
 
@@ -1492,37 +1890,116 @@ namespace RimWar.Planet
             }
         }
 
+        public void AttemptSettler_UnThreaded(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool ignoreRestrictions = false, bool ignoreNearbyTown = false)
+        {
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+            bool shouldExecute = false;
+            int destinationTile = -1;
+            if (rwsComp.RimWarPoints > 500 || ignoreRestrictions)
+            {
+                int targetRange = Mathf.Clamp(rwsComp.SettlementScanRange, 11, Mathf.Max((int)settingsRef.maxSettelementScanRange, 12));
+                if (rwd.behavior == RimWarBehavior.Expansionist)
+                {
+                    targetRange = Mathf.RoundToInt(targetRange * 1.2f);
+                }
+                else if (rwd.behavior == RimWarBehavior.Warmonger)
+                {
+                    targetRange = Mathf.RoundToInt(targetRange * .8f);
+                }
+                List<int> tmpTiles = new List<int>();
+                tmpTiles.Clear();
+                for (int i = 0; i < 5; i++)
+                {
+                    int tile = -1;
+                    TileFinder.TryFindPassableTileWithTraversalDistance(parentSettlement.Tile, 10, targetRange, out tile);
+                    if (tile != -1)
+                    {
+                        Tile t = Find.WorldGrid[tile];
+                        if (t.biome != null && !t.biome.isExtremeBiome && t.biome.canBuildBase)
+                        {
+                            tmpTiles.Add(tile);
+                        }
+                    }
+                }
+                if (tmpTiles != null && tmpTiles.Count > 0)
+                {
+                    for (int i = 0; i < tmpTiles.Count; i++)
+                    {
+                        destinationTile = tmpTiles[i];
+                        if (destinationTile > 0 && (Find.WorldGrid.ApproxDistanceInTiles(parentSettlement.Tile, destinationTile) <= targetRange || ignoreRestrictions))
+                        {
+                            List<WorldObject> worldObjects = WorldUtility.GetWorldObjectsInRange(destinationTile, 10);
+                            bool nearbySettlement = false;
+                            for (int j = 0; j < worldObjects.Count; j++)
+                            {
+                                if (worldObjects[j].def == WorldObjectDefOf.Settlement)
+                                {
+                                    nearbySettlement = true;
+                                }
+                            }
+                            if (!nearbySettlement || ignoreRestrictions)
+                            {
+                                shouldExecute = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (shouldExecute && destinationTile > 0)
+            {
+                int pts = Mathf.RoundToInt(Rand.Range(.4f, .6f) * 500);
+                WorldUtility.CreateSettler(pts, rwd, parentSettlement, parentSettlement.Tile, destinationTile, null);
+                rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+            }
+        }
+
         public void AttemptSettlerMission(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool ignoreRestrictions = false, bool ignoreNearbyTown = false)
         {
-            if (rwd != null && rwsComp != null)
+            if (Options.Settings.Instance.threadingEnabled)
             {
-                tasker.Register((Func<ContextStorage>)(() =>
+                if (rwd != null && rwsComp != null)
                 {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
+                    tasker.Register((Func<ContextStorage>)(() =>
+                    {
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
 
-                    var context = new ContextStorage();
-                    this.AttemptSettlerOffMainThread(rwd, parentSettlement, rwsComp, ignoreRestrictions, ignoreNearbyTown, context);
+                        var context = new ContextStorage();
+                        this.AttemptSettlerOffMainThread(rwd, parentSettlement, rwsComp, ignoreRestrictions, ignoreNearbyTown, context);
 
-                    stopwatch.Stop();
-                    if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                        string.Format("RIMWAR: settler mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                    return context;
-                }),
-                (Action<ContextStorage>)((context) =>
+                        stopwatch.Stop();
+                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                            string.Format("RIMWAR: settler mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                        return context;
+                    }),
+                    (Action<ContextStorage>)((context) =>
+                    {
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+                        this.AttemptSettlerOnMainThread(rwd, parentSettlement, rwsComp, ignoreRestrictions, ignoreNearbyTown, context);
+
+                        stopwatch.Stop();
+                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                            string.Format("RIMWAR: settler mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                    }));
+                }
+                else
                 {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    this.AttemptSettlerOnMainThread(rwd, parentSettlement, rwsComp, ignoreRestrictions, ignoreNearbyTown, context);
-
-                    stopwatch.Stop();
-                    if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                        string.Format("RIMWAR: settler mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                }));
+                    Log.Warning("Found null when attempting to generate a settler: rwd " + rwd + " rwsComp " + rwsComp);
+                }
             }
             else
             {
-                Log.Warning("Found null when attempting to generate a settler: rwd " + rwd + " rwsComp " + rwsComp);
+                if (rwd != null && rwsComp != null)
+                {
+                    this.AttemptSettler_UnThreaded(rwd, parentSettlement, rwsComp, ignoreRestrictions, ignoreNearbyTown);
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a settler: rwd " + rwd + " rwsComp " + rwsComp);
+                }
             }
         }
 
@@ -1610,41 +2087,126 @@ namespace RimWar.Planet
             }
         }
 
+        public void AttemptTradeMission_UnThreaded(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false)
+        {
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+            int targetRange = rwsComp.SettlementScanRange;
+
+            List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
+            if (settingsRef.forceRandomObject)
+            {
+                tmpSettlements.Add(rwd.NonHostileSettlements.RandomElement());
+            }
+            else if (forcePlayer)
+            {
+                tmpSettlements.AddRange(WorldUtility.GetRimWarDataForFaction(Faction.OfPlayer).WorldSettlements);
+            }
+            else
+            {
+                tmpSettlements.AddRange(rwsComp.NearbyFriendlySettlements);
+            }
+
+            if (tmpSettlements != null && tmpSettlements.Count > 0)
+            {
+                RimWorld.Planet.Settlement targetTown = tmpSettlements.RandomElement();
+                if (targetTown != null && (Find.WorldGrid.ApproxDistanceInTiles(parentSettlement.Tile, targetTown.Tile) <= targetRange || ignoreRestrictions))
+                {
+                    if (targetTown.Faction == Faction.OfPlayer)
+                    {
+                        if (rwsComp.PlayerHeat < minimumHeatForPlayerAction && !ignoreRestrictions)
+                        {
+                            return;
+                        }
+                        if (!WorldUtility.FactionCanTrade(rwsComp.parent.Faction) && !ignoreRestrictions && !forcePlayer)
+                        {
+                            return;
+                        }
+                    }
+                    int pts = WorldUtility.CalculateTraderPoints(parentSettlement.GetComponent<RimWarSettlementComp>());
+                    if (rwd.behavior == RimWarBehavior.Cautious)
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.1f);
+                    }
+                    else if (rwd.behavior == RimWarBehavior.Warmonger)
+                    {
+                        pts = Mathf.RoundToInt(pts * .8f);
+                    }
+                    else if (rwd.behavior == RimWarBehavior.Merchant)
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.2f);
+                    }
+                    int maxPts = Mathf.RoundToInt(rwsComp.RimWarPoints * .5f);
+                    if (maxPts >= pts || ignoreRestrictions)
+                    {
+                        Trader tdr = WorldUtility.CreateTrader(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                        if (targetTown.Faction == Faction.OfPlayer)
+                        {
+                            rwsComp.PlayerHeat = 0;
+                            minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Caravan);
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
         public void AttemptTradeMission(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, bool forcePlayer = false, bool ignoreRestrictions = false)
         {
-            if (rwd != null && rwsComp != null && parentSettlement != null)
+            if (Options.Settings.Instance.threadingEnabled)
             {
-                Options.SettingsRef settingsRef = new Options.SettingsRef();
-                if (rwsComp.RimWarPoints > 200 || ignoreRestrictions)
+                if (rwd != null && rwsComp != null && parentSettlement != null)
                 {
-                    tasker.Register((Func<ContextStorage>)(() =>
+                    Options.SettingsRef settingsRef = new Options.SettingsRef();
+                    if (rwsComp.RimWarPoints > 200 || ignoreRestrictions)
                     {
-                        Stopwatch stopwatch = new Stopwatch();
-                        stopwatch.Start();
+                        tasker.Register((Func<ContextStorage>)(() =>
+                        {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
 
-                        var context = new ContextStorage();
-                        this.AttemptTradeMissionOffMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
+                            var context = new ContextStorage();
+                            this.AttemptTradeMissionOffMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
 
-                        stopwatch.Stop();
-                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                            string.Format("RIMWAR: trade mission lauched against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                        return context;
-                    }),
-                    (Action<ContextStorage>)((context) =>
-                    {
-                        Stopwatch stopwatch = new Stopwatch();
-                        stopwatch.Start();
-                        this.AttemptTradeMissionOnMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
+                            stopwatch.Stop();
+                            if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                                string.Format("RIMWAR: trade mission lauched against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                            return context;
+                        }),
+                        (Action<ContextStorage>)((context) =>
+                        {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
+                            this.AttemptTradeMissionOnMainThread(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions, context);
 
-                        stopwatch.Stop();
-                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                            string.Format("RIMWAR: trade mission lauched against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                    }));
+                            stopwatch.Stop();
+                            if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                                string.Format("RIMWAR: trade mission lauched against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                        }));
+                    }
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a trader: rwd " + rwd + " rwsComp " + rwsComp);
                 }
             }
             else
             {
-                Log.Warning("Found null when attempting to generate a trader: rwd " + rwd + " rwsComp " + rwsComp);
+                if (rwd != null && rwsComp != null && parentSettlement != null)
+                {
+                    Options.SettingsRef settingsRef = new Options.SettingsRef();
+                    if (rwsComp.RimWarPoints > 200 || ignoreRestrictions)
+                    {
+                        this.AttemptTradeMission_UnThreaded(rwd, parentSettlement, rwsComp, forcePlayer, ignoreRestrictions);
+                    }
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a trader: rwd " + rwd + " rwsComp " + rwsComp);
+                }
             }
         }
 
@@ -1708,42 +2270,133 @@ namespace RimWar.Planet
             }
         }
 
+        public void AttemptDiplomatMission_UnThreaded(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp)
+        {
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+            int targetRange = rwsComp.SettlementScanRange;
+
+            List<RimWorld.Planet.Settlement> tmpSettlements = new List<RimWorld.Planet.Settlement>();
+            if (settingsRef.forceRandomObject)
+            {
+                tmpSettlements.Add(rwd.NonHostileSettlements.RandomElement());
+                tmpSettlements.Add(rwd.HostileSettlements.RandomElement());
+            }
+            else
+            {
+                tmpSettlements = WorldUtility.GetRimWorldSettlementsInRange(parentSettlement.Tile, targetRange);
+            }
+
+            if (tmpSettlements != null && tmpSettlements.Count > 0)
+            {
+                RimWorld.Planet.Settlement targetTown = tmpSettlements.RandomElement();
+                if (targetTown != null && Find.WorldGrid.ApproxDistanceInTiles(parentSettlement.Tile, targetTown.Tile) <= targetRange)
+                {
+                    int pts = WorldUtility.CalculateDiplomatPoints(rwsComp);
+                    if (rwd.behavior == RimWarBehavior.Cautious)
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.1f);
+                    }
+                    else if (rwd.behavior == RimWarBehavior.Warmonger)
+                    {
+                        pts = Mathf.RoundToInt(pts * .8f);
+                    }
+                    else if (rwd.behavior == RimWarBehavior.Merchant)
+                    {
+                        pts = Mathf.RoundToInt(pts * 1.3f);
+                    }
+                    float maxPts = rwsComp.RimWarPoints * .5f;
+                    if (maxPts >= pts)
+                    {
+                        //Log.Message("sending warband from " + rwsComp.RimWorld_Settlement.Name);
+                        WorldUtility.CreateDiplomat(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                        if (targetTown.Faction == Faction.OfPlayer)
+                        {
+                            rwsComp.PlayerHeat = 0;
+                            minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Diplomat);
+                        }
+                    }
+                }
+            }
+        }
+
         private void AttemptDiplomatMission(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp)
         {
-            if (rwd != null && rwsComp != null)
+            if (Options.Settings.Instance.threadingEnabled)
             {
-                Options.SettingsRef settingsRef = new Options.SettingsRef();
-                if (rwsComp.RimWarPoints > 1000)
+                if (rwd != null && rwsComp != null)
                 {
-                    tasker.Register((Func<ContextStorage>)(() =>
+                    Options.SettingsRef settingsRef = new Options.SettingsRef();
+                    if (rwsComp.RimWarPoints > 1000)
                     {
-                        Stopwatch stopwatch = new Stopwatch();
-                        stopwatch.Start();
+                        tasker.Register((Func<ContextStorage>)(() =>
+                        {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
 
-                        var context = new ContextStorage();
-                        this.AttemptDiplomatMissionOffMainThread(rwd, parentSettlement, rwsComp, context);
+                            var context = new ContextStorage();
+                            this.AttemptDiplomatMissionOffMainThread(rwd, parentSettlement, rwsComp, context);
 
-                        stopwatch.Stop();
-                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                            string.Format("RIMWAR: diplomatic mission lauched against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                        return context;
-                    }),
-                    (Action<ContextStorage>)((context) =>
-                    {
-                        Stopwatch stopwatch = new Stopwatch();
-                        stopwatch.Start();
-                        this.AttemptDiplomatMissionOnMainThread(rwd, parentSettlement, rwsComp, context);
+                            stopwatch.Stop();
+                            if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                                string.Format("RIMWAR: diplomatic mission lauched against town mission off thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                            return context;
+                        }),
+                        (Action<ContextStorage>)((context) =>
+                        {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
+                            this.AttemptDiplomatMissionOnMainThread(rwd, parentSettlement, rwsComp, context);
 
-                        stopwatch.Stop();
-                        if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
-                            string.Format("RIMWAR: diplomatic mission lauched against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
-                    }));
+                            stopwatch.Stop();
+                            if (Prefs.DevMode && Prefs.LogVerbose) Log.Message(
+                                string.Format("RIMWAR: diplomatic mission lauched against town mission on thread took {0} ms", stopwatch.ElapsedMilliseconds));
+                        }));
+                    }
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a diplomat: rwd " + rwd + " rwsComp " + rwsComp);
                 }
             }
             else
             {
-                Log.Warning("Found null when attempting to generate a diplomat: rwd " + rwd + " rwsComp " + rwsComp);
+                if (rwd != null && rwsComp != null)
+                {
+                    Options.SettingsRef settingsRef = new Options.SettingsRef();
+                    if (rwsComp.RimWarPoints > 1000)
+                    {
+                        this.AttemptDiplomatMission_UnThreaded(rwd, parentSettlement, rwsComp);
+                    }
+                }
+                else
+                {
+                    Log.Warning("Found null when attempting to generate a diplomat: rwd " + rwd + " rwsComp " + rwsComp);
+                }
             }
+        }
+
+        public void AttemptReinforcement(RimWarData rwd, RimWorld.Planet.Settlement parentSettlement, RimWarSettlementComp rwsComp, Settlement targetSettlement, bool forcePlayer = false, bool ignoreRestrictions = false)
+        {
+            if (rwd != null && rwsComp != null && parentSettlement != null)
+            {
+                Options.SettingsRef settingsRef = new Options.SettingsRef();
+                if (rwsComp.RimWarPoints > 500 || ignoreRestrictions)
+                {
+                    RimWorld.Planet.Settlement targetTown = targetSettlement;
+                    if (targetTown != null)
+                    {
+                        int pts = Mathf.RoundToInt(.25f * rwsComp.RimWarPoints);
+                        Trader tdr = WorldUtility.CreateTrader(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
+                        rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
+                        rwsComp.bonusGrowthCount += Mathf.RoundToInt((float)pts / 10f);
+                    }                    
+                }
+            }
+            else
+            {
+                Log.Warning("Found null when attempting to generate a trader: rwd " + rwd + " rwsComp " + rwsComp);
+            }            
         }
 
         public int GetHeatForAction(RimWarAction action)

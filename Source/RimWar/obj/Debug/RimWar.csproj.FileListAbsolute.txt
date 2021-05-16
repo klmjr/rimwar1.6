@@ -17,4 +17,3 @@ E:\Programs\Steam\steamapps\common\RimWorld\Mods\RimWar - Threaded\Assemblies\Ri
 E:\Programs\Steam\steamapps\common\RimWorld\Mods\RimWar---Threaded\Assemblies\RimWar.dll
 E:\Programs\Steam\steamapps\common\RimWorld\Mods\RimWar---Threaded\Source\RimWar\obj\Debug\RimWar.csproj.CoreCompileInputs.cache
 E:\Programs\Steam\steamapps\common\RimWorld\Mods\RimWar---Threaded\Source\RimWar\obj\Debug\RimWar.dll
-E:\Programs\Steam\steamapps\common\RimWorld\Mods\RimWar---Threaded\Source\RimWar\obj\Debug\RimWar.csprojAssemblyReference.cache

@@ -29,6 +29,7 @@ namespace RimWar.Options
         public float objectMovementMultiplier = 1f;
 
         //performance controls
+        public bool threadingEnabled = true;
         public int averageEventFrequency = 150;        
         public int settlementEventDelay = 50000;
         public int settlementScanDelay = 60000;               
@@ -81,6 +82,7 @@ namespace RimWar.Options
             Scribe_Values.Look<float>(ref this.heatFrequency, "heatFrequency", 2500f, false);
             Scribe_Values.Look<float>(ref this.settlementGrowthRate, "settlementGrowthRate", 1f, false);
             Scribe_Values.Look<bool>(ref this.noPermanentEnemies, "noPermanentEnemies", false, true);
+            Scribe_Values.Look<bool>(ref this.threadingEnabled, "threadingEnabled", true, true);
         }
 
         public static Settings Instance;

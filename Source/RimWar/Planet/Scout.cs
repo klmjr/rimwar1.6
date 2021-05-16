@@ -139,7 +139,10 @@ namespace RimWar.Planet
         public override void EngageNearbyWarObject(WarObject rwo)
         {
             //Log.Message("" + this.Label + " engaging nearby " + rwo.Label);
-            IncidentUtility.ResolveRimWarBattle(this, rwo);
+            if (rwo.Faction != null && this.Faction.HostileTo(rwo.Faction))
+            {
+                IncidentUtility.ResolveRimWarBattle(this, rwo);
+            }
             //ImmediateAction(rwo);            
         }
 

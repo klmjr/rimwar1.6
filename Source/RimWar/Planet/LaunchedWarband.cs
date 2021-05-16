@@ -48,7 +48,14 @@ namespace RimWar.Planet
             {
                 dtDef = this.DestinationTarget.def;
             }
-            WorldUtility.CreateWarband(this.RimWarPoints, this.rimwarData, this.ParentSettlement, this.destinationTile, this.DestinationTarget, dtDef, true);
+            if (Find.WorldObjects.Contains(this.DestinationTarget))
+            {
+                WorldUtility.CreateWarband(this.RimWarPoints, this.rimwarData, this.ParentSettlement, this.destinationTile, this.DestinationTarget, dtDef, true);
+            }
+            else
+            {
+                WorldUtility.CreateWarband(this.RimWarPoints, this.rimwarData, this.ParentSettlement, this.destinationTile, this.ParentSettlement, WorldObjectDefOf.Settlement, true);
+            }
             //Log.Message("ending arrival actions");
             base.ArrivalAction();
         }      

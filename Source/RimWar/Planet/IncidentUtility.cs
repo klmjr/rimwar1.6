@@ -9,7 +9,6 @@ using UnityEngine;
 using Verse.AI.Group;
 using RimWar.History;
 using RimWar.Utility;
-using FactionColonies;
 
 namespace RimWar.Planet
 {
@@ -204,13 +203,7 @@ namespace RimWar.Planet
             //Log.Message("resolving war object attack on settlement for " + attacker.Name + " against " + defender.parent.Label);
             if (ValidateRimWarAction(attacker, defender, WorldUtility.GetAllWorldObjectsAtExcept(attacker.Tile, attacker)))
             {
-                if (defender.RWD.behavior == RimWarBehavior.Vassal)
-                {
-                    AttackEmpireSettlement(attacker, defender);
-                    defender.RimWarPoints -= Mathf.RoundToInt(attacker.RimWarPoints * Rand.Range(.1f, .3f));
-                }
-                else
-                {
+
                     defender.AttackingUnits.Add(attacker);
                     defender.nextCombatTick = Find.TickManager.TicksGame + 2500;
                     /*
@@ -477,7 +470,7 @@ namespace RimWar.Planet
                         attacker.Faction.TryAffectGoodwillWith(defender.parent.Faction, -2, true, true, null, null);
                     }
                     */
-                }
+                
             }
         }
 
@@ -1040,35 +1033,35 @@ namespace RimWar.Planet
             
         }
 
-        public static void AttackEmpireSettlement(WarObject rwo, RimWarSettlementComp rwsc, int ticksTillEvent = 15000)
-        {
-            FactionFC fc = Find.World.GetComponent<FactionFC>();
-            if (fc != null)
-            {
-                SettlementFC settlement = fc.returnSettlementByLocation(rwsc.parent.Tile, Find.World.info.name);
-                militaryForce attackingForce = new militaryForce(Mathf.RoundToInt(Mathf.Max(1, rwo.RimWarPoints / 500f)), rwo.rimwarData.combatAttribute, null, rwo.Faction);
-                if (settlement != null && attackingForce != null)
-                {
-                    FCEvent fCEvent = FCEventMaker.MakeEvent(FCEventDefOf.settlementBeingAttacked);
-                    fCEvent.hasCustomDescription = true;
-                    fCEvent.timeTillTrigger = Find.TickManager.TicksGame + ticksTillEvent;
-                    fCEvent.location = settlement.mapLocation;
-                    fCEvent.planetName = settlement.planetName;
-                    fCEvent.hasDestination = true;
-                    fCEvent.customDescription = "settlementAboutToBeAttacked".Translate(settlement.name, rwo.Faction.Name);
-                    fCEvent.militaryForceDefending = militaryForce.createMilitaryForceFromSettlement(settlement);
-                    fCEvent.militaryForceDefendingFaction = FactionColonies.FactionColonies.getPlayerColonyFaction();
-                    fCEvent.militaryForceAttacking = attackingForce;
-                    fCEvent.militaryForceAttackingFaction = rwo.Faction;
-                    fCEvent.settlementFCDefending = settlement;
-                    Find.World.GetComponent<FactionFC>().addEvent(fCEvent);
-                    FCEvent fCEvent2 = fCEvent;
-                    fCEvent2.customDescription = fCEvent2.customDescription + "\n\nThe estimated attacking force's power is: " + fCEvent.militaryForceAttacking.forceRemaining.ToString();
-                    settlement.isUnderAttack = true;
-                    Find.LetterStack.ReceiveLetter("settlementInDanger".Translate(), fCEvent.customDescription, LetterDefOf.ThreatBig, new LookTargets(Find.WorldObjects.SettlementAt(settlement.mapLocation)));
-                }
-            }
-        }
+        //public static void AttackEmpireSettlement(WarObject rwo, RimWarSettlementComp rwsc, int ticksTillEvent = 15000)
+        //{
+        //    FactionFC fc = Find.World.GetComponent<FactionFC>();
+        //    if (fc != null)
+        //    {
+        //        SettlementFC settlement = fc.returnSettlementByLocation(rwsc.parent.Tile, Find.World.info.name);
+        //        militaryForce attackingForce = new militaryForce(Mathf.RoundToInt(Mathf.Max(1, rwo.RimWarPoints / 500f)), rwo.rimwarData.combatAttribute, null, rwo.Faction);
+        //        if (settlement != null && attackingForce != null)
+        //        {
+        //            FCEvent fCEvent = FCEventMaker.MakeEvent(FCEventDefOf.settlementBeingAttacked);
+        //            fCEvent.hasCustomDescription = true;
+        //            fCEvent.timeTillTrigger = Find.TickManager.TicksGame + ticksTillEvent;
+        //            fCEvent.location = settlement.mapLocation;
+        //            fCEvent.planetName = settlement.planetName;
+        //            fCEvent.hasDestination = true;
+        //            fCEvent.customDescription = "settlementAboutToBeAttacked".Translate(settlement.name, rwo.Faction.Name);
+        //            fCEvent.militaryForceDefending = militaryForce.createMilitaryForceFromSettlement(settlement);
+        //            fCEvent.militaryForceDefendingFaction = FactionColonies.FactionColonies.getPlayerColonyFaction();
+        //            fCEvent.militaryForceAttacking = attackingForce;
+        //            fCEvent.militaryForceAttackingFaction = rwo.Faction;
+        //            fCEvent.settlementFCDefending = settlement;
+        //            Find.World.GetComponent<FactionFC>().addEvent(fCEvent);
+        //            FCEvent fCEvent2 = fCEvent;
+        //            fCEvent2.customDescription = fCEvent2.customDescription + "\n\nThe estimated attacking force's power is: " + fCEvent.militaryForceAttacking.forceRemaining.ToString();
+        //            settlement.isUnderAttack = true;
+        //            Find.LetterStack.ReceiveLetter("settlementInDanger".Translate(), fCEvent.customDescription, LetterDefOf.ThreatBig, new LookTargets(Find.WorldObjects.SettlementAt(settlement.mapLocation)));
+        //        }
+        //    }
+        //}
 
         public static void CaravanPayment(Caravan caravan, int fee)
         {
@@ -1429,23 +1422,23 @@ namespace RimWar.Planet
                 let.text = "RW_LetterBattleText".Translate(strS.CapitalizeFirst(), sPts, "defeated", strD, dPts);
                 foreach (WarObject wo in survivors)
                 {
-                    if ((wo.EffectivePoints > Mathf.RoundToInt(wo.RimWarPoints / 2f) && wo.DestinationTarget != bs) || wo is Settler)
-                    {
-                        if (wo is Settler)
-                        {
-                            WorldUtility.CreateSettler(wo.RimWarPoints, wo.rimwarData, wo.ParentSettlement, wo.Tile, wo.DestinationTile, WorldObjectDefOf.Settlement, true, wo.PointDamage);
-                        }
-                        else
-                        {
-                            //Log.Message("to dest");
-                            WorldUtility.CreateWarObjectOfType(wo, wo.RimWarPoints, wo.rimwarData, wo.ParentSettlement, wo.Tile, wo.DestinationTarget, wo.def, 0, false, true, wo.PointDamage);
-                        }
-                    }
-                    else
-                    {
+                    //if ((wo.EffectivePoints > Mathf.RoundToInt(wo.RimWarPoints / 2f) && wo.DestinationTarget != bs) || wo is Settler)
+                    //{
+                    //    if (wo is Settler)
+                    //    {
+                    //        WorldUtility.CreateSettler(wo.RimWarPoints, wo.rimwarData, wo.ParentSettlement, wo.Tile, wo.DestinationTile, WorldObjectDefOf.Settlement, true, wo.PointDamage);
+                    //    }
+                    //    else
+                    //    {
+                    //        //Log.Message("to dest");
+                    //        WorldUtility.CreateWarObjectOfType(wo, wo.RimWarPoints, wo.rimwarData, wo.ParentSettlement, wo.Tile, wo.DestinationTarget, wo.def, 0, false, true, wo.PointDamage);
+                    //    }
+                    //}
+                    //else
+                    //{
                         //Log.Message("to home");
                         WorldUtility.CreateWarObjectOfType(wo, wo.RimWarPoints, wo.rimwarData, wo.ParentSettlement, wo.Tile, wo.ParentSettlement, WorldObjectDefOf.Settlement, 0, false, true, wo.PointDamage);
-                    }
+                    //}
                 }
             }
             else

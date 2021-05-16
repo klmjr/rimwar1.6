@@ -9,7 +9,6 @@ using HarmonyLib;
 using RimWar;
 using RimWorld;
 using RimWorld.Planet;
-using FactionColonies;
 using RimWar.RocketTools;
 using RimWar.Options;
 using System.Diagnostics;
@@ -19,7 +18,6 @@ namespace RimWar.Planet
 {
     public class RimWarCaravanComp : WorldObjectComp
     {
-
         public float scanRange = 2f;
         private bool initialized = false;
         public WarObject currentTarget = null;
@@ -54,18 +52,30 @@ namespace RimWar.Planet
             }
             if(Find.TickManager.TicksGame % 121 == 0)
             {
-                tasker.Register((Func<ContextStorage>)(() =>
+                if (Options.Settings.Instance.threadingEnabled)
+                {
+                    tasker.Register((Func<ContextStorage>)(() =>
+                    {
+                        var context = new ContextStorage();
+                        ScanAction(scanRange, context);
+                        return context;
+                    }),
+                    (Action<ContextStorage>)((context) =>
+                    {
+                        EngageCaravanTarget(context);
+                    }));
+                }
+                else
                 {
                     var context = new ContextStorage();
                     ScanAction(scanRange, context);
-                    return context;
-                }),
-                (Action<ContextStorage>)((context) =>
-                {
                     EngageCaravanTarget(context);
-                }));
+                }
             }
-            tasker.Tick();
+            if (Options.Settings.Instance.threadingEnabled)
+            {
+                tasker.Tick();
+            }
         }
 
         public void ScanAction(float range, ContextStorage context)

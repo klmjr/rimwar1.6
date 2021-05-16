@@ -38,10 +38,30 @@ namespace RimWar.Planet
 
         private static object locker = new object();
         private static List<WorldObject> _worldObjectsHolder = new List<WorldObject>();
-        public static List<WorldObject> WorldObjectsHolder => _worldObjectsHolder.Where(obj => obj != null).ToList();
+        public static List<WorldObject> WorldObjectsHolder
+        {
+            get
+            {
+                if (Options.Settings.Instance.threadingEnabled)
+                {
+                    return _worldObjectsHolder.Where(obj => obj != null).ToList();
+                }
+                else
+                {
+                    return Find.WorldObjects.AllWorldObjects;
+                }
+            }
+        }
         public static void CopyData()
         {
-            lock (locker)
+            if (Options.Settings.Instance.threadingEnabled)
+            {
+                lock (locker)
+                {
+                    _worldObjectsHolder = Find.WorldObjects.AllWorldObjects;
+                }
+            }
+            else
             {
                 _worldObjectsHolder = Find.WorldObjects.AllWorldObjects;
             }
@@ -373,7 +393,7 @@ namespace RimWar.Planet
             }
             catch (NullReferenceException ex)
             {
-                Log.Message("failed to create warband\n rwd: " + rwd + " parent " + parentSettlement + " start " + startingTile + " end " + destination.Tile + " def " + worldDef + "\n" + ex);
+                Log.Message("failed to create warband\n rwd: " + rwd + " parent " + parentSettlement + " start " + startingTile + " end " + destination + " def " + worldDef + "\n" + ex);
                 return null;
             }
 

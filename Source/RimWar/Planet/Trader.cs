@@ -148,7 +148,7 @@ namespace RimWar.Planet
                             Caravan playerCaravan = wo as Caravan;
                             if (playerSettlement != null)
                             {
-                                IncidentUtility.DoRaidWithPoints(this, playerSettlement, this.rimwarData, PawnsArrivalModeDefOf.EdgeWalkIn, PawnGroupKindDefOf.Trader);
+                                IncidentUtility.DoRaidWithPoints(this, playerSettlement, this.rimwarData, PawnsArrivalModeDefOf.EdgeWalkIn, PawnGroupKindDefOf.Combat);
                             }
                             else if(playerCaravan != null)
                             {
@@ -205,15 +205,46 @@ namespace RimWar.Planet
                                 Action delay4 = new Action(delegate
                                 {
                                     //Log.Message("delaying trader 4 hours");
+                                    int tile = DestinationTarget.Tile;
+                                    while (tile == DestinationTarget.Tile)
+                                    {
+                                        TileFinder.TryFindPassableTileWithTraversalDistance(this.Tile, 1, 1, out tile);
+                                    }
+                                    this.Tile = tile;
+                                    this.tweener.ResetTweenedPosToRoot();
+                                    this.pather.PatherTick();                                    
+                                    this.tweener.TweenerTick();
+                                    this.pather.StopDead();
                                     this.pauseFor = 10000;
+                                    PathToTarget(DestinationTarget);
                                 });
                                 Action delay12 = new Action(delegate
                                 {
-                                    //Log.Message("delaying trader 12 hours");
+                                    int tile = DestinationTarget.Tile;
+                                    while (tile == DestinationTarget.Tile)
+                                    {
+                                        TileFinder.TryFindPassableTileWithTraversalDistance(this.Tile, 1, 1, out tile);
+                                    }
+                                    this.Tile = tile;
+                                    this.tweener.ResetTweenedPosToRoot();
+                                    this.pather.PatherTick();
+                                    this.tweener.TweenerTick();
+                                    this.pather.StopDead();
                                     this.pauseFor = 30000;
+                                    PathToTarget(DestinationTarget);
                                 });
                                 Action reject = new Action(delegate
                                 {
+                                    int tile = DestinationTarget.Tile;
+                                    while (tile == DestinationTarget.Tile)
+                                    {
+                                        TileFinder.TryFindPassableTileWithTraversalDistance(this.Tile, 1, 1, out tile);
+                                    }
+                                    this.Tile = tile;
+                                    this.pather.PatherTick();
+                                    this.tweener.ResetTweenedPosToRoot();
+                                    this.tweener.TweenerTick();
+                                    this.pather.StopDead();
                                     ValidateParentSettlement();
                                     FindParentSettlement();
                                     this.DestinationTarget = ParentSettlement;

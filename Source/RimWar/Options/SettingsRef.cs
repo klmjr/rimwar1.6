@@ -24,6 +24,7 @@ namespace RimWar.Options
         public float settlementScanRangeDivider = Settings.Instance.settlementScanRangeDivider;
         public float objectMovementMultiplier = Settings.Instance.objectMovementMultiplier;
 
+        public bool threadingEnabled = Settings.Instance.threadingEnabled;
         public int averageEventFrequency = Settings.Instance.averageEventFrequency;
         public int settlementEventDelay = Settings.Instance.settlementEventDelay;
         public int settlementScanDelay = Settings.Instance.settlementScanDelay;

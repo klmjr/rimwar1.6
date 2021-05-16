@@ -155,6 +155,23 @@ namespace RimWar.Options
                     {
                         pgmPeaceful.options.Add(pgoListOptions.RandomElement());
                     }
+                    ct = Rand.Range(2, 7);
+                    for (int i = 0; i < ct; i++)
+                    {
+                        pgmPeaceful.guards.Add(pgoListOptions.RandomElement());
+                    }
+                    if (pgoListTraderOptions != null && pgoListTraderOptions.Count > 0)
+                    {
+                        pgmPeaceful.traders.Add(pgoListTraderOptions.RandomElement());
+                    }
+                    else
+                    {
+                        pgmPeaceful.traders.Add(pgoListOptions.RandomElement());
+                    }
+                    foreach (PawnGenOption pgoc in pgoListCarrierOptions)
+                    {
+                        pgmPeaceful.carriers.Add(pgoc);
+                    }
                     fd.pawnGroupMakers.Add(pgmPeaceful);
                 }
                 if(!hasTrader)
@@ -220,7 +237,9 @@ namespace RimWar.Options
             int num = 0;
             float rowHeight = 32f;
 
-            Widgets.BeginScrollView(canvas, ref scrollPosition, canvas, true);
+            Rect sRect = new Rect(canvas.x, canvas.y, canvas.width - 36f, canvas.height + 60f);
+            scrollPosition = GUI.BeginScrollView(canvas, scrollPosition, sRect, false, true);
+            //Widgets.BeginScrollView(canvas, ref scrollPosition, canvas, true);
 
             SettingsRef settingsRef = new SettingsRef();
             Rect rect1 = new Rect(canvas);
@@ -265,6 +284,10 @@ namespace RimWar.Options
             Rect rowRect13 = UIHelper.GetRowRect(rowRect12, rowHeight, num);
             Widgets.CheckboxLabeled(rowRect13, "RW_restrictEvents".Translate(), ref Settings.Instance.restrictEvents, false);
             TooltipHandler.TipRegion(rowRect13, "RW_restrictEventsInfo".Translate());
+            num++;
+            Rect rowRect14 = UIHelper.GetRowRect(rowRect13, rowHeight, num);
+            Widgets.CheckboxLabeled(rowRect14, "RW_threadingEnabled".Translate(), ref Settings.Instance.threadingEnabled, false);
+            TooltipHandler.TipRegion(rowRect14, "RW_threadingEnabledInfo".Translate());
             num++;
             //num++;
             Rect rowRect6 = UIHelper.GetRowRect(rowRect13, rowHeight, num);
@@ -313,7 +336,7 @@ namespace RimWar.Options
             TooltipHandler.TipRegion(rowRect93, "RW_letterNotificationRangeInfo".Translate());
             //Widgets.CheckboxLabeled(rowRect92, "RW_forceRandomObject".Translate(), ref Settings.Instance.forceRandomObject, false);
             num++;
-            //num++;
+            num++;
             Rect rowRect20 = UIHelper.GetRowRect(rowRect92, rowHeight, num);
             rowRect20.width = 120f;
 
@@ -461,7 +484,8 @@ namespace RimWar.Options
                 Settings.Instance.alertRange = 0;
             }
 
-            Widgets.EndScrollView();
+            //Widgets.EndScrollView();
+            GUI.EndScrollView();
 
         }
 

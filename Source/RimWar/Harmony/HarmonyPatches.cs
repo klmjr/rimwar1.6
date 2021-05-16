@@ -15,7 +15,6 @@ using System.Reflection.Emit;
 using RimWar.Planet;
 using RimWar.Utility;
 using RimWar;
-using FactionColonies;
 using RimWorld.BaseGen;
 
 namespace RimWar.Harmony

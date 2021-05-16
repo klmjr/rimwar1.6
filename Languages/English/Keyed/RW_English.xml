@@ -24,6 +24,7 @@
 <RW_Capitol>Faction Capitol</RW_Capitol>
 <RW_AggressionDefense>Min. amount for AI Aggression: {0}</RW_AggressionDefense>
 <RW_AggressionPoints>Aggression amount: {0}</RW_AggressionPoints>
+<RW_Waiting>Waiting for: {0} hours</RW_Waiting>
 
 <!-- ============ Faction Menu =============-->
 <RW_FactionPower>Faction power: {0}</RW_FactionPower>
@@ -44,6 +45,9 @@ Growth ({2})</RW_AttributeDisplay>
 <RW_NeutralTo>Neutral to {0}</RW_NeutralTo>
 
 <!-- ============ Settings =============-->
+<RW_threadingEnabled>Threading Enabled</RW_threadingEnabled>
+<RW_threadingEnabledInfo>Toggles threading performed by RimWar. Disable this option if other threading functions are used.
+**Do not toggle while playing - only toggle this option from the main game menu!**</RW_threadingEnabledInfo>
 <RW_randomizeFactionBehavior>Random Faction behavior</RW_randomizeFactionBehavior>
 <RW_randomizeFactionBehaviorInfo>Core game factions have a pre-defined behavior - eg Outlander Civil will always have a Cautious behavior, Rough Tribes will always be warmonger's etc; this is set in the RimWarDef.xml file. Enabling this setting randomizes all faction behavior regardless of what's defined in the RimWarDef.xml file.
 

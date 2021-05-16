@@ -479,13 +479,20 @@ namespace RimWar.Planet
                     this.ValidateParentSettlement();
                     //scan for nearby engagements
                     ScanAction(ScanRange);
-                    WorldComponent_PowerTracker.tasker.Register(() =>
-                    {                        
-                        return null;
-                    }, (context) =>
+                    if (Options.Settings.Instance.threadingEnabled)
+                    {
+                        WorldComponent_PowerTracker.tasker.Register(() =>
+                        {
+                            return null;
+                        }, (context) =>
+                        {
+                            Notify_Player();
+                        });
+                    }
+                    else
                     {
                         Notify_Player();
-                    });
+                    }
                 }
                 if ((Find.TickManager.TicksGame + ID) % 251 == 0)
                     ValidateTargets();
@@ -738,31 +745,39 @@ namespace RimWar.Planet
             //stringBuilder.Append(base.GetInspectString());            
 
             WorldObject wo = Find.World.worldObjects.ObjectsAt(pather.Destination).FirstOrDefault();
-            if (wo != null)
+            if (pauseFor > 0)
             {
-                if (wo.Faction != this.Faction)
+                float pauseForHours = pauseFor / 2500f;
+                stringBuilder.Append("RW_Waiting".Translate(pauseForHours.ToString("0.#")));
+            }
+            else
+            {
+                if (wo != null)
                 {
-                    if (this is Trader)
+                    if (wo.Faction != this.Faction)
                     {
-                        stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_Trading".Translate(), wo.Label));
-                    }
-                    else if (this is Scout)
-                    {
-                        stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_Scouting".Translate(), wo.Label));
+                        if (this is Trader)
+                        {
+                            stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_Trading".Translate(), wo.Label));
+                        }
+                        else if (this is Scout)
+                        {
+                            stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_Scouting".Translate(), wo.Label));
+                        }
+                        else
+                        {
+                            stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_Attacking".Translate(), wo.Label));
+                        }
                     }
                     else
                     {
-                        stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_Attacking".Translate(), wo.Label));
+                        stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_ReturningTo".Translate(), wo.Label));
                     }
-                }
-                else
-                {
-                    stringBuilder.Append("RW_WarObjectInspectString".Translate(this.Name, "RW_ReturningTo".Translate(), wo.Label));
                 }
             }
 
 
-            if (pather.Moving)
+            if (pather.Moving && pauseFor <=0)
             {
                 float num6 = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(base.Tile, pather.Destination, this.TicksPerMove) / 60000f;
                 if (stringBuilder.Length != 0)

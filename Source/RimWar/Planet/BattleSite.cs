@@ -30,7 +30,8 @@ namespace RimWar.Planet
                 //Log.Message("cycling battle site " + this.Tile);
                 if (!base.HasMap)
                 {
-                    //Log.Message("evaluating battle site combat with " + Units.Count + " units");                    
+                    //Log.Message("evaluating battle site combat with " + Units.Count + " units");   
+                    CheckAndCleanDuplicates();
                     bool anyCombatRemaining = false;
                     if (Units.Count > 1)
                     {
@@ -69,6 +70,27 @@ namespace RimWar.Planet
                 else
                 {
                     IncidentUtility.UpdateUnitCombatStatus(this.Units);
+                }
+            }
+        }
+
+        private void CheckAndCleanDuplicates()
+        {
+            Restart:;
+            for(int i = 0; i < this.Units.Count; i++)
+            {
+                WarObject first = this.Units[i];
+                if(i < this.Units.Count  - 1)
+                {
+                    for(int j = i + 1; j < this.Units.Count; j++)
+                    {
+                        if(first.Faction == this.Units[j].Faction && first.RimWarPoints == this.Units[j].RimWarPoints)
+                        {
+                            //Log.Message("removing " + this.Units[j].Name);
+                            this.Units.Remove(this.Units[j]);
+                            goto Restart;
+                        }
+                    }
                 }
             }
         }
