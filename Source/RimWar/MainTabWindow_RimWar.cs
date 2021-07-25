@@ -100,7 +100,7 @@ namespace RimWar
 
         public override void DoWindowContents(Rect rect)
         {
-            base.DoWindowContents(rect);
+            //base.DoWindowContents(rect);
             Rect rect2 = rect;
             rect2.yMin += 45f;
             TabDrawer.DrawTabs(rect2, tabs);
@@ -152,7 +152,7 @@ namespace RimWar
 
         private void DoRelationsPage(Rect fillRect)
         {
-            base.DoWindowContents(fillRect);
+            //base.DoWindowContents(fillRect);
             RimWarFactionUtility.DoWindowContents(fillRect, ref scrollPosition, ref scrollViewHeight);
         }
 

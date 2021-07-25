@@ -46,18 +46,18 @@ namespace RimWar.Planet
             {
                 for (int j = 0; j < pods[i].innerContainer.Count; j++)
                 {
-                    Pawn pawn = pods[i].innerContainer[j] as Pawn;
-                    if (pawn != null)
+                    if (pods[i].innerContainer[j] is Pawn pawn)
                     {
                         if (pawn.RaceProps.Humanlike)
                         {
-                            if (pawn.FactionOrExtraMiniOrHomeFaction == settlement.Faction)
+                            Pawn result;
+                            if (pawn.HomeFaction == settlement.Faction)
                             {
                                 GenGuest.AddHealthyPrisonerReleasedThoughts(pawn);
                             }
-                            else
+                            else if (PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_FreeColonists.TryRandomElement(out result))
                             {
-                                GenGuest.AddPrisonerSoldThoughts(pawn);
+                                Find.HistoryEventsManager.RecordEvent(new HistoryEvent(HistoryEventDefOf.SoldSlave, result.Named(HistoryEventArgsNames.Doer)));
                             }
                         }
                         else if (pawn.RaceProps.Animal && pawn.relations != null)

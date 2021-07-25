@@ -181,7 +181,8 @@ namespace RimWar.Planet
             {
                 if(this.victoryFaction != null)
                 {
-                    this.victoryFaction.def.naturalColonyGoodwill = new IntRange(-100, -100);
+                    this.victoryFaction.allowGoodwillRewards = false;
+                    //this.victoryFaction.def.naturalColonyGoodwill = new IntRange(-100, -100);
                 }
                 doOnce = true;
             }
@@ -569,13 +570,13 @@ namespace RimWar.Planet
 
                         if (settingsRef.playerVS && allFactionsVisible[i] != Faction.OfPlayer)
                         {
-                            allFactionsVisible[i].TryAffectGoodwillWith(Faction.OfPlayer, -80, true, true, "Rim War", null);
+                            allFactionsVisible[i].TryAffectGoodwillWith(Faction.OfPlayer, -80, true, true, RimWarDefOf.RW_DiplomacyAction, null);
                             for (int j = 0; j < 5; j++)
                             {
                                 Faction otherFaction = allFactionsVisible.RandomElement();
                                 if (otherFaction != allFactionsVisible[i] && otherFaction != Faction.OfPlayer)
                                 {
-                                    allFactionsVisible[i].TryAffectGoodwillWith(otherFaction, 50, true, true, "Rim War", null);
+                                    allFactionsVisible[i].TryAffectGoodwillWith(otherFaction, 50, true, true, RimWarDefOf.RW_DiplomacyAction, null);
                                 }
                             }
                             if (allFactionsVisible[i].PlayerGoodwill <= -80)
@@ -655,7 +656,7 @@ namespace RimWar.Planet
                     if (potentialFactions.Count > 0)
                     {
                         this.victoryFaction = potentialFactions.RandomElement();
-                        this.victoryFaction.def.naturalColonyGoodwill = new IntRange(-100, -100);
+                        //this.victoryFaction.def.naturalColonyGoodwill = new IntRange(-100, -100);
                         List<RimWorld.Planet.Settlement> wosList = WorldUtility.GetRimWarDataForFaction(this.victoryFaction).WorldSettlements;
                         if (wosList != null)
                         {
@@ -1916,7 +1917,7 @@ namespace RimWar.Planet
                     {
                         Tile t = Find.WorldGrid[tile];
                         if (t.biome != null && !t.biome.isExtremeBiome && t.biome.canBuildBase)
-                        {
+                        {                            
                             tmpTiles.Add(tile);
                         }
                     }

@@ -385,7 +385,7 @@ namespace RimWar.Utility
                     Faction ofPlayer = Faction.OfPlayer;
                     bool canSendMessage = false;
                     string reason = "GoodwillChangedReason_RequestedMilitaryAid".Translate();
-                    faction.TryAffectGoodwillWith(ofPlayer, -requestCost, canSendMessage, true, reason);
+                    faction.TryAffectGoodwillWith(ofPlayer, -requestCost, canSendMessage, true, HistoryEventDefOf.RequestedMilitaryAid);
                     wos.GetComponent<RimWarSettlementComp>().RimWarPoints -= minPoints;
                     WorldUtility.CreateLaunchedWarband(minPoints, rwd, wos, wos.Tile, Find.WorldObjects.SettlementAt(map.Tile), WorldObjectDefOf.Settlement);
                 };
@@ -403,7 +403,7 @@ namespace RimWar.Utility
                     Faction ofPlayer = Faction.OfPlayer;
                     bool canSendMessage = false;
                     string reason = "GoodwillChangedReason_RequestedMilitaryAid".Translate();
-                    faction.TryAffectGoodwillWith(ofPlayer, -requestCost, canSendMessage, true, reason);
+                    faction.TryAffectGoodwillWith(ofPlayer, -requestCost, canSendMessage, true, HistoryEventDefOf.RequestedMilitaryAid);
                     wos.GetComponent<RimWarSettlementComp>().RimWarPoints -= minPoints;
                     WorldUtility.CreateLaunchedWarband(minPoints, rwd, wos, wos.Tile, Find.WorldObjects.SettlementAt(map.Tile), WorldObjectDefOf.Settlement);
                 };
@@ -489,7 +489,7 @@ namespace RimWar.Utility
                         trader.traderKind = localTk;
                         wos.GetComponent<RimWarSettlementComp>().RimWarPoints -= 200;
                         faction.lastTraderRequestTick = Find.TickManager.TicksGame;
-                        faction.TryAffectGoodwillWith(Faction.OfPlayer, -requestCost, false, true, "GoodwillChangedReason_RequestedTrader".Translate());
+                        faction.TryAffectGoodwillWith(Faction.OfPlayer, -requestCost, false, true, HistoryEventDefOf.RequestedTrader);
                     };
                     diaOption5.link = diaNode;
                 }
@@ -507,7 +507,7 @@ namespace RimWar.Utility
             Faction ofPlayer = Faction.OfPlayer;
             bool canSendMessage = false;
             string reason = "GoodwillChangedReason_RequestedMilitaryAid".Translate();
-            faction.TryAffectGoodwillWith(ofPlayer, -callRelationsCost, canSendMessage, true, reason);
+            faction.TryAffectGoodwillWith(ofPlayer, -callRelationsCost, canSendMessage, true, HistoryEventDefOf.RequestedMilitaryAid);
             sendingSettlement.GetComponent<RimWarSettlementComp>().RimWarPoints -= pts;
             WorldUtility.CreateWarObjectOfType(rwo, pts, rwd, sendingSettlement, sendingSettlement.Tile, Find.WorldObjects.SettlementAt(map.Tile), WorldObjectDefOf.Settlement);            
         }

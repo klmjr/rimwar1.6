@@ -67,15 +67,15 @@ namespace RimWar.Planet
 
         public static IEnumerable<FloatMenuOption> GetFloatMenuOptions(CompLaunchable representative, IEnumerable<IThingHolder> pods, BattleSite bs)
         {
-            if (representative.parent.TryGetComp<CompShuttle>() != null)
-            {
-                foreach (FloatMenuOption floatMenuOption in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanAttack(pods, bs), () => new TransportPodsArrivalAction_JoinBattle(bs, PawnsArrivalModeDefOf.Shuttle), "AttackShuttle".Translate(bs.Label), representative, bs.Tile))
-                {
-                    yield return floatMenuOption;
-                }
-            }
-            else
-            {
+            //if (representative.parent.TryGetComp<CompShuttle>() != null)
+            //{
+            //    foreach (FloatMenuOption floatMenuOption in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanAttack(pods, bs), () => new TransportPodsArrivalAction_JoinBattle(bs, PawnsArrivalModeDefOf.Shuttle), "AttackShuttle".Translate(bs.Label), representative, bs.Tile))
+            //    {
+            //        yield return floatMenuOption;
+            //    }
+            //}
+            //else
+            //{
                 foreach (FloatMenuOption floatMenuOption2 in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanAttack(pods, bs), () => new TransportPodsArrivalAction_JoinBattle(bs, PawnsArrivalModeDefOf.EdgeDrop), "AttackAndDropAtEdge".Translate(bs.Label), representative, bs.Tile))
                 {
                     yield return floatMenuOption2;
@@ -84,7 +84,7 @@ namespace RimWar.Planet
                 {
                     yield return floatMenuOption3;
                 }
-            }
+            //}
         }
 
         public override void Arrived(List<ActiveDropPodInfo> pods, int tile)

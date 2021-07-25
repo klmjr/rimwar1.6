@@ -147,20 +147,21 @@ namespace RimWar
                                 str2 += "CurrentGoodwillTip_Hostile".Translate(0.ToString("F0"));
                                 break;
                         }
-                        if (faction.def.goodwillDailyGain > 0f || faction.def.goodwillDailyFall > 0f)
-                        {
-                            float num3 = faction.def.goodwillDailyGain * 60f;
-                            float num4 = faction.def.goodwillDailyFall * 60f;
-                            str2 += "\n\n" + "CurrentGoodwillTip_NaturalGoodwill".Translate(faction.def.naturalColonyGoodwill.min.ToString("F0"), faction.def.naturalColonyGoodwill.max.ToString("F0"));
-                            if (faction.def.naturalColonyGoodwill.min > -100)
-                            {
-                                str2 += " " + "CurrentGoodwillTip_NaturalGoodwillRise".Translate(faction.def.naturalColonyGoodwill.min.ToString("F0"), num3.ToString("F0"));
-                            }
-                            if (faction.def.naturalColonyGoodwill.max < 100)
-                            {
-                                str2 += " " + "CurrentGoodwillTip_NaturalGoodwillFall".Translate(faction.def.naturalColonyGoodwill.max.ToString("F0"), num4.ToString("F0"));
-                            }
-                        }
+                        //1.3 //
+                        //if (faction.def.goodwillDailyGain > 0f || faction.def.goodwillDailyFall > 0f)
+                        //{
+                        //    float num3 = faction.def.goodwillDailyGain * 60f;
+                        //    float num4 = faction.def.goodwillDailyFall * 60f;
+                        //    str2 += "\n\n" + "CurrentGoodwillTip_NaturalGoodwill".Translate(faction.def.naturalColonyGoodwill.min.ToString("F0"), faction.def.naturalColonyGoodwill.max.ToString("F0"));
+                        //    if (faction.def.naturalColonyGoodwill.min > -100)
+                        //    {
+                        //        str2 += " " + "CurrentGoodwillTip_NaturalGoodwillRise".Translate(faction.def.naturalColonyGoodwill.min.ToString("F0"), num3.ToString("F0"));
+                        //    }
+                        //    if (faction.def.naturalColonyGoodwill.max < 100)
+                        //    {
+                        //        str2 += " " + "CurrentGoodwillTip_NaturalGoodwillFall".Translate(faction.def.naturalColonyGoodwill.max.ToString("F0"), num4.ToString("F0"));
+                        //    }
+                        //}
                     }
                     TooltipHandler.TipRegion(rect4, str2);
                 }
@@ -256,7 +257,7 @@ namespace RimWar
                     if (!rwd.IsAtWarWith(withFaction))
                     {
                         rwd.WarFactions.Add(withFaction);
-                        declaringFaction.RelationWith(withFaction).goodwill = -100;
+                        declaringFaction.RelationWith(withFaction).baseGoodwill = -100;
                         declaringFaction.RelationWith(withFaction).kind = FactionRelationKind.Hostile;
                         Find.LetterStack.ReceiveLetter("RW_DiplomacyLetter".Translate("RW_DiplomacyLabel_War".Translate()), "RW_DeclareWar".Translate(rwd.RimWarFaction.Name, withFaction.Name), RimWarDefOf.RimWar_HostileEvent);
                     }
@@ -273,7 +274,7 @@ namespace RimWar
                 {
                     if (!rwd.IsAtWarWith(declaringFaction))
                     {
-                        withFaction.RelationWith(declaringFaction).goodwill = -100;
+                        withFaction.RelationWith(declaringFaction).baseGoodwill = -100;
                         withFaction.RelationWith(declaringFaction).kind = FactionRelationKind.Hostile;
                         rwd.WarFactions.Add(declaringFaction);
                         Find.LetterStack.ReceiveLetter("RW_DiplomacyLetter".Translate("RW_DiplomacyLabel_War".Translate()), "RW_DeclareWar".Translate(rwd.RimWarFaction.Name, declaringFaction.Name), RimWarDefOf.RimWar_HostileEvent);
@@ -296,14 +297,14 @@ namespace RimWar
             if (!rwd.IsAlliedWith(withFaction))
             {
                 rwd.AllianceFactions.Add(withFaction);
-                declaringFaction.RelationWith(withFaction).goodwill = 100;
+                declaringFaction.RelationWith(withFaction).baseGoodwill = 100;
                 declaringFaction.RelationWith(withFaction).kind = FactionRelationKind.Ally;
                 Find.LetterStack.ReceiveLetter("RW_DiplomacyLetter".Translate("RW_DiplomacyLabel_Alliance".Translate()), "RW_DeclareAlliance".Translate(rwd.RimWarFaction.Name, withFaction.Name), RimWarDefOf.RimWar_NeutralEvent);
             }
             RimWarData rwdAlly = WorldUtility.GetRimWarDataForFaction(withFaction);
             if (!rwdAlly.IsAlliedWith(declaringFaction))
             {
-                withFaction.RelationWith(declaringFaction).goodwill = 100;
+                withFaction.RelationWith(declaringFaction).baseGoodwill = 100;
                 withFaction.RelationWith(declaringFaction).kind = FactionRelationKind.Ally;
                 rwdAlly.AllianceFactions.Add(declaringFaction);
                 Find.LetterStack.ReceiveLetter("RW_DiplomacyLetter".Translate("RW_DiplomacyLabel_Alliance".Translate()), "RW_DeclareAlliance".Translate(rwdAlly.RimWarFaction.Name, declaringFaction.Name), RimWarDefOf.RimWar_NeutralEvent);
@@ -386,8 +387,8 @@ namespace RimWar
                         if(!(firstFaction == Faction.OfPlayer && !otherFaction.def.permanentEnemy) && !(firstFaction != Faction.OfPlayer && otherFaction.def.permanentEnemyToEveryoneExceptPlayer) && 
                             !(firstFaction.def.permanentEnemy && otherFaction == Faction.OfPlayer) && !(firstFaction.def.permanentEnemyToEveryoneExceptPlayer && otherFaction != Faction.OfPlayer))
                         {
-                            firstFaction.TryAffectGoodwillWith(otherFaction, -1 * firstFaction.GoodwillWith(otherFaction), true, true, "Rim War - Clear Relation");
-                            firstFaction.TryAffectGoodwillWith(otherFaction, Rand.Range(-100, 100), true, true, "Rim War - Randomize Relation");
+                            firstFaction.TryAffectGoodwillWith(otherFaction, -1 * firstFaction.GoodwillWith(otherFaction), true, true, RimWarDefOf.RW_RandomizeRelations);
+                            firstFaction.TryAffectGoodwillWith(otherFaction, Rand.Range(-100, 100), true, true, RimWarDefOf.RW_RandomizeRelations);
                             //firstFaction.TryAffectGoodwillWith(otherFaction, -1 * firstFaction.GoodwillWith(otherFaction), false, false, "Rim War - Clear Relation");
                             //firstFaction.TryAffectGoodwillWith(otherFaction, Rand.Range(-100, 100), false, false, "Rim War - Randomize Relation");
                             //Log.Message("" + firstFaction.Name + " has " + firstFaction.RelationKindWith(otherFaction).ToString() + " relations with " + otherFaction.Name);

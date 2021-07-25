@@ -34,5 +34,9 @@ namespace RimWar
         public static DamageDef RW_CombatInjury;
         public static HediffDef RW_CombatInjuryHD;
 
+        public static HistoryEventDef RW_RandomizeRelations;
+        public static HistoryEventDef RW_UnitRequest;
+        public static HistoryEventDef RW_DiplomacyAction;
+
     }
 }

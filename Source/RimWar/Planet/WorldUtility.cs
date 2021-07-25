@@ -1605,7 +1605,7 @@ namespace RimWar.Planet
             {
                 FactionRelation _fr = new FactionRelation();
                 _fr.other = otherFaction;
-                _fr.goodwill = Rand.Range(-100, 100);
+                _fr.baseGoodwill = Rand.Range(-100, 100);
                 _fr.kind = FactionRelationKind.Neutral;
                 bool sentLetter = false;
                 _fr.CheckKindThresholds(thisFaction, false, "", GlobalTargetInfo.Invalid, out sentLetter);

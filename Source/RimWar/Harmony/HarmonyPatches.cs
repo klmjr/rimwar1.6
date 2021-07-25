@@ -35,11 +35,12 @@ namespace RimWar.Harmony
         {
             HarmonyLib.Harmony harmonyInstance = new HarmonyLib.Harmony("rimworld.torann.rimwar");
             //Postfix
-            harmonyInstance.Patch(AccessTools.Method(typeof(TransportPodsArrivalAction_Shuttle), "Arrived", new Type[]
-                {
-                                typeof(List<ActiveDropPodInfo>),
-                                typeof(int)
-                }, null), null, new HarmonyMethod(patchType, "ShuttleArrived_SettlementHasAttackers_Postfix", null), null);
+            //1.3 //
+            //harmonyInstance.Patch(AccessTools.Method(typeof(TransportPodsArrivalAction_Shuttle), "Arrived", new Type[]
+            //    {
+            //                    typeof(List<ActiveDropPodInfo>),
+            //                    typeof(int)
+            //    }, null), null, new HarmonyMethod(patchType, "ShuttleArrived_SettlementHasAttackers_Postfix", null), null);
             harmonyInstance.Patch(AccessTools.Method(typeof(TransportPodsArrivalAction_AttackSettlement), "Arrived", new Type[]
                 {
                                 typeof(List<ActiveDropPodInfo>),
@@ -107,15 +108,16 @@ namespace RimWar.Harmony
                 {
                     typeof(IncidentParms)
                 }, null), new HarmonyMethod(patchType, "TryResolveParms_Points_Prefix", null), null, null);
-            harmonyInstance.Patch(AccessTools.Method(typeof(Faction), "TryAffectGoodwillWith", new Type[]
-                {
-                    typeof(Faction),
-                    typeof(int),
-                    typeof(bool),
-                    typeof(bool),
-                    typeof(string),
-                    typeof(GlobalTargetInfo?)
-                }, null), new HarmonyMethod(patchType, "TryAffectGoodwillWith_Reduction_Prefix", null), null, null);
+            //Unused
+            //harmonyInstance.Patch(AccessTools.Method(typeof(Faction), "TryAffectGoodwillWith", new Type[]
+            //    {
+            //        typeof(Faction),
+            //        typeof(int),
+            //        typeof(bool),
+            //        typeof(bool),
+            //        typeof(HistoryEventDef),
+            //        typeof(GlobalTargetInfo?)
+            //    }, null), new HarmonyMethod(patchType, "TryAffectGoodwillWith_Reduction_Prefix", null), null, null);
             harmonyInstance.Patch(AccessTools.Method(typeof(IncidentQueue), "Add", new Type[]
                 {
                     typeof(IncidentDef),
@@ -178,20 +180,21 @@ namespace RimWar.Harmony
             }
         }
 
-        [HarmonyPatch(typeof(RimWorld.Planet.SettlementUtility), "AffectRelationsOnAttacked_NewTmp", null)]
-        public class Prevent_AffectRelationsOnAttacked_Patch
-        {
-            public static bool Prefix(MapParent mapParent)
-            {
-                RimWarSettlementComp rwsc = mapParent.GetComponent<RimWarSettlementComp>();
-                if (rwsc != null && rwsc.preventRelationChange)
-                {
-                    rwsc.preventRelationChange = false;
-                    return false;
-                }
-                return true;
-            }
-        }
+        //1.3 unclear why this is needed
+        //[HarmonyPatch(typeof(RimWorld.Planet.SettlementUtility), "AffectRelationsOnAttacked", null)]
+        //public class Prevent_AffectRelationsOnAttacked_Patch
+        //{
+        //    public static bool Prefix(MapParent mapParent)
+        //    {
+        //        RimWarSettlementComp rwsc = mapParent.GetComponent<RimWarSettlementComp>();
+        //        if (rwsc != null && rwsc.preventRelationChange)
+        //        {
+        //            rwsc.preventRelationChange = false;
+        //            return false;
+        //        }
+        //        return true;
+        //    }
+        //}
 
         public static void Settlement_ShuttleReinforce_Postfix(Settlement __instance, IEnumerable<IThingHolder> pods, Action<int, TransportPodsArrivalAction> launchAction, ref IEnumerable<FloatMenuOption> __result)
         {
@@ -532,7 +535,7 @@ namespace RimWar.Harmony
             int goodwillChange = -25;
             bool canSendMessage = false;
             string reason = "GoodwillChangedReason_RequestedMilitaryAid".Translate();
-            faction.TryAffectGoodwillWith(ofPlayer, goodwillChange, canSendMessage, true, reason);
+            faction.TryAffectGoodwillWith(ofPlayer, goodwillChange, canSendMessage, true, HistoryEventDefOf.RequestedMilitaryAid);
             IncidentParms incidentParms = new IncidentParms();
             incidentParms.target = map;
             incidentParms.faction = faction;
@@ -573,7 +576,7 @@ namespace RimWar.Harmony
             return true;
         }
 
-        public static bool TryAffectGoodwillWith_Reduction_Prefix(Faction __instance, Faction other, ref int goodwillChange, bool canSendMessage = true, bool canSendHostilityLetter = true, string reason = null, GlobalTargetInfo? lookTarget = default(GlobalTargetInfo?))
+        public static bool TryAffectGoodwillWith_Reduction_Prefix(Faction __instance, Faction other, ref int goodwillChange, bool canSendMessage = true, bool canSendHostilityLetter = true, HistoryEventDef reason = null, GlobalTargetInfo? lookTarget = default(GlobalTargetInfo?))
         {
             //if((__instance.IsPlayer || other.IsPlayer))
             //{

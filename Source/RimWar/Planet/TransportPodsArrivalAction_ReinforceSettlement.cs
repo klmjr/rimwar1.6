@@ -72,15 +72,15 @@ namespace RimWar.Planet
 
         public static IEnumerable<FloatMenuOption> GetFloatMenuOptions(CompLaunchable representative, IEnumerable<IThingHolder> pods, Settlement settlement)
         {
-            if (representative.parent.TryGetComp<CompShuttle>() != null)
-            {
-                foreach (FloatMenuOption floatMenuOption in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanReinforce(pods, settlement), () => new TransportPodsArrivalAction_ReinforceSettlement(settlement, PawnsArrivalModeDefOf.Shuttle), "RW_ReinforceShuttle".Translate(settlement.Label), representative, settlement.Tile))
-                {
-                    yield return floatMenuOption;
-                }
-            }
-            else
-            {
+            //if (representative.parent.TryGetComp<CompShuttle>() != null)
+            //{
+            //    foreach (FloatMenuOption floatMenuOption in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanReinforce(pods, settlement), () => new TransportPodsArrivalAction_ReinforceSettlement(settlement, PawnsArrivalModeDefOf.Shuttle), "RW_ReinforceShuttle".Translate(settlement.Label), representative, settlement.Tile))
+            //    {
+            //        yield return floatMenuOption;
+            //    }
+            //}
+            //else
+            //{
                 foreach (FloatMenuOption floatMenuOption2 in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanReinforce(pods, settlement), () => new TransportPodsArrivalAction_ReinforceSettlement(settlement, PawnsArrivalModeDefOf.EdgeDrop), "RW_ReinforceAndDropAtEdge".Translate(settlement.Label), representative, settlement.Tile))
                 {
                     yield return floatMenuOption2;
@@ -89,7 +89,7 @@ namespace RimWar.Planet
                 {
                     yield return floatMenuOption3;
                 }
-            }
+            //}
         }
 
         public override void Arrived(List<ActiveDropPodInfo> pods, int tile)

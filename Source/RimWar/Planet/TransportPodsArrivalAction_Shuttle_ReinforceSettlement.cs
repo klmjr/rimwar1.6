@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace RimWar.Planet
 {
-    public class TransportPodsArrivalAction_Shuttle_ReinforceSettlement : TransportPodsArrivalAction_Shuttle
+    public class TransportPodsArrivalAction_Shuttle_ReinforceSettlement : TransportPodsArrivalAction_TransportShip
     {
         private Settlement settlement;
 
@@ -29,31 +29,52 @@ namespace RimWar.Planet
 
         public override void Arrived(List<ActiveDropPodInfo> pods, int tile)
         {
-            Thing lookTarget = TransportPodsArrivalActionUtility.GetLookTarget(pods);
-            bool num = !this.settlement.HasMap;
-            Map orGenerateMap = GetOrGenerateMapUtility.GetOrGenerateMap(tile, null);
+            //Thing lookTarget = TransportPodsArrivalActionUtility.GetLookTarget(pods);
+            if (transportShip == null || transportShip.Disposed)
+            {
+                Log.Error("Trying to arrive in a null or disposed transport ship.");
+                return;
+            }
+            bool flag_hasMap = !this.settlement.HasMap;
+            Map orGenerateMap = GetOrGenerateMapUtility.GetOrGenerateMap(this.settlement.Tile, null);
+            if (!cell.IsValid)
+            {
+                cell = DropCellFinder.GetBestShuttleLandingSpot(orGenerateMap, Faction.OfPlayer);
+            }
+            LookTargets lookTargets = new LookTargets(cell, orGenerateMap);
+            if (!cell.IsValid)
+            {
+                Log.Error("Could not find cell for transport ship arrival.");
+                return;
+            }
             Settlement settlement;
             if ((settlement = (orGenerateMap.Parent as Settlement)) != null && settlement.Faction != Faction.OfPlayer)
             {
                 TaggedString letterLabel = "LetterLabelCaravanEnteredEnemyBase".Translate();
                 TaggedString letterText = "LetterTransportPodsLandedInEnemyBase".Translate(settlement.Label).CapitalizeFirst();
-                //SettlementUtility.AffectRelationsOnAttacked_NewTmp(ssettlement, ref letterText);
-                if (num)
+                //SettlementUtility.AffectRelationsOnAttacked_NewTmp(sbs, ref letterText);
+                if (flag_hasMap)
                 {
                     Find.TickManager.Notify_GeneratedPotentiallyHostileMap();
                     PawnRelationUtility.Notify_PawnsSeenByPlayer_Letter(orGenerateMap.mapPawns.AllPawns, ref letterLabel, ref letterText, "LetterRelatedPawnsInMapWherePlayerLanded".Translate(Faction.OfPlayer.def.pawnsPlural), informEvenIfSeenBefore: true);
                 }
-                Find.LetterStack.ReceiveLetter(letterLabel, letterText, LetterDefOf.NeutralEvent, lookTarget);
+                Find.LetterStack.ReceiveLetter(letterLabel, letterText, LetterDefOf.NeutralEvent, lookTargets);
             }
-            foreach (ActiveDropPodInfo pod in pods)
+            for (int i = 0; i < pods.Count; i++)
             {
-                pod.missionShuttleHome = missionShuttleHome;
-                pod.missionShuttleTarget = missionShuttleTarget;
-                pod.sendAwayIfQuestFinished = sendAwayIfQuestFinished;
-                pod.questTags = questTags;
+                transportShip.TransporterComp.innerContainer.TryAddRangeOrTransfer(pods[i].innerContainer, canMergeWithExistingStacks: true, destroyLeftover: true);
             }
-            PawnsArrivalModeDefOf.Shuttle.Worker.TravelingTransportPodsArrived(pods, orGenerateMap);
-            Messages.Message("MessageShuttleArrived".Translate(), lookTarget, MessageTypeDefOf.TaskCompletion);
+            transportShip.ArriveAt(cell, mapParent);
+            //foreach (ActiveDropPodInfo pod in pods)
+            //{
+
+            //    pod.missionShuttleHome = missionShuttleHome;
+            //    pod.missionShuttleTarget = missionShuttleTarget;
+            //    pod.sendAwayIfQuestFinished = sendAwayIfQuestFinished;
+            //    pod.questTags = questTags;
+            //}
+            //PawnsArrivalModeDefOf.Shuttle.Worker.TravelingTransportPodsArrived(pods, orGenerateMap);
+            Messages.Message("MessageShuttleArrived".Translate(), lookTargets, MessageTypeDefOf.TaskCompletion);
             RimWarSettlementComp rwsc = settlement.GetComponent<RimWarSettlementComp>();
             if (rwsc != null && rwsc.UnderAttack)
             {

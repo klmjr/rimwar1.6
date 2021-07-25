@@ -151,9 +151,12 @@ namespace RimWar.Utility
                 LongEventHandler.QueueLongEvent(delegate
                 {
                     Pawn t2 = caravan.PawnsListForReading[0];
-                    faction.TrySetRelationKind(Faction.OfPlayer, FactionRelationKind.Hostile, true, "GoodwillChangedReason_AttackedCaravan".Translate(), t2);
+                    
+                    //faction.TrySetRelationKind(Faction.OfPlayer, FactionRelationKind.Hostile, true, "GoodwillChangedReason_AttackedCaravan".Translate(), t2);
                     Map map = CaravanIncidentUtility.GetOrGenerateMapForIncident(caravan, new IntVec3(100, 1, 100), WorldObjectDefOf.AttackedNonPlayerCaravan);
                     map.Parent.SetFaction(faction);
+                    TaggedString letterText = "RW_CaravanAttackedUnit".Translate(caravan.Label, wo.Label, wo.Faction.Name);
+                    RimWorld.Planet.SettlementUtility.AffectRelationsOnAttacked(map.Parent, ref letterText);
                     MultipleCaravansCellFinder.FindStartingCellsFor2Groups(map, out IntVec3 playerSpot, out IntVec3 enemySpot);
                     CaravanEnterMapUtility.Enter(caravan, map, (Pawn p) => CellFinder.RandomClosewalkCellNear(playerSpot, map, 12), CaravanDropInventoryMode.DoNotDrop, draftColonists: true);
                     List<Pawn> list2 = metCaravan.PawnsListForReading.ToList();

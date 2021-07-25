@@ -454,7 +454,7 @@ namespace RimWar.Planet
                     if (rwsc != null && allSettlements[i].Faction == this.parent.Faction && Find.WorldGrid.ApproxDistanceInTiles(allSettlements[i].Tile, this.parent.Tile) <= range)
                     {
                         //Log.Message(OtherSettlementsInRange[i].Label);
-                        tmpSettlements.Add(OtherSettlementsInRange[i]);
+                        tmpSettlements.Add(allSettlements[i]);
                     }
                 }
             }
@@ -653,7 +653,7 @@ namespace RimWar.Planet
             Find.WorldSelector.ClearSelection();
             int tile = this.parent.Tile;
             int maxRange = SettlementScanRange;
-            Find.WorldTargeter.BeginTargeting_NewTemp(new Func<GlobalTargetInfo, bool>(ChooseWorldTarget), true, sendTypeDef.ExpandingIconTexture, false, delegate
+            Find.WorldTargeter.BeginTargeting(new Func<GlobalTargetInfo, bool>(ChooseWorldTarget), true, sendTypeDef.ExpandingIconTexture, false, delegate
             {
                 GenDraw.DrawWorldRadiusRing(tile, maxRange);  //center, max launch distance
             }, (GlobalTargetInfo target) => TargetingLabelGetter(target, tile, maxRange));
@@ -695,7 +695,7 @@ namespace RimWar.Planet
                         }
                         else
                         {
-                            this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                            this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                         }
                         WorldUtility.CreateWarObjectOfType(new Trader(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, s, WorldObjectDefOf.Settlement);
                         return true;
@@ -735,7 +735,7 @@ namespace RimWar.Planet
                     }
                     else
                     {
-                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                     }
                     WorldUtility.CreateWarObjectOfType(new Scout(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
@@ -751,7 +751,7 @@ namespace RimWar.Planet
                     }
                     else
                     {
-                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                     }
                     WorldUtility.CreateWarObjectOfType(new Warband(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
@@ -767,7 +767,7 @@ namespace RimWar.Planet
                     }
                     else
                     {
-                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, "Requested action");
+                        this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                     }
                     WorldUtility.CreateLaunchedWarband(pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
@@ -784,13 +784,13 @@ namespace RimWar.Planet
             }
             if (Find.WorldGrid.TraversalDistanceBetween(tile, target.Tile) > maxLaunchDistance)
             {
-                GUI.color = ColoredText.RedReadable;
+                GUI.color = ColorLibrary.RedReadable;
                 return "RW_SendCannotReach".Translate();
             }
             WorldObject wo = target.WorldObject;
             if (wo == null && sendTypeDef != RimWarDefOf.RW_Settler)
             {
-                GUI.color = ColoredText.RedReadable;
+                GUI.color = ColorLibrary.RedReadable;
                 return "RW_InvalidTarget".Translate();
             }
             if (sendTypeDef == RimWarDefOf.RW_Trader)
@@ -798,12 +798,12 @@ namespace RimWar.Planet
                 Settlement s = wo as Settlement;
                 if(s == null)
                 {
-                    GUI.color = ColoredText.RedReadable;
+                    GUI.color = ColorLibrary.RedReadable;
                     return "RW_DestinationSettlementOnly".Translate();
                 }
                 if(this.parent.Faction.HostileTo(s.Faction))
                 {
-                    GUI.color = ColoredText.RedReadable;
+                    GUI.color = ColorLibrary.RedReadable;
                     return "RW_DestinationHostile".Translate();
                 }
             }

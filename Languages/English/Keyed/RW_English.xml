@@ -194,6 +194,7 @@ Current standing: {0}</RW_DeclarePeaceInfo>
 <RW_LetterSettlementDefense>Defending Settlement</RW_LetterSettlementDefense>
 <RW_CaravanAmbush>{0} ambushed</RW_CaravanAmbush>
 <RW_CaravanAmbushedText>{0} was ambushed by {1} with {2} combat power.</RW_CaravanAmbushedText>
+<RW_CaravanAttackedUnit>{0} attacked a {2} unit from {1}.</RW_CaravanAttackedUnit>
 <RW_RaidedPlayer>{0} assaulted the player settlement {1} with a combat power of {2}.</RW_RaidedPlayer>
 <RW_ReinforcedSettlement>Nearby warriors from {0} are rallying to defend {1}.</RW_ReinforcedSettlement>
 <RW_LetterPlayerSettlementReinforcement>Assault on Player Colony</RW_LetterPlayerSettlementReinforcement>

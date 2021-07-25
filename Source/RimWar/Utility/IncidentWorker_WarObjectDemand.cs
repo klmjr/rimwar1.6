@@ -400,6 +400,9 @@ namespace RimWar.Utility
             LongEventHandler.QueueLongEvent(delegate
             {
                 Map map = CaravanIncidentUtility.SetupCaravanAttackMap(caravan, attackers, sendLetterIfRelatedPawns: true);
+                map.Parent.SetFaction(enemyFaction);
+                TaggedString letterText = "RW_CaravanAttackedUnit".Translate(caravan.Label, wo.Label, wo.Faction.Name).CapitalizeFirst();
+                RimWorld.Planet.SettlementUtility.AffectRelationsOnAttacked(map.Parent, ref letterText);
                 LordJob_AssaultColony lordJob_AssaultColony = new LordJob_AssaultColony(enemyFaction, canKidnap: true, canTimeoutOrFlee: false);
                 if (lordJob_AssaultColony != null)
                 {

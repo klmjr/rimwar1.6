@@ -88,8 +88,18 @@ namespace RimWar.Planet
                 }
                 if (transitionToSettlement)
                 {
-                    rwsc.AttackingUnits.AddRange(waros);
-                    rwsc.nextCombatTick = Find.TickManager.TicksGame + 2500;
+                    if (rwsc.parent.Faction == Faction.OfPlayer)
+                    {
+                        foreach (WarObject wo in waros)
+                        {
+                            DoRaidWithPoints(wo, rwsc.parent as Settlement, wo.rimwarData, PawnsArrivalModeDefOf.EdgeWalkIn);
+                        }
+                    }
+                    else
+                    { 
+                        rwsc.AttackingUnits.AddRange(waros);
+                        rwsc.nextCombatTick = Find.TickManager.TicksGame + 2500;
+                    }
                 }
                 else
                 {
@@ -967,7 +977,7 @@ namespace RimWar.Planet
                 parms.raidStrategy = result;
                 if (parms.raidStrategy == null)
                 {
-                    Log.Error("No raid stategy found, defaulting to ImmediateAttack. Faction=" + parms.faction.def.defName + ", points=" + parms.points + ", groupKind=" + groupKind + ", parms=" + parms);
+                    Log.Warning("No raid stategy found, defaulting to ImmediateAttack. Faction=" + parms.faction.def.defName + ", points=" + parms.points + ", groupKind=" + groupKind + ", parms=" + parms);
                     parms.raidStrategy = RaidStrategyDefOf.ImmediateAttack;
                 }                
             }
@@ -1101,17 +1111,73 @@ namespace RimWar.Planet
 
         public static BattleSite CreateNewBattleSite(int tile, List<WarObject> wos)
         {
-            BattleSite bs = (BattleSite)WorldObjectMaker.MakeWorldObject(RimWarDefOf.RW_BattleSite);
-            bs.Tile = tile;
-            //Log.Message("creating battle site");
-            //for(int i = 0; i < wos.Count; i++)
-            //{
-            //    Log.Message("unit " + wos[i].Label + " " + wos[i].RimWarPoints);
-            //}
-            bs.Units.AddRange(wos);
-            bs.nextCombatTick = Find.TickManager.TicksGame + 2500;
-            Find.WorldObjects.Add(bs);
-            return bs;
+            tile = GetValidBattleSiteTile(tile);
+            if (tile != -1)
+            {
+                BattleSite bs = (BattleSite)WorldObjectMaker.MakeWorldObject(RimWarDefOf.RW_BattleSite);
+                bs.Tile = tile;
+                //Log.Message("creating battle site");
+                //for(int i = 0; i < wos.Count; i++)
+                //{
+                //    Log.Message("unit " + wos[i].Label + " " + wos[i].RimWarPoints);
+                //}
+                bs.Units.AddRange(wos);
+                bs.nextCombatTick = Find.TickManager.TicksGame + 2500;
+                Find.WorldObjects.Add(bs);
+                return bs;
+            }
+            return null;
+        }
+
+        public static int GetValidBattleSiteTile(int tile)
+        {
+            List<int> validTiles = new List<int>();
+            validTiles.Clear();
+            List<int> tmpTiles = new List<int>();
+            tmpTiles.Clear();
+            tmpTiles.Add(tile);
+            List<int> adjacentTiles = new List<int>();
+            adjacentTiles.Clear();
+            Find.WorldGrid.GetTileNeighbors(tile, adjacentTiles);
+            tmpTiles.AddRange(adjacentTiles);
+            for (int i = 0; i < tmpTiles.Count; i++)
+            {
+                bool tileValid = true;
+                List<WorldObject> wos = WorldUtility.GetAllWorldObjectsAt(tmpTiles[i]);
+                if (wos != null && wos.Count > 0)
+                { 
+                    for (int j = 0; j < wos.Count; j++)
+                    {
+                        WorldObject wo = wos[j];
+                        if (wo is Settlement)
+                        {
+                            tileValid = false;
+                            break;
+                        }                        
+                    }
+                }
+                Tile t = Find.WorldGrid[tmpTiles[i]];
+                if (t.biome != null)
+                {
+                    if(!t.biome.canBuildBase)
+                    {
+                        tileValid = false;
+                    }
+                    if(Find.World.Impassable(tmpTiles[i]))
+                    {
+                        tileValid = false;
+                    }
+                }
+                else
+                {
+                    tileValid = false;
+                }
+                if (tileValid)
+                {
+                    return tmpTiles[i];
+                }
+            }
+            return -1;
         }
 
         public static void ResolveCombat_Settlement(RimWarSettlementComp defender, WarObject attacker)
