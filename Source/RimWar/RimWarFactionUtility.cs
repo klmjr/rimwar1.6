@@ -39,7 +39,7 @@ namespace RimWar
             Rect rect = new Rect(0f, 0f, position.width - 16f, scrollViewHeight);
             Widgets.BeginScrollView(outRect, ref scrollPosition, rect);
             float num = 0f;
-            foreach (Faction item in Find.FactionManager.AllFactionsInViewOrder)
+            foreach (Faction item in WorldUtility.GetRimWarFactions(false))// Find.FactionManager.AllFactionsInViewOrder)
             {
                 if ((!item.IsPlayer && !item.def.hidden))
                 {

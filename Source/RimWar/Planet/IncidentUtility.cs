@@ -1439,7 +1439,6 @@ namespace RimWar.Planet
                     defMod -= .1f;
                 }
             }
-            //Log.Message("attacker taking " + Mathf.RoundToInt(pointClamp * atkMod) + " damage; defender taking " + Mathf.RoundToInt(pointClamp * defMod));
             attacker.PointDamage += Mathf.RoundToInt(pointClamp * atkMod);
             defender.PointDamage += Mathf.RoundToInt(pointClamp * defMod);
         }

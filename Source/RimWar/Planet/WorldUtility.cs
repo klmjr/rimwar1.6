@@ -42,7 +42,7 @@ namespace RimWar.Planet
         {
             get
             {
-                if (Options.Settings.Instance.threadingEnabled)
+                if (false)//Options.Settings.Instance.threadingEnabled)
                 {
                     return _worldObjectsHolder.Where(obj => obj != null).ToList();
                 }
@@ -54,7 +54,7 @@ namespace RimWar.Planet
         }
         public static void CopyData()
         {
-            if (Options.Settings.Instance.threadingEnabled)
+            if (false)//Options.Settings.Instance.threadingEnabled)
             {
                 lock (locker)
                 {
@@ -94,6 +94,28 @@ namespace RimWar.Planet
                 return wcpt.RimWarData;
             }
             return null;
+        }
+
+        private static List<Faction> rimwarFactions = new List<Faction>();
+        public static List<Faction> GetRimWarFactions(bool forceRelearn = false)
+        {
+            if ((rimwarFactions == null || rimwarFactions.Count == 0) || forceRelearn)
+            {
+                rimwarFactions = new List<Faction>();
+                rimwarFactions.Clear();
+                foreach(Faction f in Find.FactionManager.AllFactionsInViewOrder)
+                {
+                    foreach(RimWarData rwd in GetRimWarData())
+                    {
+                        if(rwd.RimWarFaction == f)
+                        {
+                            rimwarFactions.Add(f);
+                            break;
+                        }
+                    }
+                }
+            }
+            return rimwarFactions;         
         }
 
         public static void CreateRimWarSettlement(RimWarData rwd, WorldObject wo)

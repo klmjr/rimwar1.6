@@ -179,7 +179,7 @@ namespace RimWar.Options
                     Log.Message("Rim War: adding trader pawngroupmaker to FactionDef " + fd.defName);
                     PawnGroupMaker pgmTrader = new PawnGroupMaker();
                     pgmTrader.kindDef = PawnGroupKindDefOf.Trader;
-                    pgmTrader.commonality = 1;
+                    pgmTrader.commonality = 1;                    
                     int ct = Rand.Range(2, 7);
                     for (int i = 0; i < ct; i++)
                     {

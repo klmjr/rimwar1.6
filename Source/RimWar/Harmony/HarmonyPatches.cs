@@ -81,6 +81,10 @@ namespace RimWar.Harmony
                     typeof(IEnumerable<IThingHolder>),
                     typeof(Action<int, TransportPodsArrivalAction>)
                 }, null), null, new HarmonyMethod(patchType, "Settlement_ShuttleReinforce_Postfix", null), null);
+            harmonyInstance.Patch(AccessTools.Method(typeof(ThingSetMaker), "Generate", new Type[]
+                {
+                    typeof(ThingSetMakerParams)
+                }, null), null, new HarmonyMethod(patchType, "ThingSetMaker_TraderCheck_Postfix", null), null);
             //harmonyInstance.Patch(AccessTools.Method(typeof(PlaySettings), "DoPlaySettingsGlobalControls", new Type[]
             //    {
             //        typeof(WidgetRow),
@@ -195,6 +199,17 @@ namespace RimWar.Harmony
         //        return true;
         //    }
         //}
+
+        [HarmonyPriority(2000)]
+        public static void ThingSetMaker_TraderCheck_Postfix(ThingSetMaker __instance, ref ThingSetMakerParams parms, ref List<Thing> __result)
+        {
+            //small patch to ignore this patch from more faction interaction since the map is generated in a special way and may not include MapComponent_GoodWillTrader from MFE
+            //This will break the silver adjustments for valid factions
+            if (ModsConfig.IsActive("mlie.morefactioninteraction"))
+            {
+                parms.traderDef = null;
+            }
+        }
 
         public static void Settlement_ShuttleReinforce_Postfix(Settlement __instance, IEnumerable<IThingHolder> pods, Action<int, TransportPodsArrivalAction> launchAction, ref IEnumerable<FloatMenuOption> __result)
         {
