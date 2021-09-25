@@ -271,7 +271,7 @@ namespace RimWar.Planet
                                             this.globalActions++;
                                         }
                                         bool requestedReinforcement = false;
-                                        if (rwsComp.ShouldRequestReinforcements)
+                                        if (rwsComp.ShouldRequestReinforcements && rwsComp.CanReinforce)
                                         {
                                             List<Settlement> reinforcementSettlements = rwsComp.NearbyFriendlySettlementsWithinRange(50);
                                             if (reinforcementSettlements != null && reinforcementSettlements.Count > 0)
@@ -283,12 +283,13 @@ namespace RimWar.Planet
                                                     {
                                                         //Log.Message("" + settlement.Label + " requested reinforcements from " + s.Label);
                                                         AttemptReinforcement(rwd, s, rwsc, settlement);
+                                                        rwsComp.lastReinforcementTick = Find.TickManager.TicksGame;
                                                         //requestedReinforcement = true;
                                                     }
                                                 }
                                             }                                            
                                         }
-                                        if (!requestedReinforcement)
+                                        if (true)//!requestedReinforcement)
                                         {
                                             if (newAction == RimWarAction.Caravan)
                                             {
@@ -739,7 +740,9 @@ namespace RimWar.Planet
                             }
                             if (rwdTown.PointDamage > 0)
                             {
-                                rwdTown.PointDamage = Mathf.RoundToInt(Mathf.Clamp(rwdTown.PointDamage - (Rand.Range(.012f, .015f) * rwdTown.RimWarPoints), 0, rwdTown.RimWarPoints));
+                                float healAdjustment = (Rand.Range(.005f, .01f) * rwdTown.RimWarPoints);
+                                rwdTown.PointDamage = Mathf.RoundToInt(Mathf.Clamp(rwdTown.PointDamage - healAdjustment, 0, rwdTown.RimWarPoints));
+                                rwdTown.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(rwdTown.RimWarPoints - healAdjustment, 0, rwdTown.RimWarPoints));
                             }
                             else
                             {

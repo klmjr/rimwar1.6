@@ -91,6 +91,7 @@ namespace RimWar
                 float num = Text.CalcHeight(text, width);
                 float num2 = Mathf.Max(176f, num);
                 Rect position = new Rect(10f, rowY + 10f, 15f, 15f);
+                Rect positionRival = new Rect(10f, rowY + 30f, 15f, 15f);
                 Rect rect2 = new Rect(0f, rowY, fillRect.width, num2);
                 if (Mouse.IsOver(rect2))
                 {
@@ -100,13 +101,17 @@ namespace RimWar
                 Text.Anchor = TextAnchor.UpperLeft;
                 //Widgets.DrawRectFast(position, faction.Color);
                 FactionUIUtility.DrawFactionIconWithTooltip(position, faction);
+                if(WorldUtility.Get_WCPT().victoryFaction == faction)
+                {
+                    DrawRivalIconWithTooltip(positionRival, faction);
+                }
                 string label = faction.Name.CapitalizeFirst() + "\n" + faction.def.LabelCap + "\n" + ((faction.leader == null) ? string.Empty : (faction.def.leaderTitle.CapitalizeFirst() + ": "
                     + faction.leader.Name.ToStringFull))
                     + "\n" + "RW_FactionBehavior".Translate(rwd == null ? RimWarBehavior.Undefined.ToString() : rwd.behavior.ToString())
                     + "\n" + "RW_FactionPower".Translate(rwd == null ? 0 : rwd.TotalFactionPoints)
                     + "\n" + "RW_SettlementCount".Translate((rwd != null && rwd.WorldSettlements != null && rwd.WorldSettlements.Count > 0) ? rwd.WorldSettlements.Count : 0)
-                    + "\n" + "RW_WarObjectCount".Translate((rwd != null && WorldUtility.GetWarObjectsInFaction(faction) != null) ? WorldUtility.GetWarObjectsInFaction(faction).Count : 0)
-                    + ((faction != WorldUtility.Get_WCPT().victoryFaction) ? string.Empty : "\n" + (string)"RW_RivalFaction".Translate());
+                    + "\n" + "RW_WarObjectCount".Translate((rwd != null && WorldUtility.GetWarObjectsInFaction(faction) != null) ? WorldUtility.GetWarObjectsInFaction(faction).Count : 0);
+                    //+ ((faction != WorldUtility.Get_WCPT().victoryFaction) ? string.Empty : "\n" + (string)"RW_RivalFaction".Translate());
                 if(Options.Settings.Instance.randomizeAttributes)
                 {
                     label += "\n" + "RW_AttributeDisplay".Translate(rwd.combatAttribute.ToString("P0"), rwd.movementAttribute.ToString("P0"), rwd.growthAttribute.ToString("P0"));
@@ -396,6 +401,18 @@ namespace RimWar
                         }
                     }
                 }
+            }
+        }
+
+        public static void DrawRivalIconWithTooltip(Rect r, Faction faction)
+        {
+            GUI.DrawTexture(r, RimWarMatPool.Material_Exclamation_Red);
+            GUI.color = Color.white;
+            if (Mouse.IsOver(r))
+            {
+                TipSignal tip = new TipSignal(() => faction.Name + "RW_FactionIsRival".Translate(), faction.loadID ^ 0x738AC054);
+                TooltipHandler.TipRegion(r, tip);
+                Widgets.DrawHighlight(r);
             }
         }
 

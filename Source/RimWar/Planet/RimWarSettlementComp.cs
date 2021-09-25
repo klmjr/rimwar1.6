@@ -25,6 +25,7 @@ namespace RimWar.Planet
         private List<WarObject> atkos;
         public bool preventRelationChange = false;
         public int bonusGrowthCount = 0;
+        public int lastReinforcementTick = 0;
 
         public override void PostExposeData()
         {
@@ -36,11 +37,14 @@ namespace RimWar.Planet
             Scribe_Values.Look<int>(ref this.nextEventTick, "nextEventTick", 0, false);
             Scribe_Values.Look<int>(ref this.nextCombatTick, "nextCombatTick", 0, false);
             Scribe_Values.Look<int>(ref this.nextSettlementScan, "nextSettlementScan", 0, false);
+            Scribe_Values.Look<int>(ref this.lastReinforcementTick, "lastReinforcementTick", 0, false);
             Scribe_Collections.Look<RimWorld.Planet.Settlement>(ref this.settlementsInRange, "settlementsInRange", LookMode.Reference, new object[0]);
             Scribe_Collections.Look<ConsolidatePoints>(ref this.consolidatePoints, "consolidatePoints", LookMode.Deep, new object[0]);
             Scribe_Collections.Look<WarObject>(ref this.atkos, "atkos", LookMode.Deep, new object[0]);
             Scribe_Values.Look<bool>(ref this.isCapitol, "isCapitol", false);
         }
+
+        public bool CanReinforce => lastReinforcementTick + 60000 <= Find.TickManager.TicksGame;
 
         public List<WarObject> AttackingUnits
         {
@@ -604,6 +608,18 @@ namespace RimWar.Planet
                     StartChoosingRequestDestination();
                 };
                 yield return (Gizmo)command_LaunchWarband;
+            }
+            if (Prefs.DevMode && WorldUtility.Get_WCPT().victoryFaction != this.parent.Faction && this.parent.Faction != Faction.OfPlayer)
+            {
+                Command_Action command_DesignateRival = new Command_Action();
+                command_DesignateRival.defaultLabel = "RW_AssignRival".Translate();
+                command_DesignateRival.defaultDesc = "RW_AssignRivalDesc".Translate();
+                command_DesignateRival.icon = RimWarMatPool.Material_Exclamation_Red;
+                command_DesignateRival.action = delegate
+                {
+                    WorldUtility.Get_WCPT().victoryFaction = this.parent.Faction;
+                };
+                yield return (Gizmo)command_DesignateRival;
             }
         }
 
