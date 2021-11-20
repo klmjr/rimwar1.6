@@ -70,20 +70,23 @@ namespace RimWar
                 bool canDeclareAlliance = faction.PlayerRelationKind == FactionRelationKind.Ally && !rwd.AllianceFactions.Contains(Faction.OfPlayer) && playerSilver > costToAlly;
                 foreach (Faction item in Find.FactionManager.AllFactionsInViewOrder)
                 {
-                    if (item != faction && ((!item.IsPlayer && !item.def.hidden)) && faction.HostileTo(item))
+                    if (item != null)
                     {
-                        stringBuilder.Append("HostileTo".Translate(item.Name));
-                        stringBuilder.AppendLine();
-                    }
-                    else if (item != faction && ((!item.IsPlayer && !item.def.hidden)) && faction.RelationKindWith(item) == FactionRelationKind.Ally)
-                    {
-                        stringBuilder.Append("RW_AllyTo".Translate(item.Name));
-                        stringBuilder.AppendLine();
-                    }
-                    else if (item != faction && ((!item.IsPlayer && !item.def.hidden)) && faction.RelationKindWith(item) == FactionRelationKind.Neutral)
-                    {
-                        stringBuilder.Append("RW_NeutralTo".Translate(item.Name));
-                        stringBuilder.AppendLine();
+                        if (item != faction && ((!item.IsPlayer && !item.def.hidden)) && faction.HostileTo(item))
+                        {
+                            stringBuilder.Append("HostileTo".Translate(item.Name));
+                            stringBuilder.AppendLine();
+                        }
+                        else if (item != faction && ((!item.IsPlayer && !item.def.hidden)) && faction.RelationKindWith(item) == FactionRelationKind.Ally)
+                        {
+                            stringBuilder.Append("RW_AllyTo".Translate(item.Name));
+                            stringBuilder.AppendLine();
+                        }
+                        else if (item != faction && ((!item.IsPlayer && !item.def.hidden)) && faction.RelationKindWith(item) == FactionRelationKind.Neutral)
+                        {
+                            stringBuilder.Append("RW_NeutralTo".Translate(item.Name));
+                            stringBuilder.AppendLine();
+                        }
                     }
                 }
                 string text = stringBuilder.ToString();
