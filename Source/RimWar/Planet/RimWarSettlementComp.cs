@@ -188,20 +188,11 @@ namespace RimWar.Planet
                             return 0;
                         }
                     }
-                    //if (this.RWD.behavior == RimWarBehavior.Vassal)
-                    //{
-                        //this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, ModCheck.Empire.FactionFC_SettlementLevel(this.parent.Tile));
-                        //FactionFC component = Find.World.GetComponent<FactionFC>();
-                        //if (component != null)
-                        //{
-                        //    SettlementFC sfc = component.returnSettlementByLocation(this.parent.Tile, Find.World.info.name);
-                        //    if (sfc != null)
-                        //    {
-                        //        this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, (sfc.settlementLevel * 500));
-                        //    }
-                        //}
-                    //}
-                    if(this.RWD.behavior == RimWarBehavior.Excluded)
+                    if (this.RWD.behavior == RimWarBehavior.Vassal || ModCheck.Empire.EmpireFaction_ColonyCheck(parent.Tile))
+                    {
+                        this.rimwarPointsInt = Mathf.Clamp(this.rimwarPointsInt, 100, 10000);
+                    }
+                    if (this.RWD.behavior == RimWarBehavior.Excluded)
                     {
                         return 0;
                     }

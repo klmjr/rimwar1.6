@@ -11,6 +11,19 @@ namespace RimWar.ModCheck
 {
     public class Empire
     {
+
+        public static bool EmpireFaction_ColonyCheck(int tile)
+        {
+            foreach(RimWorld.Planet.WorldObject wo in Find.WorldObjects.AllWorldObjects)
+            {
+                if(wo.def.defName == "Colony" && wo.Tile == tile)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         //public static bool FactionFC_ComponentCheck(int tile)
         //{
         //    FactionFC component = Find.World.GetComponent<FactionFC>();

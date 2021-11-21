@@ -51,7 +51,7 @@ namespace RimWar.Harmony
                     typeof(Caravan),
                     typeof(RimWorld.Planet.Settlement)
                 }, null), null, new HarmonyMethod(patchType, "AttackNow_SettlementReinforcement_Postfix", null), null);
-            harmonyInstance.Patch(AccessTools.Method(typeof(RimWorld.Planet.Settlement), "GetInspectString", new Type[]
+            harmonyInstance.Patch(AccessTools.Method(typeof(MapParent), "GetInspectString", new Type[]
                 {
                 }, null), null, new HarmonyMethod(patchType, "Settlement_InspectString_WithPoints_Postfix", null), null);
             harmonyInstance.Patch(AccessTools.Method(typeof(Caravan_PathFollower), "StartPath", new Type[]
@@ -709,7 +709,7 @@ namespace RimWar.Harmony
         //    }
         //}
 
-        private static void Settlement_InspectString_WithPoints_Postfix(RimWorld.Planet.Settlement __instance, ref string __result)
+        private static void Settlement_InspectString_WithPoints_Postfix(MapParent __instance, ref string __result)
         {
             if (__instance != null && !__instance.Faction.def.hidden)
             {

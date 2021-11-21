@@ -782,5 +782,274 @@ namespace RimWar.Utility
             }
             return totalPoints;            
         }
+
+        //-- reset rimwar -- //
+
+        [DebugAction("Rim War - Debug", "Reset Factions", actionType = DebugActionType.ToolWorld, allowedGameStates = AllowedGameStates.PlayingOnWorld)]
+        private static void DebugResetRimWarFactions()
+        {
+            ResetFactions(true, true);
+        }
+
+        public static void ResetRWD()
+        {
+
+        }
+
+        public static void ResetFactions(bool clearExisting = true, bool displayDebugMessages = true)
+        {
+            List<RimWarData> rwdList = new List<RimWarData>();
+            rwdList.Clear();
+            foreach(RimWarData rwd in WorldUtility.Get_WCPT().RimWarData)
+            {
+                rwdList.Add(rwd);
+            }
+            if (displayDebugMessages) Log.Message("Found " + Find.World.factionManager.AllFactionsVisible.ToList().Count + " visible factions and " + rwdList.Count + " existing factions.");
+            if (clearExisting)
+            {
+                if (displayDebugMessages) Log.Message("Clearing factions...");
+                rwdList.Clear();
+            }
+            
+            List<Faction> factionList = Find.FactionManager.AllFactions.ToList();
+            List<Faction> rimwarFactions = new List<Faction>();
+            rimwarFactions.Clear();
+            if (rwdList != null && rwdList.Count > 0)
+            {
+                for (int i = 0; i < rwdList.Count; i++)
+                {
+                    rimwarFactions.Add(rwdList[i].RimWarFaction);
+                }
+            }
+
+            List<Faction> allFactionsVisible = Find.World.factionManager.AllFactionsVisible.ToList();
+            if (allFactionsVisible != null && allFactionsVisible.Count > 0)
+            {
+                for (int i = 0; i < allFactionsVisible.Count; i++)
+                {
+                    bool duplicate = false;
+                    for (int k = 0; k < rimwarFactions.Count; k++)
+                    {
+                        if (allFactionsVisible[i].randomKey == rimwarFactions[k].randomKey)
+                        {
+                            duplicate = true;
+                        }
+                    }
+                    if (!duplicate)
+                    {
+                        if (displayDebugMessages) Log.Message("Adding new faction " + allFactionsVisible[i].Name);
+                        RimWarData rwd = AddRimWarFaction(allFactionsVisible[i], rwdList);
+                        if(rwd != null)
+                        {
+                            rwdList.Add(rwd);
+                        }
+                    }
+                }
+            }
+            WorldUtility.Get_WCPT().RimWarData = rwdList;
+            WorldUtility.GetRimWarFactions(true);
+        }
+
+        public static RimWarData AddRimWarFaction(Faction faction, List<RimWarData> rwdList)
+        {
+            if (!CheckForRimWarFaction(faction, rwdList))
+            {
+                //Log.Message("adding rimwar faction " + faction.Name);
+                RimWarData newRimWarFaction = new RimWarData(faction);
+                if (faction != null)
+                {
+                    GenerateFactionBehavior(newRimWarFaction);
+                    AssignFactionSettlements(newRimWarFaction);
+                }
+                Settlement s = newRimWarFaction.GetCapitol;
+                return newRimWarFaction;                
+            }
+            return null;
+        }
+
+        public static bool CheckForRimWarFaction(Faction faction, List<RimWarData> rwdList)
+        {
+            if (rwdList != null)
+            {
+                for (int i = 0; i < rwdList.Count; i++)
+                {
+                    //Log.Message("checking faction " + faction + " against rwd faction: " + this.RimWarData[i].RimWarFaction);
+                    if (rwdList[i].RandomKey == faction.randomKey)
+                    {
+                        return true;
+                    }
+                    else if (rwdList[i].RimWarFaction.HasName && rwdList[i].RimWarFactionKey == (faction.Name + faction.randomKey).ToString())
+                    {
+                        //Log.Message("faction names same, factiond different");
+                        rwdList[i].RimWarFaction = faction;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static void GenerateFactionBehavior(RimWarData rimwarObject)
+        {
+            Options.SettingsRef settingsRef = new Options.SettingsRef();
+
+            bool factionFound = false;
+            List<RimWarDef> rwd = DefDatabase<RimWarDef>.AllDefsListForReading;
+            //IEnumerable<RimWarDef> enumerable = from def in DefDatabase<RimWarDef>.AllDefs
+            //                                    select def;
+            //Log.Message("enumerable count is " + enumerable.Count());
+            //Log.Message("searching for match to " + rimwarObject.RimWarFaction.def.ToString());
+            if (rwd != null && rwd.Count > 0)
+            {
+                for (int i = 0; i < rwd.Count; i++)
+                {
+                    //Log.Message("current " + rwd[i].defName);
+                    //Log.Message("with count " + rwd[i].defDatas.Count);
+                    for (int j = 0; j < rwd[i].defDatas.Count; j++)
+                    {
+                        RimWarDefData defData = rwd[i].defDatas[j];
+                        //Log.Message("checking faction " + defData.factionDefname);                        
+                        if (defData.factionDefname.ToString() == rimwarObject.RimWarFaction.def.ToString())
+                        {
+                            if (!settingsRef.randomizeFactionBehavior || defData.forceBehavior)
+                            {
+                                factionFound = true;
+                                //Log.Message("found faction match in rimwardef for " + defData.factionDefname.ToString());
+                                rimwarObject.movesAtNight = defData.movesAtNight;
+                                rimwarObject.behavior = defData.behavior;
+                                rimwarObject.createsSettlements = defData.createsSettlements;
+                                rimwarObject.hatesPlayer = defData.hatesPlayer;
+                                if (settingsRef.randomizeAttributes)
+                                {
+                                    rimwarObject.movementAttribute = defData.movementBonus;
+                                    rimwarObject.growthAttribute = defData.growthBonus;
+                                    rimwarObject.combatAttribute = defData.combatBonus;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!factionFound)
+                {
+                    RandomizeFactionBehavior(rimwarObject);
+                }
+            }
+            else
+            {
+                RandomizeFactionBehavior(rimwarObject);
+            }
+            //Log.Message("generating faction behavior for " + rimwarObject.RimWarFaction);
+            WorldUtility.CalculateFactionBehaviorWeights(rimwarObject);
+
+        }
+
+        public static void RandomizeFactionBehavior(RimWarData rimwarObject)
+        {
+            //Log.Message("randomizing faction behavior for " + rimwarObject.RimWarFaction.Name);
+            if (rimwarObject.RimWarFaction.def.isPlayer)
+            {
+                rimwarObject.behavior = RimWarBehavior.Player;
+                rimwarObject.createsSettlements = false;
+                rimwarObject.hatesPlayer = false;
+                rimwarObject.movesAtNight = false;
+            }
+            else if (WorldUtility.IsVassalFaction(rimwarObject.RimWarFaction))
+            {
+                rimwarObject.behavior = RimWarBehavior.Vassal;
+                rimwarObject.createsSettlements = false;
+                rimwarObject.hatesPlayer = false;
+                rimwarObject.movesAtNight = false;
+                if (Options.Settings.Instance.randomizeAttributes)
+                {
+                    rimwarObject.combatAttribute = Rand.Range(.75f, 1.25f);
+                    rimwarObject.growthAttribute = Rand.Range(.75f, 1.25f);
+                    rimwarObject.movementAttribute = Rand.Range(.75f, 1.25f);
+                }
+            }
+            else
+            {
+                rimwarObject.behavior = WorldUtility.GetRandomBehavior;
+                rimwarObject.createsSettlements = true;
+                rimwarObject.hatesPlayer = rimwarObject.RimWarFaction.def.permanentEnemy;
+                if (Options.Settings.Instance.randomizeAttributes)
+                {
+                    rimwarObject.combatAttribute = Rand.Range(.75f, 1.25f);
+                    rimwarObject.growthAttribute = Rand.Range(.75f, 1.25f);
+                    rimwarObject.movementAttribute = Rand.Range(.75f, 1.25f);
+                }
+            }
+        }
+
+        public static void AssignFactionSettlements(RimWarData rimwarObject)
+        {
+            //Log.Message("assigning settlements to " + rimwarObject.RimWarFaction.Name);
+            List<WorldObject> wos = Find.WorldObjects.AllWorldObjects.ToList();
+            if (wos != null && wos.Count > 0)
+            {
+                for (int i = 0; i < wos.Count; i++)
+                {
+                    //Log.Message("faction for " + worldObjects[i] + " is " + rimwarObject);
+                    if (wos[i].Faction != null && rimwarObject != null && rimwarObject.RimWarFaction != null && wos[i].Faction.randomKey == rimwarObject.RimWarFaction.randomKey)
+                    {
+                        WorldUtility.CreateRimWarSettlement(rimwarObject, wos[i]);
+                    }
+                }
+            }
+        }
+
+        public static void UpdateFactionSettlements(RimWarData rwd)
+        {
+            List<WorldObject> worldObjects = Find.WorldObjects.AllWorldObjects.ToList();
+
+            if (worldObjects != null && worldObjects.Count > 0 && rwd != null && rwd.RimWarFaction != null)
+            {
+                //look for settlements not assigned a RimWar Settlement
+                for (int i = 0; i < worldObjects.Count; i++)
+                {
+                    RimWorld.Planet.Settlement wos = worldObjects[i] as RimWorld.Planet.Settlement;
+                    if (WorldUtility.IsValidSettlement(wos) && wos.Faction.randomKey == rwd.RimWarFaction.randomKey)
+                    {
+                        bool hasSettlement = false;
+                        if (rwd.WorldSettlements != null && rwd.WorldSettlements.Count > 0)
+                        {
+                            for (int j = 0; j < rwd.WorldSettlements.Count; j++)
+                            {
+                                RimWorld.Planet.Settlement rwdTown = rwd.WorldSettlements[j];
+                                if (rwdTown.Tile == wos.Tile)
+                                {
+                                    hasSettlement = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!hasSettlement)
+                        {
+                            WorldUtility.CreateRimWarSettlement(rwd, wos);
+                        }
+                    }
+                }
+                //look for settlements assigned without corresponding world objects
+                for (int i = 0; i < rwd.WorldSettlements.Count; i++)
+                {
+                    RimWorld.Planet.Settlement rwdTown = rwd.WorldSettlements[i];
+                    bool hasWorldObject = false;
+                    for (int j = 0; j < worldObjects.Count; j++)
+                    {
+                        RimWorld.Planet.Settlement wos = worldObjects[j] as RimWorld.Planet.Settlement;
+                        if (wos != null && wos.Tile == rwdTown.Tile && wos.Faction.randomKey == rwdTown.Faction.randomKey)
+                        {
+                            hasWorldObject = true;
+                            break;
+                        }
+                    }
+                    if (!hasWorldObject)
+                    {
+                        rwd.WorldSettlements.Remove(rwdTown);
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

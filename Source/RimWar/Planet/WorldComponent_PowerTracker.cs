@@ -26,6 +26,7 @@ namespace RimWar.Planet
 
         //Do Once per load
         private bool factionsLoaded = false;
+        private int factionCount = 0;
         private int nextEvaluationTick = 20;
         private int targetRangeDivider = 100;
         private int totalTowns = 10;
@@ -152,6 +153,14 @@ namespace RimWar.Planet
                 }
                 return this.rimwarData;
             }
+            set
+            {
+                this.rimwarData.Clear();
+                foreach(RimWarData rwd in value)
+                {
+                    rimwarData.Add(rwd);
+                }
+            }
         }
 
         public List<RimWarData> Active_RWD
@@ -194,6 +203,7 @@ namespace RimWar.Planet
             }
             if (currentTick % 60 == 0)
             {
+                CheckForNewFactions();
                 AdjustCaravanTargets();
             }
             if(currentTick % (int)settingsRef.heatFrequency == 0)
@@ -449,6 +459,14 @@ namespace RimWar.Planet
             this.caravanTargetData.Add(ctd);
         }
 
+        public void CheckForNewFactions()
+        {
+            if(Find.World.factionManager.AllFactionsVisible.ToList().Count > this.RimWarData.Count)
+            {
+                Utility.RimWar_DebugToolsPlanet.ResetFactions(false, true);
+            }
+        }
+
         public void DoGlobalRWDAction()
         {
             RimWarData rwd = this.Active_RWD.RandomElement();
@@ -559,7 +577,7 @@ namespace RimWar.Planet
                         bool duplicate = false;
                         for(int k = 0; k < rimwarFactions.Count; k++)
                         {
-                            if(allFactionsVisible[i].randomKey == rimwarFactions[i].randomKey)
+                            if(allFactionsVisible[i].randomKey == rimwarFactions[k].randomKey)
                             {
                                 duplicate = true;
                             }
@@ -768,6 +786,20 @@ namespace RimWar.Planet
                             }
                         }
                     }
+                    for(int j =0; j < rwd.FactionObjects.Count; j++)
+                    {
+                        RimWarSettlementComp rwsc = rwd.FactionObjects[j].GetComponent<RimWarSettlementComp>();
+                        if(rwsc != null && rwsc.parent.def.defName == "FactionBaseGenerator") //Empire mod
+                        {
+                            int maxPts = 10000;
+                            if (rwsc.RimWarPoints <= maxPts)
+                            {
+                                float pts = (Rand.Range(1f, 2f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwsc.parent.Tile].biome); //.1f - 3.5f
+                                pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute;
+                                rwsc.RimWarPoints += Mathf.RoundToInt(Mathf.Clamp(pts, 1f, 100f));
+                            }
+                        }
+                    }
                 }
 
                 if(rwd.behavior == RimWarBehavior.Vassal)
@@ -822,7 +854,6 @@ namespace RimWar.Planet
         {
             if (!CheckForRimWarFaction(faction))
             {
-                //Log.Message("adding rimwar faction " + faction.Name);
                 RimWarData newRimWarFaction = new RimWarData(faction);
                 if (faction != null)
                 {
@@ -921,7 +952,7 @@ namespace RimWar.Planet
                 rimwarObject.hatesPlayer = false;
                 rimwarObject.movesAtNight = false;
             }
-            else if(WorldUtility.IsVassalFaction(rimwarObject.RimWarFaction))
+            else if (WorldUtility.IsVassalFaction(rimwarObject.RimWarFaction))
             {
                 rimwarObject.behavior = RimWarBehavior.Vassal;
                 rimwarObject.createsSettlements = false;

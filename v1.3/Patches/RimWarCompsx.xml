@@ -56,7 +56,22 @@
 	 </operations>
   </Operation>	
   
-<!--   	<Operation Class="PatchOperationSequence">
+	<Operation Class="PatchOperationSequence">
+	  <success>Always</success>
+		<operations>
+			<li Class="PatchOperationTest">
+			  <xpath>*/WorldObjectDef[worldObjectClass = "FactionColonies.WorldSettlementFC"]/comps</xpath>
+			</li>
+			<li Class="PatchOperationAdd">
+			  <xpath>*/WorldObjectDef[worldObjectClass = "FactionColonies.WorldSettlementFC"]/comps</xpath>
+			  <value>
+				 <li Class = "RimWar.Planet.WorldObjectCompProperties_RimWarSettlement"></li>         					
+			  </value>
+			</li>
+		</operations>
+	</Operation> 
+  
+  	<Operation Class="PatchOperationSequence">
 	<success>Always</success>
 	<operations>
 		<li Class="PatchOperationTest">
@@ -74,20 +89,7 @@
 	 </operations>
   </Operation>	
   
-  	<Operation Class="PatchOperationSequence">
-	  <success>Always</success>
-		<operations>
-			<li Class="PatchOperationTest">
-			  <xpath>*/WorldObjectDef[worldObjectClass = "FactionColonies.WorldSettlementFC"]/comps</xpath>
-			</li>
-			<li Class="PatchOperationAdd">
-			  <xpath>*/WorldObjectDef[worldObjectClass = "FactionColonies.WorldSettlementFC"]/comps</xpath>
-			  <value>
-				 <li Class = "RimWar.Planet.WorldObjectCompProperties_RimWarSettlement"></li>         					
-			  </value>
-			</li>
-		</operations>
-	</Operation> --> 
+
   
 	
 </Patch>

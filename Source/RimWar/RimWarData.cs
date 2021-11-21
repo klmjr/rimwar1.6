@@ -345,7 +345,6 @@ namespace RimWar
             }
         }
 
-
         private int ptsFromUnitsCache = 0;
         private int ptsFromUnitsTickHash = 0;
         public int PointsFromWarObjects
@@ -362,6 +361,29 @@ namespace RimWar
                     }
                 }
                 return ptsFromUnitsCache;
+            }
+        }
+
+        private int ptsFromRWWOCache = 0;
+        private int ptsFromRWWOTickHash = 0;
+        public int PointsFromWorldObjects
+        {
+            get
+            {
+                if (ptsFromRWWOTickHash < Find.TickManager.TicksGame)
+                {
+                    ptsFromRWWOTickHash = Find.TickManager.TicksGame + Rand.Range(600, 610);
+                    ptsFromRWWOCache = 0;
+                    foreach (WorldObject wo in FactionObjects)
+                    {
+                        RimWarSettlementComp rwsc = wo.GetComponent<RimWarSettlementComp>();
+                        if (rwsc != null)
+                        {
+                            ptsFromRWWOCache += rwsc.RimWarPoints;
+                        }
+                    }
+                }
+                return ptsFromRWWOCache;
             }
         }
 
@@ -547,7 +569,7 @@ namespace RimWar
         {
             get
             {
-                return PointsFromSettlements + PointsFromWarObjects;
+                return PointsFromSettlements + PointsFromWarObjects + PointsFromWorldObjects;
             }
         }
 
@@ -557,6 +579,15 @@ namespace RimWar
             get
             {
                 return WorldUtility.GetWarObjectsInFaction(this.RimWarFaction);
+            }
+        }
+
+        private List<WorldObject> factionObjects;
+        public List<WorldObject> FactionObjects
+        {
+            get
+            {
+                return WorldUtility.GetWorldObjectsInFaction(this.RimWarFaction);
             }
         }
 

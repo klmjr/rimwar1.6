@@ -1524,6 +1524,40 @@ namespace RimWar.Planet
             return tmpWarObjects;
         }
 
+        public static List<WorldObject> GetWorldObjectsInFaction(Faction faction)
+        {
+            List<WorldObject> tmpWorldObjects = new List<WorldObject>();
+            tmpWorldObjects.Clear();
+            List<WorldObject> tmpObjects = null; // Find.WorldObjects.AllWorldObjects.ToList();
+            if (WorldObjectsHolder == null)
+                CopyData();
+            lock (locker)
+            {
+                tmpObjects = WorldObjectsHolder;
+            }
+            if (tmpObjects != null && tmpObjects.Count > 0)
+            {
+                for (int i = 0; i < tmpObjects.Count; i++)
+                {
+                    if (tmpObjects[i] is WorldObject && tmpObjects[i].Faction == faction && IsValidRWWO(tmpObjects[i]))
+                    {
+                        tmpWorldObjects.Add(tmpObjects[i] as WorldObject);
+                    }
+                }
+            }
+            return tmpWorldObjects;
+        }
+
+        public static bool IsValidRWWO(WorldObject wo)
+        {
+            RimWarSettlementComp rwsc = wo.GetComponent<RimWarSettlementComp>();
+            if(rwsc != null)
+            {
+                return true;
+            }
+            return false;
+        }
+
         private static int factionCount = 0;
         public static void ValidateFactions(bool forced = false)
         {
