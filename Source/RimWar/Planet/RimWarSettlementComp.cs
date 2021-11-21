@@ -530,8 +530,6 @@ namespace RimWar.Planet
             {
                 yield return gizmo;
             }
-            Log.Message("in rwsc, parent faction is " + parent.Faction.Name);
-            Log.Message("faction behavior is " + this.RWD.behavior.ToString());
             if(WorldUtility.GetRimWarDataForFaction(this.parent.Faction).AllianceFactions.Contains(Faction.OfPlayer) || WorldUtility.GetRimWarDataForFaction(this.parent.Faction).behavior == RimWarBehavior.Vassal)
             {
                 int ptsToSend = 500;

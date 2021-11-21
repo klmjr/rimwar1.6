@@ -505,7 +505,6 @@ namespace RimWar.Harmony
                 RimWarData rwd = WorldUtility.GetRimWarDataForFaction(faction);
                 if (rwd != null)
                 {
-                    Log.Message("removing faction " + faction.Name);
                     WorldUtility.RemoveRWDFaction(rwd);
                 }
             }

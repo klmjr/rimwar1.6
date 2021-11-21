@@ -854,7 +854,6 @@ namespace RimWar.Planet
         {
             if (!CheckForRimWarFaction(faction))
             {
-                Log.Message("adding rimwar faction " + faction.Name);
                 RimWarData newRimWarFaction = new RimWarData(faction);
                 if (faction != null)
                 {
