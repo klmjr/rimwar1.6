@@ -117,7 +117,7 @@ namespace RimWar.Planet
 
         public static void GiveGift(List<ActiveDropPodInfo> pods, Settlement giveTo)
         {
-            int powerChange = 33 * FactionGiftUtility.GetGoodwillChange(pods.Cast<IThingHolder>(), giveTo);
+            int powerChange = 50 * FactionGiftUtility.GetGoodwillChange(pods.Cast<IThingHolder>(), giveTo);
             for (int i = 0; i < pods.Count; i++)
             {
                 ThingOwner innerContainer = pods[i].innerContainer;

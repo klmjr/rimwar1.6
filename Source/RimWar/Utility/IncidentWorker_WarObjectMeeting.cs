@@ -154,7 +154,10 @@ namespace RimWar.Utility
                     
                     //faction.TrySetRelationKind(Faction.OfPlayer, FactionRelationKind.Hostile, true, "GoodwillChangedReason_AttackedCaravan".Translate(), t2);
                     Map map = CaravanIncidentUtility.GetOrGenerateMapForIncident(caravan, new IntVec3(100, 1, 100), WorldObjectDefOf.AttackedNonPlayerCaravan);
-                    map.Parent.SetFaction(faction);
+                    if (map != null && map.Parent != null && map.Parent.Faction == null)
+                    {
+                        map.Parent.SetFaction(faction);
+                    }
                     TaggedString letterText = "RW_CaravanAttackedUnit".Translate(caravan.Label, wo.Label, wo.Faction.Name);
                     RimWorld.Planet.SettlementUtility.AffectRelationsOnAttacked(map.Parent, ref letterText);
                     MultipleCaravansCellFinder.FindStartingCellsFor2Groups(map, out IntVec3 playerSpot, out IntVec3 enemySpot);

@@ -15,6 +15,11 @@
     <defName>RW_DiplomacyAction</defName>
     <label>Rim War - Diplomacy Result</label>
   </HistoryEventDef>
+  
+  <HistoryEventDef>
+    <defName>RW_ReinforcedSettlement</defName>
+    <label>Rim War - Settlements Reinforced</label>
+  </HistoryEventDef>
 
 
 </Defs>

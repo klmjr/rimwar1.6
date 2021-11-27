@@ -42,6 +42,7 @@ namespace RimWar.Planet
             Scribe_Collections.Look<ConsolidatePoints>(ref this.consolidatePoints, "consolidatePoints", LookMode.Deep, new object[0]);
             Scribe_Collections.Look<WarObject>(ref this.atkos, "atkos", LookMode.Deep, new object[0]);
             Scribe_Values.Look<bool>(ref this.isCapitol, "isCapitol", false);
+            Scribe_Values.Look<bool>(ref this.preventRelationChange, "preventRelationChange", false);
         }
 
         public bool CanReinforce => lastReinforcementTick + 60000 <= Find.TickManager.TicksGame;
@@ -282,13 +283,7 @@ namespace RimWar.Planet
                     tmpSettlementsInRange.Clear();
                 }
                 settlementsInRange.Clear();
-                foreach(Settlement s in tmpSettlementsInRange)
-                {
-                    if(!settlementsInRange.Contains(s))
-                    {
-                        settlementsInRange.Add(s);
-                    }
-                }
+                AddTmpSettlementsToMain();                
                 //settlementsInRange.AddRange(tmpSettlementsInRange);
                 if (this.settlementsInRange.Count == 0 || this.nextSettlementScan <= Find.TickManager.TicksGame)
                 {
@@ -296,23 +291,17 @@ namespace RimWar.Planet
                     {
                         WorldComponent_PowerTracker.tasker.Register(() =>
                         {
-                        //List<Settlement> tmpSettlementsInRange = new List<Settlement>();
-                        tmpSettlementsInRange.Clear();
-                        Options.SettingsRef settingsRef = new Options.SettingsRef();
-                        List<RimWorld.Planet.Settlement> scanSettlements = WorldUtility.GetRimWorldSettlementsInRange(this.parent.Tile, SettlementScanRange);
-                        if (scanSettlements != null && scanSettlements.Count > 0)
-                        {
-                            for (int i = 0; i < scanSettlements.Count; i++)
+                            //List<Settlement> tmpSettlementsInRange = new List<Settlement>();
+                            tmpSettlementsInRange.Clear();
+                            Options.SettingsRef settingsRef = new Options.SettingsRef();
+                            List<RimWorld.Planet.Settlement> scanSettlements = WorldUtility.GetRimWorldSettlementsInRange(this.parent.Tile, SettlementScanRange);
+                            if (scanSettlements != null && scanSettlements.Count > 0)
                             {
-                                if (scanSettlements[i] != this.parent)
-                                {
-                                    tmpSettlementsInRange.Add(scanSettlements[i]);
-                                }
+                                AddSettlementsToTmp(scanSettlements);
                             }
-                        }
-                        this.nextSettlementScan = Find.TickManager.TicksGame + settingsRef.settlementScanDelay;
-                        //this.settlementsInRange = tmpSettlementsInRange;
-                        return null;
+                            this.nextSettlementScan = Find.TickManager.TicksGame + settingsRef.settlementScanDelay;
+                            //this.settlementsInRange = tmpSettlementsInRange;
+                            return null;
                         }, (context) =>
                         {
                         });
@@ -340,6 +329,32 @@ namespace RimWar.Planet
             set
             {
                 this.settlementsInRange = value;
+            }
+        }
+
+        private void AddTmpSettlementsToMain()
+        {
+            try
+            {
+                foreach (Settlement s in tmpSettlementsInRange)
+                {
+                    if (!settlementsInRange.Contains(s))
+                    {
+                        settlementsInRange.Add(s);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void AddSettlementsToTmp(List<RimWorld.Planet.Settlement> scanSettlements)
+        {
+            for (int i = 0; i < scanSettlements.Count; i++)
+            {
+                if (scanSettlements[i] != this.parent)
+                {
+                    tmpSettlementsInRange.Add(scanSettlements[i]);
+                }
             }
         }
 
@@ -600,7 +615,7 @@ namespace RimWar.Planet
                 };
                 yield return (Gizmo)command_LaunchWarband;
             }
-            if (Prefs.DevMode && WorldUtility.Get_WCPT().victoryFaction != this.parent.Faction && this.parent.Faction != Faction.OfPlayer)
+            if (Prefs.DevMode && WorldUtility.Get_WCPT().victoryFaction != this.parent.Faction && this.parent.Faction != Faction.OfPlayer && this.RWD.behavior != RimWarBehavior.Vassal)
             {
                 Command_Action command_DesignateRival = new Command_Action();
                 command_DesignateRival.defaultLabel = "RW_AssignRival".Translate();

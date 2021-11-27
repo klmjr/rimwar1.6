@@ -14,11 +14,21 @@ namespace RimWar.ModCheck
 
         public static bool EmpireFaction_ColonyCheck(int tile)
         {
-            foreach(RimWorld.Planet.WorldObject wo in Find.WorldObjects.AllWorldObjects)
+            if (Validate.EmpireIsActive)
             {
-                if(wo.def.defName == "Colony" && wo.Tile == tile)
+                try
                 {
-                    return true;
+                    foreach (RimWorld.Planet.WorldObject wo in Find.WorldObjects.AllWorldObjects)
+                    {
+                        if (wo.def.defName == "Colony" && wo.Tile == tile)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch
+                {
+                    return false;
                 }
             }
             return false;

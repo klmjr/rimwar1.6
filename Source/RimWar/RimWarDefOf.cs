@@ -37,6 +37,7 @@ namespace RimWar
         public static HistoryEventDef RW_RandomizeRelations;
         public static HistoryEventDef RW_UnitRequest;
         public static HistoryEventDef RW_DiplomacyAction;
+        public static HistoryEventDef RW_ReinforcedSettlement;
 
     }
 }

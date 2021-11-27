@@ -465,7 +465,9 @@ namespace RimWar.Planet
             base.Tick();
             if(this.PointDamage > 0 && Find.TickManager.TicksGame % 1001 == 0)
             {
-                this.PointDamage = Mathf.RoundToInt(Mathf.Clamp(this.PointDamage - (Rand.Range(.008f, .012f) * this.RimWarPoints), 0, this.RimWarPoints));
+                float damageSplit = (Rand.Range(.004f, .006f) * this.RimWarPoints);
+                this.PointDamage = Mathf.RoundToInt(Mathf.Clamp(this.PointDamage - damageSplit, 0, this.RimWarPoints));
+                this.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(RimWarPoints - damageSplit, 0, this.RimWarPoints));
             }
             if(this.EffectivePoints <= 0)
             {

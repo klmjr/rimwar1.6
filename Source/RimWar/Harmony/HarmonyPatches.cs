@@ -98,6 +98,17 @@ namespace RimWar.Harmony
             //    new HarmonyMethod(patchType, nameof(RimWar_CommsConsoleOptions_Transpiler)));
 
             //Prefix
+            harmonyInstance.Patch(AccessTools.Method(typeof(FactionGiftUtility), "GiveGift", new Type[]
+                {
+                    typeof(List<Tradeable>),
+                    typeof(Faction),
+                    typeof(GlobalTargetInfo)
+                }, null), new HarmonyMethod(patchType, "GiveGiftAsRimWarPoints_Prefix", null), null, null);
+            //harmonyInstance.Patch(AccessTools.Method(typeof(FactionGiftUtility), "GiveGift", new Type[]
+            //    {
+            //        typeof(List<ActiveDropPodInfo>),
+            //        typeof(Settlement)
+            //    }, null), new HarmonyMethod(patchType, "GivePodGiftAsRimWarPoints_Prefix", null), null, null);
             harmonyInstance.Patch(AccessTools.Method(typeof(IncidentWorker), "TryExecute", new Type[]
                 {
                     typeof(IncidentParms)
@@ -112,6 +123,15 @@ namespace RimWar.Harmony
                 {
                     typeof(IncidentParms)
                 }, null), new HarmonyMethod(patchType, "TryResolveParms_Points_Prefix", null), null, null);
+            harmonyInstance.Patch(AccessTools.Method(typeof(CaravanExitMapUtility), "ExitMapAndCreateCaravan", new Type[]
+                {
+                    typeof(IEnumerable<Pawn>),
+                    typeof(Faction),
+                    typeof(int),
+                    typeof(int),
+                    typeof(int),
+                    typeof(bool)
+                }, null), new HarmonyMethod(patchType, "ExitMapPostBattle_Prefix", null), null, null);
             //Unused
             //harmonyInstance.Patch(AccessTools.Method(typeof(Faction), "TryAffectGoodwillWith", new Type[]
             //    {
@@ -157,6 +177,44 @@ namespace RimWar.Harmony
         //    }
         //}
 
+        //public static bool GivePodGiftAsRimWarPoints_Prefix(List<ActiveDropPodInfo> pods, Settlement giveTo)
+        //{            
+        //    if(giveTo.Faction.PlayerRelationKind == FactionRelationKind.Ally)
+        //    {                
+        //        RimWarSettlementComp rwsc = giveTo.GetComponent<RimWarSettlementComp>();
+        //        if(rwsc != null)
+        //        {
+        //            int goodwillChange = FactionGiftUtility.GetGoodwillChange(pods.Cast<IThingHolder>(), giveTo);
+        //            rwsc.RimWarPoints += goodwillChange * 100;
+        //            return false;
+        //        }
+        //        else
+        //        {
+        //            return true;
+        //        }
+        //    }
+        //    return true;
+        //}
+
+        public static bool GiveGiftAsRimWarPoints_Prefix(List<Tradeable> tradeables, Faction giveTo, GlobalTargetInfo lookTarget)
+        {
+            if (giveTo.PlayerRelationKind == FactionRelationKind.Ally)
+            {
+                Settlement s = Find.WorldObjects.SettlementAt(lookTarget.Tile);
+                if(s != null)
+                {
+                    RimWarSettlementComp rwsc = s.GetComponent<RimWarSettlementComp>();
+                    if (rwsc != null)
+                    {
+                        int goodwillChange = FactionGiftUtility.GetGoodwillChange(tradeables, giveTo);
+                        rwsc.RimWarPoints += goodwillChange * 60;
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
         [HarmonyPatch(typeof(SettlementDefeatUtility), "IsDefeated", null)]
         public class Prevent_IsDefeated_Patch
         {
@@ -184,21 +242,21 @@ namespace RimWar.Harmony
             }
         }
 
-        //1.3 unclear why this is needed
-        //[HarmonyPatch(typeof(RimWorld.Planet.SettlementUtility), "AffectRelationsOnAttacked", null)]
-        //public class Prevent_AffectRelationsOnAttacked_Patch
-        //{
-        //    public static bool Prefix(MapParent mapParent)
-        //    {
-        //        RimWarSettlementComp rwsc = mapParent.GetComponent<RimWarSettlementComp>();
-        //        if (rwsc != null && rwsc.preventRelationChange)
-        //        {
-        //            rwsc.preventRelationChange = false;
-        //            return false;
-        //        }
-        //        return true;
-        //    }
-        //}
+        //1.3 this is needed to prevent relationship changes when reinforcing friendly colonies
+        [HarmonyPatch(typeof(RimWorld.Planet.SettlementUtility), "AffectRelationsOnAttacked", null)]
+        public class Prevent_AffectRelationsOnAttacked_Patch
+        {
+            public static bool Prefix(MapParent mapParent)
+            {
+                RimWarSettlementComp rwsc = mapParent.GetComponent<RimWarSettlementComp>();
+                if (rwsc != null && rwsc.preventRelationChange)
+                {
+                    rwsc.preventRelationChange = false;
+                    return false;
+                }
+                return true;
+            }
+        }
 
         [HarmonyPriority(2000)]
         public static void ThingSetMaker_TraderCheck_Postfix(ThingSetMaker __instance, ref ThingSetMakerParams parms, ref List<Thing> __result)
@@ -261,6 +319,72 @@ namespace RimWar.Harmony
             //{
             //    Log.Message("no map found");
             //}
+        }
+
+        public static bool ExitMapPostBattle_Prefix(IEnumerable<Pawn> pawns, Faction faction, int exitFromTile, int directionTile, ref Caravan __result)
+        {
+            Settlement s = Find.World.worldObjects.SettlementAt(exitFromTile);
+            if(s != null)
+            {
+                RimWarSettlementComp rwsc = s.GetComponent<RimWarSettlementComp>();
+                if(rwsc != null)
+                {
+                    if(rwsc.UnderAttack)
+                    {
+                        List<WarObject> defeatedUnits = new List<WarObject>();
+                        Map m = Find.Maps.FirstOrDefault((Map x) => x.Tile == exitFromTile);
+                        if (m != null)
+                        {
+                            List<Pawn> rwscPawns = new List<Pawn>();
+                            rwscPawns.Clear();
+                            foreach (Pawn p in m.mapPawns.AllPawnsSpawned)
+                            {
+                                if (!p.DestroyedOrNull() && p.Faction == s.Faction && !p.Dead && !p.Downed)
+                                {
+                                    rwscPawns.Add(p);
+                                }
+                            }
+                            foreach (WarObject wo in rwsc.AttackingUnits)
+                            {                             
+                                List<Pawn> woPawns = new List<Pawn>();
+                                woPawns.Clear();
+                                foreach (Pawn p in m.mapPawns.AllPawnsSpawned)
+                                {
+                                    if (!p.DestroyedOrNull() && p.Faction == wo.Faction && !p.Dead && !p.Downed)
+                                    {
+                                        woPawns.Add(p);
+                                    }
+                                }
+                                if (woPawns.Count <= 0)
+                                {
+                                    defeatedUnits.Add(wo);
+                                }
+                                if(woPawns.Count <= (float)(.25f * rwscPawns.Count))
+                                {
+                                    defeatedUnits.Add(wo);
+                                }                                
+                            }
+                        }
+
+                        if (defeatedUnits != null && defeatedUnits.Count > 0)
+                        {
+                            foreach (WarObject wo in defeatedUnits)
+                            {
+                                rwsc.AttackingUnits.Remove(wo);
+                            }
+                        }
+
+                        if(rwsc.AttackingUnits.Count <= 0)
+                        {
+                            int relationChange = Rand.RangeInclusive(25, 35);
+                            Find.LetterStack.ReceiveLetter("RW_LetterReinforcementSuccessfulEvent".Translate(), "RW_LetterReinforcementSuccessfulEventText".Translate(s.Faction.Name, s.Label, relationChange), LetterDefOf.PositiveEvent);
+                            Faction.OfPlayer.TryAffectGoodwillWith(s.Faction, relationChange, false, false, RimWarDefOf.RW_ReinforcedSettlement, s);
+                        }
+
+                    }
+                }
+            }
+            return true;
         }
 
         public static void PodsArrived_SettlementHasAttackers_Postfix(List<ActiveDropPodInfo> pods, int tile, Settlement ___settlement)

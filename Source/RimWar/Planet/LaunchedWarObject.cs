@@ -71,22 +71,33 @@ namespace RimWar.Planet
             Scribe_References.Look<WorldObject>(ref this.targetWorldObject, "targetWorldObject");
         }
 
+        float trvlPct = 0f;
         private float TraveledPctStepPerTick
         {
             get
             {
-                Vector3 start = Start;
-                Vector3 end = End;
-                if (start == end)
+                try
                 {
-                    return 1f;
+                    if (trvlPct == 0f)
+                    {
+                        Vector3 start = Start;
+                        Vector3 end = End;
+                        if (start == end)
+                        {
+                            trvlPct = 1f;
+                            return 1f;
+                        }
+                        float num = GenMath.SphericalDistance(start.normalized, end.normalized);
+                        if (num == 0f)
+                        {
+                            trvlPct = 1f;
+                            return 1f;
+                        }
+                        trvlPct = 0.00025f / num;
+                    }
+                    return trvlPct;
                 }
-                float num = GenMath.SphericalDistance(start.normalized, end.normalized);
-                if (num == 0f)
-                {
-                    return 1f;
-                }
-                return 0.00025f / num;
+                catch { trvlPct = 1f; return trvlPct; }
             }
         }
 
