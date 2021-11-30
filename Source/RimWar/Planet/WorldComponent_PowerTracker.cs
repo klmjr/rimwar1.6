@@ -297,7 +297,7 @@ namespace RimWar.Planet
                                                         //requestedReinforcement = true;
                                                     }
                                                 }
-                                            }                                            
+                                            }
                                         }
                                         if (true)//!requestedReinforcement)
                                         {
@@ -356,11 +356,11 @@ namespace RimWar.Planet
                                             rwsComp.nextEventTick = currentTick + settingsRef.settlementEventDelay; //one day (60000) default
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    this.creationAttempts++;
-                                }
+                                    else
+                                    {
+                                        this.creationAttempts++;
+                                    }                                    
+                                }                                
                             }
                         }
                     }
@@ -759,7 +759,7 @@ namespace RimWar.Planet
                             if (rwdTown.PointDamage > 0)
                             {
                                 float healAdjustment = (Rand.Range(.005f, .01f) * rwdTown.RimWarPoints);
-                                rwdTown.PointDamage = Mathf.RoundToInt(Mathf.Clamp(rwdTown.PointDamage - healAdjustment, 0, rwdTown.RimWarPoints));
+                                rwdTown.PointDamage = Mathf.RoundToInt(Mathf.Clamp(rwdTown.PointDamage - (2 * healAdjustment), 0, rwdTown.RimWarPoints));
                                 rwdTown.RimWarPoints = Mathf.RoundToInt(Mathf.Clamp(rwdTown.RimWarPoints - healAdjustment, 0, rwdTown.RimWarPoints));
                             }
                             else
@@ -786,20 +786,20 @@ namespace RimWar.Planet
                             }
                         }
                     }
-                    for(int j =0; j < rwd.FactionObjects.Count; j++)
-                    {
-                        RimWarSettlementComp rwsc = rwd.FactionObjects[j].GetComponent<RimWarSettlementComp>();
-                        if(rwsc != null && rwsc.parent.def.defName == "FactionBaseGenerator") //Empire mod
-                        {
-                            int maxPts = 10000;
-                            if (rwsc.RimWarPoints <= maxPts)
-                            {
-                                float pts = (Rand.Range(1f, 2f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwsc.parent.Tile].biome); //.1f - 3.5f
-                                pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute;
-                                rwsc.RimWarPoints += Mathf.RoundToInt(Mathf.Clamp(pts, 1f, 100f));
-                            }
-                        }
-                    }
+                    //for(int j =0; j < rwd.FactionObjects.Count; j++) // no longer needed
+                    //{
+                    //    RimWarSettlementComp rwsc = rwd.FactionObjects[j].GetComponent<RimWarSettlementComp>();
+                    //    if(rwsc != null && rwsc.parent.def.defName == "FactionBaseGenerator") //Empire mod
+                    //    {
+                    //        int maxPts = 10000;
+                    //        if (rwsc.RimWarPoints <= maxPts)
+                    //        {
+                    //            float pts = (Rand.Range(1f, 2f)) + WorldUtility.GetBiomeMultiplier(Find.WorldGrid[rwsc.parent.Tile].biome); //.1f - 3.5f
+                    //            pts = pts * mult * WorldUtility.GetFactionTechLevelMultiplier(rwd.RimWarFaction) * rwd.growthAttribute;
+                    //            rwsc.RimWarPoints += Mathf.RoundToInt(Mathf.Clamp(pts, 1f, 100f));
+                    //        }
+                    //    }
+                    //}
                 }
 
                 if(rwd.behavior == RimWarBehavior.Vassal)

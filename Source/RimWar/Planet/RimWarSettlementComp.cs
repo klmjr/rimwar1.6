@@ -545,7 +545,7 @@ namespace RimWar.Planet
             {
                 yield return gizmo;
             }
-            if(WorldUtility.GetRimWarDataForFaction(this.parent.Faction).AllianceFactions.Contains(Faction.OfPlayer) || WorldUtility.GetRimWarDataForFaction(this.parent.Faction).behavior == RimWarBehavior.Vassal)
+            if(true || WorldUtility.GetRimWarDataForFaction(this.parent.Faction).AllianceFactions.Contains(Faction.OfPlayer) || WorldUtility.GetRimWarDataForFaction(this.parent.Faction).behavior == RimWarBehavior.Vassal)
             {
                 int ptsToSend = 500;
                 Command_Action command_SendTrader = new Command_Action();

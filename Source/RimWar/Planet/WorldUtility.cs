@@ -1679,7 +1679,7 @@ namespace RimWar.Planet
                     RimWorld.Planet.Settlement wos = wo as RimWorld.Planet.Settlement;
                     if (!wos.Destroyed && wos.Faction != null)
                     {
-                        if (wo.def.defName == "Settlement" || wo.def.defName == "City_Faction" || wo.def.defName == "City_Citadel")
+                        if (wo.def.defName == "Settlement" || wo.def.defName == "City_Faction" || wo.def.defName == "City_Citadel" || wo.def.defName == "FactionBaseGenerator")
                         {
                             return true;
                         }

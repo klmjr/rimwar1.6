@@ -1316,17 +1316,27 @@ namespace RimWar.Planet
                     }
                     if (rndSack > .5f && defender.RimWarPoints > 1000)
                     {
-                        let.text += "\nThe city was sacked and lost much of their wealth.";
-                        float sackAmount = defender.RimWarPoints * Rand.Range(.3f, .6f)/defender.AttackingUnits.Count;
-                        for (int i = 0; i < defender.AttackingUnits.Count; i++)
+                        if (defender.RWD.behavior != RimWarBehavior.Vassal)
                         {
-                            WarObject waro = defender.AttackingUnits[i];
-                            waro.RimWarPoints += Mathf.RoundToInt(sackAmount);
-                            defender.RimWarPoints -= Mathf.RoundToInt(sackAmount);
-                            defender.PointDamage -= Mathf.RoundToInt(sackAmount);                            
-                            WorldUtility.CreateWarObjectOfType(waro, Mathf.RoundToInt(Mathf.Clamp(waro.RimWarPoints, 50, 2 * waro.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(waro.Faction), waro.ParentSettlement, waro.Tile, waro.ParentSettlement, WorldObjectDefOf.Settlement, 0, false, true, waro.PointDamage);
+                            let.text += "\nThe city was sacked and lost much of their wealth.";
+                            float sackAmount = defender.RimWarPoints * Rand.Range(.3f, .6f) / defender.AttackingUnits.Count;
+                            for (int i = 0; i < defender.AttackingUnits.Count; i++)
+                            {
+                                WarObject waro = defender.AttackingUnits[i];
+                                waro.RimWarPoints += Mathf.RoundToInt(sackAmount);
+                                defender.RimWarPoints -= Mathf.RoundToInt(sackAmount);
+                                defender.PointDamage -= Mathf.RoundToInt(sackAmount);
+                                WorldUtility.CreateWarObjectOfType(waro, Mathf.RoundToInt(Mathf.Clamp(waro.RimWarPoints, 50, 2 * waro.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(waro.Faction), waro.ParentSettlement, waro.Tile, waro.ParentSettlement, WorldObjectDefOf.Settlement, 0, false, true, waro.PointDamage);
+                            }
+                            defender.PointDamage = defender.RimWarPoints - 1;
+                            defender.AttackingUnits.Clear();
                         }
-                        defender.AttackingUnits.Clear();
+                        else
+                        {
+                            defender.PointDamage = defender.RimWarPoints - 1;
+                            defender.AttackingUnits.Clear();
+                            defender.parent.Destroy();
+                        }
                     }
                     else
                     {
@@ -1342,7 +1352,9 @@ namespace RimWar.Planet
                         {
                             WarObject waro = defender.AttackingUnits[i];
                             WorldUtility.CreateWarObjectOfType(waro, Mathf.RoundToInt(Mathf.Clamp(waro.RimWarPoints, 50, 2 * waro.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(waro.Faction), waro.ParentSettlement, waro.Tile, waro.ParentSettlement, WorldObjectDefOf.Settlement, 0, false, true, waro.PointDamage);
-                        }
+                        }                        
+                        defender.AttackingUnits.Clear();
+                        defender.PointDamage = defender.RimWarPoints - 1;
                         defender.parent.Destroy();
                     }
                 }
@@ -1361,6 +1373,8 @@ namespace RimWar.Planet
                         WorldUtility.CreateWarObjectOfType(waro, Mathf.RoundToInt(Mathf.Clamp(waro.RimWarPoints, 50, 2 * waro.RimWarPoints)), WorldUtility.GetRimWarDataForFaction(waro.Faction), waro.ParentSettlement, waro.Tile, waro.ParentSettlement, WorldObjectDefOf.Settlement, 0, false, true, waro.PointDamage);
                     }
                 }
+                defender.AttackingUnits.Clear();
+                defender.PointDamage = defender.RimWarPoints - 1;
                 defender.parent.Destroy();
             }
             else
