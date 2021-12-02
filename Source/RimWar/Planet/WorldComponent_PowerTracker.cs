@@ -1145,7 +1145,6 @@ namespace RimWar.Planet
                                 minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Warband);
                             }
                         }
-
                     }
                 }
             }

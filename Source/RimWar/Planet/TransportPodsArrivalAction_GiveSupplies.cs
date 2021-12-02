@@ -98,10 +98,10 @@ namespace RimWar.Planet
             {
                 return Enumerable.Empty<FloatMenuOption>();
             }
-            return TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanGiveSuppliesTo(pods, settlement), () => new TransportPodsArrivalAction_GiveSupplies(settlement), "RW_GiveSuppliesViaTransportPods".Translate(settlement.Label, (FactionGiftUtility.GetGoodwillChange(pods, settlement) * 33).ToStringWithSign()), representative, settlement.Tile, delegate (Action action)
+            return TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanGiveSuppliesTo(pods, settlement), () => new TransportPodsArrivalAction_GiveSupplies(settlement), "RW_GiveSuppliesViaTransportPods".Translate(settlement.Label, (FactionGiftUtility.GetGoodwillChange(pods, settlement) * 50).ToStringWithSign()), representative, settlement.Tile, delegate (Action action)
             {
                 TradeRequestComp tradeReqComp = settlement.GetComponent<TradeRequestComp>();
-                if (tradeReqComp.ActiveRequest && pods.Any((IThingHolder p) => p.GetDirectlyHeldThings().Contains(tradeReqComp.requestThingDef)))
+                if (tradeReqComp != null && tradeReqComp.ActiveRequest && pods.Any((IThingHolder p) => p.GetDirectlyHeldThings().Contains(tradeReqComp.requestThingDef)))
                 {
                     Find.WindowStack.Add(new Dialog_MessageBox("GiveGiftViaTransportPodsTradeRequestWarning".Translate(), "Yes".Translate(), delegate
                     {
