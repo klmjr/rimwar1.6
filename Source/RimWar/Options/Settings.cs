@@ -40,6 +40,8 @@ namespace RimWar.Options
         //alerts
         public int alertRange = 6;
         public int letterNotificationRange = 7;
+        public bool vassalNotification = false;
+        public bool alliedNotification = false;
 
         //unused
         public int maxScanObjects = 100; //potentially an option to limit the iterations a search function performs before returning the result
@@ -83,6 +85,8 @@ namespace RimWar.Options
             Scribe_Values.Look<float>(ref this.settlementGrowthRate, "settlementGrowthRate", 1f, false);
             Scribe_Values.Look<bool>(ref this.noPermanentEnemies, "noPermanentEnemies", false, true);
             Scribe_Values.Look<bool>(ref this.threadingEnabled, "threadingEnabled", true, true);
+            Scribe_Values.Look<bool>(ref this.vassalNotification, "vassalNotification", false, false);
+            Scribe_Values.Look<bool>(ref this.alliedNotification, "alliedNotification", false, false);
         }
 
         public static Settings Instance;

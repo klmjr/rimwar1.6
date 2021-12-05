@@ -1281,7 +1281,7 @@ namespace RimWar.Planet
                     rndCapture *= 1.5f;
                 }
 
-                if (rndCapture > .5f && attacker.rimwarData?.behavior != RimWarBehavior.Vassal && attacker.EffectivePoints >= pointClamp) //can capture
+                if (rndCapture > .5f && attacker.rimwarData?.behavior != RimWarBehavior.Vassal && defender.RWD.behavior != RimWarBehavior.Vassal && attacker.EffectivePoints >= pointClamp) //can capture
                 {
                     let.text = "RW_LetterBattleText".Translate(attacker.Label.CapitalizeFirst(), attacker.RimWarPoints, "captured", defender.parent?.Label, defender.RimWarPoints);
                     let.lookTargets = attacker;

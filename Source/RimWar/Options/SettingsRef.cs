@@ -35,6 +35,8 @@ namespace RimWar.Options
 
         public int alertRange = Settings.Instance.alertRange;
         public int letterNotificationRange = Settings.Instance.letterNotificationRange;
+        public bool vassalNotification = Settings.Instance.vassalNotification;
+        public bool alliedNotification = Settings.Instance.alliedNotification;
 
         public bool playerVS = Settings.Instance.playerVS;
         public float planetCoverageCustom = Settings.Instance.planetCoverageCustom;

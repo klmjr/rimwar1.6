@@ -336,6 +336,10 @@ namespace RimWar.Options
             TooltipHandler.TipRegion(rowRect93, "RW_letterNotificationRangeInfo".Translate());
             //Widgets.CheckboxLabeled(rowRect92, "RW_forceRandomObject".Translate(), ref Settings.Instance.forceRandomObject, false);
             num++;
+            Rect rowRect94 = UIHelper.GetRowRect(rowRect1, rowHeight, num);
+            Widgets.CheckboxLabeled(rowRect94, "RW_alertVassal".Translate(), ref Settings.Instance.vassalNotification, false);
+            TooltipHandler.TipRegion(rowRect94, "RW_alertVassalInfo".Translate());
+            num++;
             num++;
             Rect rowRect20 = UIHelper.GetRowRect(rowRect92, rowHeight, num);
             rowRect20.width = 120f;
@@ -366,6 +370,7 @@ namespace RimWar.Options
 
                 Settings.Instance.letterNotificationRange = 7;                
                 Settings.Instance.alertRange = 6;
+                Settings.Instance.vassalNotification = false;
             }
 
             Rect rowRect21 = UIHelper.GetRowRect(rowRect20, rowHeight, num);

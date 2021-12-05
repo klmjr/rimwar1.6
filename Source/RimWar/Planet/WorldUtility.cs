@@ -454,6 +454,8 @@ namespace RimWar.Planet
                     warband.DestinationTarget = destination;
                     warband.destinationTile = destination.Tile;
                 }
+
+
             }
             catch (NullReferenceException ex)
             {

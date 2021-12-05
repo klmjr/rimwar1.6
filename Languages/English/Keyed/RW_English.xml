@@ -82,6 +82,8 @@ Growth ({2})</RW_AttributeDisplay>
 <RW_rwdUpdateFrequencyInfo>Directly affects how quickly settlements grow; frequency of growth. This will influence how quickly the world matures (combat power) and may make the game more difficult if AI neighbors are hostile.</RW_rwdUpdateFrequencyInfo>
 <RW_alertRange>Player Alert radius:</RW_alertRange>
 <RW_alertRangeInfo>Shows an alert whenever a Rim War related entity is within range of player settlements. Setting the radius to 0 will disable this alert. Decreasing this setting will improve performance.</RW_alertRangeInfo>
+<RW_alertVassal>Vassal settlement notifications</RW_alertVassal>
+<RW_alertVassalInfo>Warning letters are generated for vassal settlements, when enabled. Alert radius is the same as player notification range.</RW_alertVassalInfo>
 <RW_letterNotificationRange>Letter notification range:</RW_letterNotificationRange>
 <RW_letterNotificationRangeInfo>Generate a warning letter whenever a hostile force is approaching and targeting the players settlement. Setting the radius to 0 will disable letter notifications.</RW_letterNotificationRangeInfo>
 <RW_restrictEvents>Restrict events</RW_restrictEvents>

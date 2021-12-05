@@ -32,7 +32,7 @@ namespace RimWar.Planet
             if (!playerNotified && this.DestinationTarget != null)
             {
                 Options.SettingsRef settingsRef = new Options.SettingsRef();
-                if (this.DestinationTarget.Faction == Faction.OfPlayer && this.Faction.HostileTo(Faction.OfPlayer) && Find.WorldGrid.TraversalDistanceBetween(this.Tile, this.DestinationTarget.Tile) <= settingsRef.letterNotificationRange && Rand.Chance(.35f))
+                if (((this.DestinationTarget.Faction == Faction.OfPlayer && this.Faction.HostileTo(Faction.OfPlayer)) || (settingsRef.vassalNotification && WorldUtility.IsVassalFaction(this.DestinationTarget.Faction) && this.Faction.HostileTo(this.DestinationTarget.Faction))) && Find.WorldGrid.TraversalDistanceBetween(this.Tile, this.DestinationTarget.Tile) <= settingsRef.letterNotificationRange && Rand.Chance(.35f))
                 {
                     playerNotified = true;
                     StringBuilder stringBuilder = new StringBuilder();
