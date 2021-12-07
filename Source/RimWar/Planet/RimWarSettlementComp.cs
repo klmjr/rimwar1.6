@@ -26,6 +26,8 @@ namespace RimWar.Planet
         public bool preventRelationChange = false;
         public int bonusGrowthCount = 0;
         public int lastReinforcementTick = 0;
+        public int lastUnitRequest = 0;
+        public int unitRequestDelay = 110000;
 
         public override void PostExposeData()
         {
@@ -43,9 +45,19 @@ namespace RimWar.Planet
             Scribe_Collections.Look<WarObject>(ref this.atkos, "atkos", LookMode.Deep, new object[0]);
             Scribe_Values.Look<bool>(ref this.isCapitol, "isCapitol", false);
             Scribe_Values.Look<bool>(ref this.preventRelationChange, "preventRelationChange", false);
+            Scribe_Values.Look<int>(ref this.lastUnitRequest, "lastUnitRequest", 0);
         }
 
         public bool CanReinforce => lastReinforcementTick + 60000 <= Find.TickManager.TicksGame;
+
+        public float DaysTillNextUnit
+        {
+            get
+            {
+                int timePassed = Find.TickManager.TicksGame - this.lastUnitRequest;
+                return (float)(this.unitRequestDelay - timePassed) / 60000f;
+            }
+        }
 
         public List<WarObject> AttackingUnits
         {
@@ -548,13 +560,18 @@ namespace RimWar.Planet
             if(DebugSettings.godMode || WorldUtility.GetRimWarDataForFaction(this.parent.Faction).AllianceFactions.Contains(Faction.OfPlayer) || WorldUtility.GetRimWarDataForFaction(this.parent.Faction).behavior == RimWarBehavior.Vassal)
             {
                 int ptsToSend = 500;
+                int sendpwr = Mathf.RoundToInt(this.RimWarPoints * .3f);
                 Command_Action command_SendTrader = new Command_Action();
                 command_SendTrader.defaultLabel = "RW_SendTrader".Translate();
-                command_SendTrader.defaultDesc = "RW_SendTraderDesc".Translate();
+                command_SendTrader.defaultDesc = "RW_SendTraderDesc".Translate(sendpwr, sendpwr*2);
                 command_SendTrader.icon = RimWarMatPool.Icon_Trader;
                 if(this.RimWarPoints < ptsToSend)
                 {
                     command_SendTrader.Disable("RW_NotEnoughPointsToSendUnit".Translate(this.RimWarPoints, ptsToSend, RimWarDefOf.RW_Trader.label));
+                }
+                else if((this.lastUnitRequest + this.unitRequestDelay) > Find.TickManager.TicksGame && !DebugSettings.godMode)
+                {
+                    command_SendTrader.Disable("RW_UnitCreationNotReady".Translate(DaysTillNextUnit.ToString("n2")));
                 }
                 command_SendTrader.action = delegate
                 {
@@ -563,14 +580,19 @@ namespace RimWar.Planet
                 };
                 yield return (Gizmo)command_SendTrader;
 
+                ptsToSend = 800;
+                sendpwr = Mathf.RoundToInt(this.RimWarPoints * .45f);
                 Command_Action command_SendScout = new Command_Action();
                 command_SendScout.defaultLabel = "RW_SendScout".Translate();
-                command_SendScout.defaultDesc = "RW_SendScoutDesc".Translate();
-                command_SendScout.icon = RimWarMatPool.Icon_Scout;
-                ptsToSend = 800;
+                command_SendScout.defaultDesc = "RW_SendScoutDesc".Translate(sendpwr, sendpwr * 2);
+                command_SendScout.icon = RimWarMatPool.Icon_Scout;                
                 if (this.RimWarPoints < ptsToSend)
                 {
                     command_SendScout.Disable("RW_NotEnoughPointsToSendUnit".Translate(this.RimWarPoints, ptsToSend, RimWarDefOf.RW_Scout.label));
+                }
+                else if ((this.lastUnitRequest + this.unitRequestDelay) > Find.TickManager.TicksGame && !DebugSettings.godMode)
+                {
+                    command_SendScout.Disable("RW_UnitCreationNotReady".Translate(DaysTillNextUnit.ToString("n2")));
                 }
                 command_SendScout.action = delegate
                 {
@@ -579,14 +601,19 @@ namespace RimWar.Planet
                 };
                 yield return (Gizmo)command_SendScout;
 
+                ptsToSend = 1000;
+                sendpwr = Mathf.RoundToInt(this.RimWarPoints * .6f);
                 Command_Action command_SendWarband = new Command_Action();
                 command_SendWarband.defaultLabel = "RW_SendWarband".Translate();
-                command_SendWarband.defaultDesc = "RW_SendWarbandDesc".Translate();
-                command_SendWarband.icon = RimWarMatPool.Icon_Warband;
-                ptsToSend = 1000;
+                command_SendWarband.defaultDesc = "RW_SendWarbandDesc".Translate(sendpwr, sendpwr * 2);
+                command_SendWarband.icon = RimWarMatPool.Icon_Warband;                
                 if (this.RimWarPoints < ptsToSend)
                 {
                     command_SendWarband.Disable("RW_NotEnoughPointsToSendUnit".Translate(this.RimWarPoints, ptsToSend, RimWarDefOf.RW_Warband.label));
+                }
+                else if ((this.lastUnitRequest + this.unitRequestDelay) > Find.TickManager.TicksGame && !DebugSettings.godMode)
+                {
+                    command_SendWarband.Disable("RW_UnitCreationNotReady".Translate(DaysTillNextUnit.ToString("n2")));
                 }
                 command_SendWarband.action = delegate
                 {
@@ -595,11 +622,11 @@ namespace RimWar.Planet
                 };
                 yield return (Gizmo)command_SendWarband;
 
+                ptsToSend = 1200;
                 Command_Action command_LaunchWarband = new Command_Action();
                 command_LaunchWarband.defaultLabel = "RW_LaunchWarband".Translate();
-                command_LaunchWarband.defaultDesc = "RW_LaunchWarbandDesc".Translate();
-                command_LaunchWarband.icon = RimWarMatPool.Icon_LaunchWarband;
-                ptsToSend = 1200;
+                command_LaunchWarband.defaultDesc = "RW_LaunchWarbandDesc".Translate(sendpwr, sendpwr * 2);
+                command_LaunchWarband.icon = RimWarMatPool.Icon_LaunchWarband;                
                 if(!RWD.CanLaunch)
                 {
                     command_LaunchWarband.Disable("RW_FactionIncapableOfTech".Translate(this.parent.Faction.Name));
@@ -607,6 +634,10 @@ namespace RimWar.Planet
                 if (this.RimWarPoints < ptsToSend)
                 {
                     command_LaunchWarband.Disable("RW_NotEnoughPointsToSendUnit".Translate(this.RimWarPoints, ptsToSend, RimWarDefOf.RW_LaunchedWarband.label));
+                }
+                else if ((this.lastUnitRequest + this.unitRequestDelay) > Find.TickManager.TicksGame && !DebugSettings.godMode)
+                {
+                    command_LaunchWarband.Disable("RW_UnitCreationNotReady".Translate(DaysTillNextUnit.ToString("n2")));
                 }
                 command_LaunchWarband.action = delegate
                 {
@@ -697,6 +728,7 @@ namespace RimWar.Planet
             
             if (wo != null)
             {
+                this.lastUnitRequest = Find.TickManager.TicksGame;
                 if(sendTypeDef == RimWarDefOf.RW_Trader)
                 {
                     RimWorld.Planet.Settlement s = wo as Settlement;
@@ -719,7 +751,7 @@ namespace RimWar.Planet
                         {
                             this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                         }
-                        WorldUtility.CreateWarObjectOfType(new Trader(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, s, WorldObjectDefOf.Settlement);
+                        WorldUtility.CreateWarObjectOfType(new Trader(), (pointsCost * 2), this.RWD, this.parent as Settlement, this.parent.Tile, s, WorldObjectDefOf.Settlement);
                         return true;
                     }
                     else
@@ -759,7 +791,7 @@ namespace RimWar.Planet
                     {
                         this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                     }
-                    WorldUtility.CreateWarObjectOfType(new Scout(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
+                    WorldUtility.CreateWarObjectOfType(new Scout(), pointsCost * 2, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
                 }
                 if (sendTypeDef == RimWarDefOf.RW_Warband)
@@ -775,7 +807,7 @@ namespace RimWar.Planet
                     {
                         this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                     }
-                    WorldUtility.CreateWarObjectOfType(new Warband(), pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
+                    WorldUtility.CreateWarObjectOfType(new Warband(), pointsCost * 2, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
                 }
                 if (sendTypeDef == RimWarDefOf.RW_LaunchedWarband)
@@ -791,7 +823,7 @@ namespace RimWar.Planet
                     {
                         this.parent.Faction.TryAffectGoodwillWith(Faction.OfPlayer, relationsCost, true, true, RimWarDefOf.RW_UnitRequest);
                     }
-                    WorldUtility.CreateLaunchedWarband(pointsCost, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
+                    WorldUtility.CreateLaunchedWarband(pointsCost * 2, this.RWD, this.parent as Settlement, this.parent.Tile, wo, wo.def);
                     return true;
                 }
             }

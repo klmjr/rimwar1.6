@@ -237,7 +237,7 @@ namespace RimWar.Options
             int num = 0;
             float rowHeight = 32f;
 
-            Rect sRect = new Rect(canvas.x, canvas.y, canvas.width - 36f, canvas.height + 60f);
+            Rect sRect = new Rect(canvas.x, canvas.y, canvas.width - 36f, canvas.height + 84f);
             scrollPosition = GUI.BeginScrollView(canvas, scrollPosition, sRect, false, true);
             //Widgets.BeginScrollView(canvas, ref scrollPosition, canvas, true);
 

@@ -111,19 +111,20 @@ Growth ({2})</RW_AttributeDisplay>
 
 <!-- ============ Diplomacy Requests =============-->
 <RW_SendTrader>Send Trader</RW_SendTrader>
-<RW_SendTraderDesc>Requests an allied town to send a trader to another settlement.</RW_SendTraderDesc>
+<RW_SendTraderDesc>Requests an allied town to send a trader to another settlement. Costs {0} and generates a trader with {1} combat points.</RW_SendTraderDesc>
 <RW_NotEnoughPointsToSendUnit>Not enough points to send {2} {0} / {1}</RW_NotEnoughPointsToSendUnit>
 <RW_SendWarband>Send Warband</RW_SendWarband>
-<RW_SendWarbandDesc>Requests an allied town to mobilize a warband. Warbands may target settlements or other units.</RW_SendWarbandDesc>
+<RW_SendWarbandDesc>Requests an allied town to mobilize a warband. Warbands may target settlements or other units. Costs {0} and generates a warband with {1} combat points.</RW_SendWarbandDesc>
 <RW_SendScout>Send Scout</RW_SendScout>
-<RW_SendScoutDesc>Requests an allied town to mobilize a scouting party. Scouts may target settlements or other units.</RW_SendScoutDesc>
+<RW_SendScoutDesc>Requests an allied town to mobilize a scouting party. Scouts may target settlements or other units. Costs {0} and generates a scout with {1} combat points.</RW_SendScoutDesc>
 <RW_LaunchWarband>Launch Warband</RW_LaunchWarband>
-<RW_LaunchWarbandDesc>Requests an allied town to launch a Warband. Warbands may target settlements or other units.</RW_LaunchWarbandDesc>
+<RW_LaunchWarbandDesc>Requests an allied town to launch a Warband. Warbands may target settlements or other units. Costs {0} and generates a launch-pod warband with {1} combat points.</RW_LaunchWarbandDesc>
 <RW_SendCannotReach>Beyond range</RW_SendCannotReach>
 <RW_DestinationSettlementOnly>Destination must be settlement</RW_DestinationSettlementOnly>
 <RW_DestinationHostile>Destination is hostile</RW_DestinationHostile>
 <RW_FactionIncapableOfTech>{0} does not have the technology</RW_FactionIncapableOfTech>
 <RW_InvalidTarget>Invalid target</RW_InvalidTarget>
+<RW_UnitCreationNotReady>New unit available in {0} days</RW_UnitCreationNotReady>
 
 <!-- ============ Diplomacy Requests - comms console =============-->
 <RW_InvalidRWD>Invalid Rim War Faction</RW_InvalidRWD>
@@ -185,7 +186,7 @@ Current standing: {0}</RW_DeclarePeaceInfo>
 <RW_LetterSettlementBattle>Settlement Assault</RW_LetterSettlementBattle>
 <RW_LetterSettlementBattleText>{0} with combat power of {1} {4} {2} with combat power of {3}.</RW_LetterSettlementBattleText>
 <RW_LetterTradeEvent>Trade Event</RW_LetterTradeEvent>
-<RW_LetterTradeEventText>{0} with a trade power of {1} {2} with {3} a trade power of {4}.</RW_LetterTradeEventText>
+<RW_LetterTradeEventText>{0} with a trade power of {1} {2} {3} with a trade power of {4}.</RW_LetterTradeEventText>
 <RW_LetterSettlementEvent>Settlement Established</RW_LetterSettlementEvent>
 <RW_LetterSettlementEventText>{0} has established a new settlement with {1} points.</RW_LetterSettlementEventText>
 <RW_LetterApproachingThreatEvent>Hostile force spotted</RW_LetterApproachingThreatEvent>
