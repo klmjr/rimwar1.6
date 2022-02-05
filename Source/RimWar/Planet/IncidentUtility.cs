@@ -1182,18 +1182,18 @@ namespace RimWar.Planet
 
         public static void ResolveCombat_Settlement(RimWarSettlementComp defender, WarObject attacker)
         {
-            float pointClamp = 500f;
+            float pointClamp = 200f;
             if(attacker.RimWarPoints > 20000)
             {
                 pointClamp = 4000f;
             }
-            else if(attacker.RimWarPoints > 10000)
+            else if(attacker.RimWarPoints > 5000)
             {
                 pointClamp = 2000f;
             }
-            else if(attacker.RimWarPoints > 5000)
+            else if(attacker.RimWarPoints > 1000)
             {
-                pointClamp = 1000f;
+                pointClamp = 500f;
             }
 
             float defenderPoints = Mathf.Clamp(defender.EffectivePoints, 0, pointClamp);
@@ -1390,18 +1390,18 @@ namespace RimWar.Planet
         public static void ResolveCombat_Units(WarObject attacker, WarObject defender) //offense, defense
         {
             //Log.Message("resolving combat between " + attacker.Label + " pts " + attacker.EffectivePoints + " " + defender.Label + " pts " + defender.EffectivePoints);
-            float pointClamp = 500f;
+            float pointClamp = 200f;
             if (attacker.RimWarPoints > 20000)
             {
                 pointClamp = 4000f;
             }
-            else if (attacker.RimWarPoints > 10000)
+            else if (attacker.RimWarPoints > 5000)
             {
                 pointClamp = 2000f;
             }
-            else if (attacker.RimWarPoints > 5000)
+            else if (attacker.RimWarPoints > 1000)
             {
-                pointClamp = 1000f;
+                pointClamp = 500f;
             }
 
             float defenderPoints = Mathf.Clamp(defender.EffectivePoints, 0, pointClamp);

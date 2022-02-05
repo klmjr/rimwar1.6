@@ -28,6 +28,7 @@ namespace RimWar.Planet
         public int lastReinforcementTick = 0;
         public int lastUnitRequest = 0;
         public int unitRequestDelay = 110000;
+        public int vassalHeat = 0;
 
         public override void PostExposeData()
         {
@@ -46,6 +47,7 @@ namespace RimWar.Planet
             Scribe_Values.Look<bool>(ref this.isCapitol, "isCapitol", false);
             Scribe_Values.Look<bool>(ref this.preventRelationChange, "preventRelationChange", false);
             Scribe_Values.Look<int>(ref this.lastUnitRequest, "lastUnitRequest", 0);
+            Scribe_Values.Look<int>(ref this.vassalHeat, "vassalHeat", 0);
         }
 
         public bool CanReinforce => lastReinforcementTick + 60000 <= Find.TickManager.TicksGame;

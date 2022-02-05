@@ -35,7 +35,7 @@ namespace RimWar.Planet
         public override void PostExposeData()
         {
             base.PostExposeData();
-            Scribe_References.Look<WarObject>(ref currentTarget, "currentTarget");
+            Scribe_References.Look<WarObject>(ref currentTarget, "currentTarget", false);
         }
 
         public override void Initialize(WorldObjectCompProperties props)

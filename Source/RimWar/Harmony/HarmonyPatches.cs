@@ -207,7 +207,7 @@ namespace RimWar.Harmony
                     if (rwsc != null)
                     {
                         int goodwillChange = FactionGiftUtility.GetGoodwillChange(tradeables, giveTo);
-                        rwsc.RimWarPoints += goodwillChange * 60;
+                        rwsc.RimWarPoints += goodwillChange * 90;
                         return false;
                     }
                 }
@@ -484,7 +484,7 @@ namespace RimWar.Harmony
             {
                 if (settlementGenPoints != 0)
                 {
-                    resolveParams.pawnGroupMakerParams.points = settlementGenPoints;
+                    resolveParams.pawnGroupMakerParams.points = Mathf.Clamp(settlementGenPoints, 0, 20000);
                 }
             }
             return true;            
@@ -594,7 +594,8 @@ namespace RimWar.Harmony
                     WorldUtility.CreateFactionRelation(__instance, other);
                     //Log.Message("forced faction relation between " + __instance.Name + " and " + other.Name);
                 }
-                return true;
+                __result = null;
+                return false;
             }
         }
 
@@ -867,9 +868,13 @@ namespace RimWar.Harmony
                         }
                         text += "\n" + "RW_SettlementUnderAttackText".Translate(attackers);
                     }
-                    if (rwsc.RWD.behavior == RimWarBehavior.Player || rwsc.RWD.behavior == RimWarBehavior.Vassal)
+                    if (rwsc.RWD.behavior == RimWarBehavior.Player)
                     {
                         text += "\n"+"RW_AggressionDefense".Translate(WorldUtility.Get_WCPT().minimumHeatForPlayerAction);
+                    }
+                    else if(rwsc.RWD.behavior == RimWarBehavior.Vassal)
+                    {
+                        text += "\n" + "RW_AggressionDefense".Translate(rwsc.vassalHeat);
                     }
                     else
                     {

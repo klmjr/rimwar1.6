@@ -289,11 +289,12 @@ namespace RimWar.Planet
                                                 foreach (Settlement s in reinforcementSettlements)
                                                 {
                                                     RimWarSettlementComp rwsc = s.GetComponent<RimWarSettlementComp>();
-                                                    if (rwsc != null && !rwsc.ShouldRequestReinforcements && rwsc.RimWarPoints > 500)
+                                                    if (rwsc != null && !rwsc.ShouldRequestReinforcements && rwsc.RimWarPoints > 1000)
                                                     {
                                                         //Log.Message("" + settlement.Label + " requested reinforcements from " + s.Label);
                                                         AttemptReinforcement(rwd, s, rwsc, settlement);
                                                         rwsComp.lastReinforcementTick = Find.TickManager.TicksGame;
+                                                        break;
                                                         //requestedReinforcement = true;
                                                     }
                                                 }
@@ -784,6 +785,10 @@ namespace RimWar.Planet
                                     rwdTown.PlayerHeat += Rand.Range(1, 3);
                                 }
                             }
+                            if(rwd.behavior == RimWarBehavior.Vassal)
+                            {
+                                rwdTown.vassalHeat = Mathf.Clamp(rwdTown.vassalHeat - Rand.RangeInclusive(1, 3), 0, 10000);
+                            }
                         }
                     }
                     //for(int j =0; j < rwd.FactionObjects.Count; j++) // no longer needed
@@ -1104,6 +1109,11 @@ namespace RimWar.Planet
                         {
                             return;
                         }
+                        RimWarSettlementComp rwscVassal = targetTown.GetComponent<RimWarSettlementComp>();
+                        if (WorldUtility.IsVassalFaction(targetTown.Faction) && rwscVassal != null && rwsComp.PlayerHeat < rwscVassal.vassalHeat && !ignoreRestrictions)
+                        {
+                            return;
+                        }
                         if (targetTown.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
                         {
                             if (!forcePlayer)
@@ -1143,6 +1153,11 @@ namespace RimWar.Planet
                             {
                                 rwsComp.PlayerHeat = 0;
                                 minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Warband);
+                            }
+                            else if(WorldUtility.IsVassalFaction(targetTown.Faction))
+                            {
+                                rwsComp.PlayerHeat = 0;
+                                rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.Warband));
                             }
                         }
                     }
@@ -1196,6 +1211,11 @@ namespace RimWar.Planet
                         {
                             return;
                         }
+                        RimWarSettlementComp rwscVassal = targetTown.GetComponent<RimWarSettlementComp>();
+                        if (WorldUtility.IsVassalFaction(targetTown.Faction) && rwscVassal != null && rwsComp.PlayerHeat < rwscVassal.vassalHeat && !ignoreRestrictions)
+                        {
+                            return;
+                        }
                         if (targetTown.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
                         {
                             if (!forcePlayer)
@@ -1225,6 +1245,11 @@ namespace RimWar.Planet
                                     rwsComp.PlayerHeat = 0;
                                     minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Warband);
                                 }
+                                else if (WorldUtility.IsVassalFaction(targetTown.Faction))
+                                {
+                                    rwsComp.PlayerHeat = 0;
+                                    rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.Warband));
+                                }
                             }
                         }
                         else if (rwsComp.RimWarPoints * .75f >= pts || ignoreRestrictions)
@@ -1235,6 +1260,11 @@ namespace RimWar.Planet
                             {
                                 rwsComp.PlayerHeat = 0;
                                 minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.Warband);
+                            }
+                            else if (WorldUtility.IsVassalFaction(targetTown.Faction))
+                            {
+                                rwsComp.PlayerHeat = 0;
+                                rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.Warband));
                             }
                         }
 
@@ -1347,6 +1377,11 @@ namespace RimWar.Planet
                     {
                         return;
                     }
+                    RimWarSettlementComp rwscVassal = targetTown.GetComponent<RimWarSettlementComp>();
+                    if (WorldUtility.IsVassalFaction(targetTown.Faction) && rwscVassal != null && rwsComp.PlayerHeat < rwscVassal.vassalHeat && !ignoreRestrictions)
+                    {
+                        return;
+                    }
                     if (targetTown.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
                     {
                         if (!forcePlayer)
@@ -1376,6 +1411,11 @@ namespace RimWar.Planet
                                 rwsComp.PlayerHeat = 0;
                                 minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.LaunchedWarband);
                             }
+                            else if(WorldUtility.IsVassalFaction(targetTown.Faction))
+                            {
+                                rwsComp.PlayerHeat = 0;
+                                rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.LaunchedWarband));
+                            }
                         }
                     }
                     else if (rwsComp.RimWarPoints * .6f >= pts || ignoreRestrictions)
@@ -1387,6 +1427,11 @@ namespace RimWar.Planet
                         {
                             rwsComp.PlayerHeat = 0;
                             minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.LaunchedWarband);
+                        }
+                        else if (WorldUtility.IsVassalFaction(targetTown.Faction))
+                        {
+                            rwsComp.PlayerHeat = 0;
+                            rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.LaunchedWarband));
                         }
                     }
                 }
@@ -1434,6 +1479,11 @@ namespace RimWar.Planet
                     {
                         return;
                     }
+                    RimWarSettlementComp rwscVassal = targetTown.GetComponent<RimWarSettlementComp>();
+                    if (WorldUtility.IsVassalFaction(targetTown.Faction) && rwscVassal != null && rwsComp.PlayerHeat < rwscVassal.vassalHeat && !ignoreRestrictions)
+                    {
+                        return;
+                    }
                     if (targetTown.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
                     {
                         if (!forcePlayer)
@@ -1463,6 +1513,11 @@ namespace RimWar.Planet
                                 rwsComp.PlayerHeat = 0;
                                 minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.LaunchedWarband);
                             }
+                            else if (WorldUtility.IsVassalFaction(targetTown.Faction))
+                            {
+                                rwsComp.PlayerHeat = 0;
+                                rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.LaunchedWarband));
+                            }
                         }
                     }
                     else if (rwsComp.RimWarPoints * .6f >= pts || ignoreRestrictions)
@@ -1474,6 +1529,11 @@ namespace RimWar.Planet
                         {
                             rwsComp.PlayerHeat = 0;
                             minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.LaunchedWarband);
+                        }
+                        else if (WorldUtility.IsVassalFaction(targetTown.Faction))
+                        {
+                            rwsComp.PlayerHeat = 0;
+                            rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.LaunchedWarband));
                         }
                     }
                 }
@@ -1548,7 +1608,6 @@ namespace RimWar.Planet
                     rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                     rwsComp.PlayerHeat = 0;
                     minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
-
                 }
                 else if (wo is WarObject)
                 {
@@ -1560,11 +1619,11 @@ namespace RimWar.Planet
                     }
                     WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, RimWarDefOf.RW_WarObject);
                     rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
-                    if (wo.Faction == Faction.OfPlayer)
+                    if (wo.Faction == Faction.OfPlayer || WorldUtility.IsVassalFaction(wo.Faction))
                     {
                         rwsComp.PlayerHeat = 0;
                         minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
-                    }                    
+                    }
                 }
                 else if (wo is RimWorld.Planet.Settlement)
                 {
@@ -1580,6 +1639,12 @@ namespace RimWar.Planet
                     {
                         rwsComp.PlayerHeat = 0;
                         minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
+                    }
+                    else if(WorldUtility.IsVassalFaction(wo.Faction))
+                    {
+                        rwsComp.PlayerHeat = 0;
+                        RimWarSettlementComp rwscVassal = wo.GetComponent<RimWarSettlementComp>();
+                        rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.ScoutingParty));
                     }
                 }
             }
@@ -1631,6 +1696,11 @@ namespace RimWar.Planet
                     if (wo.Faction == Faction.OfPlayer && rwsComp.PlayerHeat < minimumHeatForPlayerAction && !ignoreRestrictions)
                     {
                         continue;
+                    }
+                    RimWarSettlementComp rwscVassal = wo.GetComponent<RimWarSettlementComp>();
+                    if (WorldUtility.IsVassalFaction(wo.Faction) && rwscVassal != null && rwsComp.PlayerHeat < rwscVassal.vassalHeat && !ignoreRestrictions)
+                    {
+                        return;
                     }
                     if (wo.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
                     {
@@ -1722,6 +1792,11 @@ namespace RimWar.Planet
                     {
                         continue;
                     }
+                    RimWarSettlementComp rwscVassal = wo.GetComponent<RimWarSettlementComp>();
+                    if (WorldUtility.IsVassalFaction(wo.Faction) && rwscVassal != null && rwsComp.PlayerHeat < rwscVassal.vassalHeat && !ignoreRestrictions)
+                    {
+                        return;
+                    }
                     if (wo.Faction == Faction.OfPlayer && !WorldUtility.FactionCanFight(200, parentSettlement.Faction))
                     {
                         if (!forcePlayerCaravan && !forcePlayerTown)
@@ -1781,7 +1856,7 @@ namespace RimWar.Planet
                     }
                     WorldUtility.CreateScout(pts, rwd, parentSettlement, parentSettlement.Tile, wo, RimWarDefOf.RW_WarObject);
                     rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
-                    if (wo.Faction == Faction.OfPlayer)
+                    if (wo.Faction == Faction.OfPlayer || WorldUtility.IsVassalFaction(wo.Faction))
                     {
                         rwsComp.PlayerHeat = 0;
                         minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
@@ -1801,6 +1876,12 @@ namespace RimWar.Planet
                     {
                         rwsComp.PlayerHeat = 0;
                         minimumHeatForPlayerAction += GetHeatForAction(RimWarAction.ScoutingParty);
+                    }
+                    else if (WorldUtility.IsVassalFaction(wo.Faction))
+                    {
+                        rwsComp.PlayerHeat = 0;
+                        RimWarSettlementComp rwscVassal = wo.GetComponent<RimWarSettlementComp>();
+                        rwscVassal.vassalHeat += (2 * GetHeatForAction(RimWarAction.ScoutingParty));
                     }
                 }
             }
@@ -2415,12 +2496,12 @@ namespace RimWar.Planet
             if (rwd != null && rwsComp != null && parentSettlement != null)
             {
                 Options.SettingsRef settingsRef = new Options.SettingsRef();
-                if (rwsComp.RimWarPoints > 500 || ignoreRestrictions)
+                if (rwsComp.RimWarPoints > 1000 || ignoreRestrictions)
                 {
                     RimWorld.Planet.Settlement targetTown = targetSettlement;
                     if (targetTown != null)
                     {
-                        int pts = Mathf.RoundToInt(.25f * rwsComp.RimWarPoints);
+                        int pts = Mathf.RoundToInt(.4f * rwsComp.RimWarPoints);
                         Trader tdr = WorldUtility.CreateTrader(pts, rwd, parentSettlement, parentSettlement.Tile, targetTown, WorldObjectDefOf.Settlement);
                         rwsComp.RimWarPoints = rwsComp.RimWarPoints - WorldUtility.RelativePowerCostAdjustment(pts, rwd);
                         rwsComp.bonusGrowthCount += Mathf.RoundToInt((float)pts / 10f);
