@@ -155,7 +155,7 @@ namespace RimWar.Planet
                                 if (playerSettlement != null)
                                 {
                                     //Raid Player Map
-                                    if (this.launched)
+                                    if (this.launched && Options.Settings.Instance.allowDropPodRaids)
                                     {
                                         PawnsArrivalModeDef arrivalDef = PawnsArrivalModeDefOf.EdgeDrop;
                                         if (Rand.Chance(.35f))
@@ -225,7 +225,7 @@ namespace RimWar.Planet
                                     //Raid Player Map
                                     if ((this.rimwarData.behavior == RimWarBehavior.Warmonger) || (this.rimwarData.behavior == RimWarBehavior.Aggressive && Rand.Chance(.5f)))
                                     {
-                                        if (this.launched)
+                                        if (this.launched && Options.Settings.Instance.allowDropPodRaids)
                                         {
                                             IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.RandomDrop));
                                         }
@@ -236,7 +236,7 @@ namespace RimWar.Planet
                                     }
                                     else
                                     {
-                                        if (this.launched)
+                                        if (this.launched && Options.Settings.Instance.allowDropPodRaids)
                                         {
                                             IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.CenterDrop));
                                         }

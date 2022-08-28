@@ -21,6 +21,7 @@ namespace RimWar.Options
         public float heatFrequency = 3000f;
         public float settlementGrowthRate = 1f;
         public bool noPermanentEnemies = false;
+        public bool allowDropPodRaids = true;
 
         //limit controls
         public int maxFactionSettlements = 40;
@@ -87,6 +88,7 @@ namespace RimWar.Options
             Scribe_Values.Look<bool>(ref this.threadingEnabled, "threadingEnabled", true, true);
             Scribe_Values.Look<bool>(ref this.vassalNotification, "vassalNotification", false, false);
             Scribe_Values.Look<bool>(ref this.alliedNotification, "alliedNotification", false, false);
+            Scribe_Values.Look<bool>(ref this.allowDropPodRaids, "allowDropPodRaids", true, true);
         }
 
         public static Settings Instance;

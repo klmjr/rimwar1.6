@@ -237,7 +237,7 @@ namespace RimWar.Options
             int num = 0;
             float rowHeight = 32f;
 
-            Rect sRect = new Rect(canvas.x, canvas.y, canvas.width - 36f, canvas.height + 84f);
+            Rect sRect = new Rect(canvas.x, canvas.y, canvas.width - 36f, canvas.height + 116f);
             scrollPosition = GUI.BeginScrollView(canvas, scrollPosition, sRect, false, true);
             //Widgets.BeginScrollView(canvas, ref scrollPosition, canvas, true);
 
@@ -285,7 +285,11 @@ namespace RimWar.Options
             Widgets.CheckboxLabeled(rowRect13, "RW_restrictEvents".Translate(), ref Settings.Instance.restrictEvents, false);
             TooltipHandler.TipRegion(rowRect13, "RW_restrictEventsInfo".Translate());
             num++;
-            Rect rowRect14 = UIHelper.GetRowRect(rowRect13, rowHeight, num);
+            Rect rowRect131 = UIHelper.GetRowRect(rowRect13, rowHeight, num);
+            Widgets.CheckboxLabeled(rowRect131, "RW_allowDropPodRaids".Translate(), ref Settings.Instance.allowDropPodRaids, false);
+            TooltipHandler.TipRegion(rowRect131, "RW_allowDropPodRaidsInfo".Translate());
+            num++;
+            Rect rowRect14 = UIHelper.GetRowRect(rowRect131, rowHeight, num);
             Widgets.CheckboxLabeled(rowRect14, "RW_threadingEnabled".Translate(), ref Settings.Instance.threadingEnabled, false);
             TooltipHandler.TipRegion(rowRect14, "RW_threadingEnabledInfo".Translate());
             num++;
@@ -371,6 +375,7 @@ namespace RimWar.Options
                 Settings.Instance.letterNotificationRange = 7;                
                 Settings.Instance.alertRange = 6;
                 Settings.Instance.vassalNotification = false;
+                Settings.Instance.allowDropPodRaids = true;
             }
 
             Rect rowRect21 = UIHelper.GetRowRect(rowRect20, rowHeight, num);
@@ -457,6 +462,7 @@ namespace RimWar.Options
 
                 Settings.Instance.letterNotificationRange = 7;
                 Settings.Instance.alertRange = 6;
+                Settings.Instance.allowDropPodRaids = false;
             }
 
             Rect rowRect24 = UIHelper.GetRowRect(rowRect23, rowHeight, num);
@@ -470,6 +476,7 @@ namespace RimWar.Options
                 Settings.Instance.heatMultiplier = .8f;
                 Settings.Instance.settlementGrowthRate = 1.4f;
                 Settings.Instance.randomizeFactionBehavior = true;
+                Settings.Instance.allowDropPodRaids = true;
                 //Settings.Instance.createDiplomats = false;
                 //Settings.Instance.forceRandomObject = true;
 

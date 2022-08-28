@@ -94,6 +94,8 @@ Growth ({2})</RW_AttributeDisplay>
 <RW_heatFrequencyInfo>Controls how quickly aggression points are reduced. Lowering this setting allows the AI to attack the player more often, while raising this value will decrease the frequency of attacks. This setting is applied *per AI settlement* and will not limit the number of times the player can be attacked; proximity to enemy settlements and the relative strength of those settlements is still the primary determining factor.</RW_heatFrequencyInfo>
 <RW_randomRival>Random Rival</RW_randomRival>
 <RW_randomRivalInfo>Completely randomizes the player's rival faction, which may result in the rival being a friendly faction. When it is disabled, the rival faction will always be a faction permanently hostile to the player.</RW_randomRivalInfo>
+<RW_allowDropPodRaids>Allow Drop Pod Raids</RW_allowDropPodRaids>
+<RW_allowDropPodRaidsInfo>Units traveling in a drop pod will normally enter a map using drop pods. When disabled, units can still traverse the global map in drop pods, but will always enter the map by walking onto the map.</RW_allowDropPodRaidsInfo>
 
 <!-- ============ Game Start Settings =============-->
 <RW_playerVSworld>Player vs All</RW_playerVSworld>

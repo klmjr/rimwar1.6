@@ -303,17 +303,17 @@ namespace RimWar.Planet
                 {
                     if (Options.Settings.Instance.threadingEnabled)
                     {
+                        tmpSettlementsInRange.Clear();
+                        Options.SettingsRef settingsRef = new Options.SettingsRef();
+                        this.nextSettlementScan = Find.TickManager.TicksGame + settingsRef.settlementScanDelay;
                         WorldComponent_PowerTracker.tasker.Register(() =>
                         {
-                            //List<Settlement> tmpSettlementsInRange = new List<Settlement>();
-                            tmpSettlementsInRange.Clear();
-                            Options.SettingsRef settingsRef = new Options.SettingsRef();
+                            //List<Settlement> tmpSettlementsInRange = new List<Settlement>();                            
                             List<RimWorld.Planet.Settlement> scanSettlements = WorldUtility.GetRimWorldSettlementsInRange(this.parent.Tile, SettlementScanRange);
                             if (scanSettlements != null && scanSettlements.Count > 0)
                             {
                                 AddSettlementsToTmp(scanSettlements);
                             }
-                            this.nextSettlementScan = Find.TickManager.TicksGame + settingsRef.settlementScanDelay;
                             //this.settlementsInRange = tmpSettlementsInRange;
                             return null;
                         }, (context) =>

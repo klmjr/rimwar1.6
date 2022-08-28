@@ -390,7 +390,7 @@ namespace RimWar.Planet
                 warband.MovesAtNight = rwd.movesAtNight;
                 warband.RimWarPoints = power;
                 warband.PointDamage = pointDamage;
-                warband.launched = _launched;
+                warband.launched = _launched && settingsRef.allowDropPodRaids;
                 warband.TicksPerMove = Mathf.RoundToInt((float)warband.TicksPerMove / settingsRef.objectMovementMultiplier);
                 warband.DestinationTarget = destination;
                 if (rwd.behavior == RimWarBehavior.Warmonger)
@@ -1140,9 +1140,9 @@ namespace RimWar.Planet
             List<WorldObject> worldObjects = GetWorldObjectsInRange(from, range);
             for (int i = 0; i < worldObjects.Count; i++)
             {
-                if (worldObjects[i] is RimWorld.Planet.Settlement)
+                if (worldObjects[i] is RimWorld.Planet.Settlement rws)
                 {
-                    tmpSettlements.Add(worldObjects[i] as RimWorld.Planet.Settlement);
+                    tmpSettlements.Add(rws);
                 }
             }
             return tmpSettlements;
