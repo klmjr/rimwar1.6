@@ -129,8 +129,8 @@ namespace RimWar.Planet
                     if (Find.TickManager.TicksGame > 20)
                     {
                         RW_Letter let = RW_LetterMaker.Make_RWLetter(RimWarDefOf.RimWar_SettlementEvent);
-                        let.label = "RW_LetterSettlementEvent".Translate();
-                        let.text = "RW_LetterSettlementEventText".Translate(rwd.RimWarFaction, rwsc.RimWarPoints);
+                        let.Label = "RW_LetterSettlementEvent".Translate();
+                        let.Text = "RW_LetterSettlementEventText".Translate(rwd.RimWarFaction, rwsc.RimWarPoints);
                         let.lookTargets = wo;
                         let.relatedFaction = rwd.RimWarFaction;
                         RW_LetterMaker.Archive_RWLetter(let);
@@ -155,8 +155,8 @@ namespace RimWar.Planet
                     if (Find.TickManager.TicksGame > 20 && displayLetter)
                     {
                         RW_Letter let = RW_LetterMaker.Make_RWLetter(RimWarDefOf.RimWar_SettlementEvent);
-                        let.label = "RW_LetterSettlementEvent".Translate();
-                        let.text = "RW_LetterSettlementEventText".Translate(rwd.RimWarFaction, rwsc.RimWarPoints);
+                        let.Label = "RW_LetterSettlementEvent".Translate();
+                        let.Text = "RW_LetterSettlementEventText".Translate(rwd.RimWarFaction, rwsc.RimWarPoints);
                         let.lookTargets = wo;
                         let.relatedFaction = rwd.RimWarFaction;
                         RW_LetterMaker.Archive_RWLetter(let);
