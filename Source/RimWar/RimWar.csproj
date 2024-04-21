@@ -17,7 +17,7 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\v1.4\Assemblies\</OutputPath>
+    <OutputPath>..\..\v1.5\Assemblies\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -48,11 +48,11 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="HugsLib">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\818773962\v1.2\Assemblies\HugsLib.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\818773962\v1.5\Assemblies\HugsLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RimCities">
-      <HintPath>..\..\..\..\..\..\workshop\content\294100\1775170117\1.2\Assemblies\RimCities.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\1775170117\1.5\Assemblies\RimCities.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />

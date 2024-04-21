@@ -1069,7 +1069,7 @@ namespace RimWar.Harmony
 
             public static void OpenSettingsWindow(Page_CreateWorldParams __instance)
             {
-                Find.WindowStack.TryRemove(typeof(EditWindow_Log));
+                //Find.WindowStack.TryRemove(typeof(EditWindow_Log));
                 if (!Find.WindowStack.TryRemove(typeof(Options.RimWarSettingsWindow)))
                 {
                     Options.RimWarSettingsWindow rwsw = new Options.RimWarSettingsWindow();

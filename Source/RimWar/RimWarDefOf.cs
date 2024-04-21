@@ -23,6 +23,7 @@ namespace RimWar
         public static WorldObjectDef RW_Trader;
         public static WorldObjectDef RW_CapitolBuilding;
         public static WorldObjectDef RW_BattleSite;
+        public static WorldObjectDef PeaceTalks;
 
         public static RW_LetterDef RimWar_HostileEvent;
         public static RW_LetterDef RimWar_NeutralEvent;
@@ -38,6 +39,8 @@ namespace RimWar
         public static HistoryEventDef RW_UnitRequest;
         public static HistoryEventDef RW_DiplomacyAction;
         public static HistoryEventDef RW_ReinforcedSettlement;
+
+        public static PawnsArrivalModeDef RandomDrop;
 
     }
 }

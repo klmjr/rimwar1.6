@@ -914,7 +914,7 @@ namespace RimWar.Planet
             parms.raidStrategy = RaidStrategyOrRandom(RaidStrategyDefOf.ImmediateAttack);
             IncidentDef def = new IncidentDef();
             def = IncidentDef.Named("Quest_PeaceTalks");
-            PeaceTalks peaceTalks = (PeaceTalks)WorldObjectMaker.MakeWorldObject(WorldObjectDefOf.PeaceTalks);
+            PeaceTalks peaceTalks = (PeaceTalks)WorldObjectMaker.MakeWorldObject(RimWarDefOf.PeaceTalks);
             peaceTalks.Tile = playerCaravan.Tile;
             peaceTalks.SetFaction(warObject.Faction);
             int randomInRange = SiteTuning.QuestSiteTimeoutDaysRange.RandomInRange;

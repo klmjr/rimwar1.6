@@ -164,7 +164,7 @@ namespace RimWar.Planet
                                         }
                                         else if (Rand.Chance(.2f))
                                         {
-                                            arrivalDef = PawnsArrivalModeDefOf.RandomDrop;
+                                            arrivalDef = RimWarDefOf.RandomDrop;
                                         }
 
                                         IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(arrivalDef));
@@ -227,7 +227,7 @@ namespace RimWar.Planet
                                     {
                                         if (this.launched && Options.Settings.Instance.allowDropPodRaids)
                                         {
-                                            IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(PawnsArrivalModeDefOf.RandomDrop));
+                                            IncidentUtility.DoRaidWithPoints(this, playerSettlement, WorldUtility.GetRimWarDataForFaction(this.Faction), IncidentUtility.PawnsArrivalModeOrRandom(RimWarDefOf.RandomDrop));
                                         }
                                         else
                                         {
