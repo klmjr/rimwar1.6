@@ -1,0 +1,20 @@
+# Visual Studio files
+Source/RimWar/.vs/
+Source/RimWar/obj/
+Source/RimWar/bin/
+*.user
+*.suo
+*.cache
+
+# Build outputs
+*.dll
+*.pdb
+*.exe
+
+# Packages
+Source/RimWar/packages/
+
+# Temporary files
+*.tmp
+*.temp
+*~

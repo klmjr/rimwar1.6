@@ -7,7 +7,8 @@ using System.Linq;
 
 namespace RimWar.Planet
 {
-    public class TransportPodsArrivalAction_ReinforceSettlement : TransportPodsArrivalAction
+    
+    public class TransportPodsArrivalAction_ReinforceSettlement : TransportersArrivalAction
     {
         private Settlement settlement;
         private PawnsArrivalModeDef arrivalMode;
@@ -16,11 +17,11 @@ namespace RimWar.Planet
         {
             base.ExposeData();
             Scribe_Defs.Look(ref arrivalMode, "arrivalMode");
+
         }
 
         public TransportPodsArrivalAction_ReinforceSettlement()
         {
-
         }
 
         public TransportPodsArrivalAction_ReinforceSettlement(Settlement _settlement, PawnsArrivalModeDef _arrivalMode)
@@ -29,12 +30,12 @@ namespace RimWar.Planet
             this.arrivalMode = _arrivalMode;
         }
 
-        public override bool ShouldUseLongEvent(List<ActiveDropPodInfo> pods, int tile)
+        public bool ShouldUseLongEvent(List<ActiveTransporter> pods, int tile)
         {
             return !settlement.HasMap;
         }
 
-        public override FloatMenuAcceptanceReport StillValid(IEnumerable<IThingHolder> pods, int destinationTile)
+        public FloatMenuAcceptanceReport StillValid(IEnumerable<IThingHolder> pods, int destinationTile)
         {
             FloatMenuAcceptanceReport floatMenuAcceptanceReport = base.StillValid(pods, destinationTile);
             if (!(bool)floatMenuAcceptanceReport)
@@ -54,7 +55,7 @@ namespace RimWar.Planet
             {
                 return false;
             }
-            if (!TransportPodsArrivalActionUtility.AnyNonDownedColonist(pods))
+            if (!TransportersArrivalActionUtility.AnyNonDownedColonist(pods))
             {
                 return false;
             }
@@ -81,32 +82,43 @@ namespace RimWar.Planet
             //}
             //else
             //{
-                foreach (FloatMenuOption floatMenuOption2 in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanReinforce(pods, settlement), () => new TransportPodsArrivalAction_ReinforceSettlement(settlement, PawnsArrivalModeDefOf.EdgeDrop), "RW_ReinforceAndDropAtEdge".Translate(settlement.Label), representative, settlement.Tile))
-                {
-                    yield return floatMenuOption2;
-                }
-                foreach (FloatMenuOption floatMenuOption3 in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => CanReinforce(pods, settlement), () => new TransportPodsArrivalAction_ReinforceSettlement(settlement, PawnsArrivalModeDefOf.CenterDrop), "RW_ReinforceAndDropInCenter".Translate(settlement.Label), representative, settlement.Tile))
-                {
-                    yield return floatMenuOption3;
-                }
+            foreach (FloatMenuOption floatMenuOption2 in TransportersArrivalActionUtility.GetFloatMenuOptions(
+                () => CanReinforce(pods, settlement),
+                () => new TransportPodsArrivalAction_ReinforceSettlement(settlement, PawnsArrivalModeDefOf.EdgeDrop),
+                "RW_ReinforceAndDropAtEdge".Translate(settlement.Label),
+                (tile, arrivalAction) => representative.TryLaunch(tile, arrivalAction),
+                settlement.Tile))
+            {
+                yield return floatMenuOption2;
+            }
+            foreach (FloatMenuOption floatMenuOption3 in TransportersArrivalActionUtility.GetFloatMenuOptions(
+                () => CanReinforce(pods, settlement),
+                () => new TransportPodsArrivalAction_ReinforceSettlement(settlement, PawnsArrivalModeDefOf.CenterDrop),
+                "RW_ReinforceAndDropInCenter".Translate(settlement.Label),
+                (tile, arrivalAction) => representative.TryLaunch(tile, arrivalAction),
+                settlement.Tile))
+            {
+                yield return floatMenuOption3;
+            }
             //}
         }
 
-        public override void Arrived(List<ActiveDropPodInfo> pods, int tile)
+        public override bool GeneratesMap => true;
+        
+        public override void Arrived(List<ActiveTransporterInfo> pods, PlanetTile tile)
         {
-            Thing lookTarget = TransportPodsArrivalActionUtility.GetLookTarget(pods);
+            Thing lookTarget = TransportersArrivalActionUtility.GetLookTarget(pods);
             bool num = !settlement.HasMap;
             Map orGenerateMap = GetOrGenerateMapUtility.GetOrGenerateMap(settlement.Tile, null);
             TaggedString letterLabel = "LetterLabelCaravanEnteredEnemyBase".Translate();
             TaggedString letterText = "LetterTransportPodsLandedInEnemyBase".Translate(settlement.Label).CapitalizeFirst();
-            //SettlementUtility.AffectRelationsOnAttacked_NewTmp(sbs, ref letterText);
             if (num)
             {
                 Find.TickManager.Notify_GeneratedPotentiallyHostileMap();
                 PawnRelationUtility.Notify_PawnsSeenByPlayer_Letter(orGenerateMap.mapPawns.AllPawns, ref letterLabel, ref letterText, "LetterRelatedPawnsInMapWherePlayerLanded".Translate(Faction.OfPlayer.def.pawnsPlural), informEvenIfSeenBefore: true);
             }
             Find.LetterStack.ReceiveLetter(letterLabel, letterText, LetterDefOf.NeutralEvent, lookTarget);
-            arrivalMode.Worker.TravelingTransportPodsArrived(pods, orGenerateMap);
+            arrivalMode.Worker.TravellingTransportersArrived(pods, orGenerateMap);
             RimWarSettlementComp rwsc = settlement.GetComponent<RimWarSettlementComp>();
             if (rwsc != null && rwsc.UnderAttack)
             {

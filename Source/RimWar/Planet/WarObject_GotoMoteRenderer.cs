@@ -25,6 +25,8 @@ namespace RimWar.Planet
 
         private const float BaseSize = 0.8f;
 
+        public float rotationAngle = 0f; // Add this field or set as needed
+
         public void RenderMote()
         {
             float num = (Time.time - lastOrderedToTileTime) / 0.5f;
@@ -39,11 +41,24 @@ namespace RimWar.Planet
                 Color value = new Color(1f, 1f, 1f, 1f - num);
                 propertyBlock.SetColor(ShaderPropertyIDs.Color, value);
                 Vector3 pos = tileCenter;
-                float size = 0.8f * worldGrid.averageTileSize;
+                float size = 0.8f * worldGrid.AverageTileSize;
                 float altOffset = 0.018f;
                 Material material = cachedMaterial;
                 MaterialPropertyBlock materialPropertyBlock = propertyBlock;
-                WorldRendererUtility.DrawQuadTangentialToPlanet(pos, size, altOffset, material, false, false, materialPropertyBlock);
+
+                // Use the currently selected planet layer to determine if it's a skybox layer
+                bool useSkyboxLayer = PlanetLayer.Selected is RimWorld.OrbitLayer;
+
+                WorldRendererUtility.DrawQuadTangentialToPlanet(
+                    pos,
+                    size,
+                    altOffset,
+                    material,
+                    rotationAngle,      // Pass rotation angle here
+                    false,              // counterClockwise
+                    useSkyboxLayer,     // useSkyboxLayer
+                    materialPropertyBlock
+                );
             }
         }
 

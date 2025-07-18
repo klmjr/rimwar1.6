@@ -26,7 +26,7 @@ namespace RimWar.Utility
             if (warObject.pather.Moving)
             {
                 float num = warObject.pather.IsNextTilePassable() ? (1f - warObject.pather.nextTileCostLeft / warObject.pather.nextTileCostTotal) : 0f;
-                int tileID = (warObject.pather.nextTile != warObject.Tile || warObject.pather.previousTileForDrawingIfInDoubt == -1) ? warObject.Tile : warObject.pather.previousTileForDrawingIfInDoubt;
+                int tileID = (warObject.pather.nextTile != warObject.Tile || warObject.pather.previousTileForDrawingIfInDoubt == -1) ? (int)warObject.Tile : warObject.pather.previousTileForDrawingIfInDoubt;
                 return worldGrid.GetTileCenter(warObject.pather.nextTile) * num + worldGrid.GetTileCenter(tileID) * (1f - num);
             }
             return worldGrid.GetTileCenter(warObject.Tile);
@@ -39,10 +39,10 @@ namespace RimWar.Utility
                 return Vector3.zero;
             }
             bool flag = warObject.Spawned && warObject.pather.Moving;
-            float d = 0.15f * Verse.Find.WorldGrid.averageTileSize;
+            float d = 0.15f * Verse.Find.WorldGrid.AverageTileSize;
             if (!flag || warObject.pather.nextTile == warObject.pather.Destination)
             {
-                int num = (!flag) ? warObject.Tile : warObject.pather.nextTile;
+                int num = (!flag) ? (int)warObject.Tile : warObject.pather.nextTile;
                 int warObjectsCount = 0;
                 int warObjectsWithLowerIdCount = 0;
                 GetWarObjectsStandingAtOrAboutToStandAt(num, out warObjectsCount, out warObjectsWithLowerIdCount, warObject);
@@ -94,7 +94,7 @@ namespace RimWar.Utility
         private static bool DrawPosCollides(WarObject warObject)
         {
             Vector3 a = PatherTweenedPosRoot(warObject);
-            float num = Verse.Find.WorldGrid.averageTileSize * 0.2f;
+            float num = Verse.Find.WorldGrid.AverageTileSize * 0.2f;
             List<WarObject> warObjects = Utility.RW_Find.WarObjects();
             for (int i = 0; i < warObjects.Count; i++)
             {

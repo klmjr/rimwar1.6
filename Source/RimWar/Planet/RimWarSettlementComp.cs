@@ -683,13 +683,12 @@ namespace RimWar.Planet
             }
         }
 
-        public override IEnumerable<FloatMenuOption> GetTransportPodsFloatMenuOptions(IEnumerable<IThingHolder> pods, CompLaunchable representative)
+        public IEnumerable<FloatMenuOption> GetTransportPodsFloatMenuOptions(IEnumerable<IThingHolder> pods, CompLaunchable representative)
         {
-            foreach (FloatMenuOption transportPodsFloatMenuOption in base.GetTransportPodsFloatMenuOptions(pods, representative))
-            {
-                yield return transportPodsFloatMenuOption;
-            }
-            foreach (FloatMenuOption floatMenuOption2 in TransportPodsArrivalAction_GiveSupplies.GetFloatMenuOptions(representative, pods, (Settlement)this.parent))
+            // Get the PlanetTile from the representative's parent
+            PlanetTile originTile = representative.parent.Tile;
+            
+            foreach (FloatMenuOption floatMenuOption2 in TransportPodsArrivalAction_GiveSupplies.GetFloatMenuOptions(originTile, pods, (Settlement)this.parent))
             {
                 yield return floatMenuOption2;
             }

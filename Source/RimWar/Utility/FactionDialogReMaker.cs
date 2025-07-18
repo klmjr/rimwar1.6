@@ -143,7 +143,18 @@ namespace RimWar.Utility
                 wos = rwd.ClosestSettlementTo(map.Tile, minPoints);
                 if (wos != null)
                 {
-                    daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, (int)(2000f / rwd.movementAttribute)) / 60000f;
+                    // Try to find an existing WarObject of the right type for estimation
+                    WarObject existingUnit = rwd.FactionUnits.FirstOrDefault(wo => wo is Scout);
+                    if (existingUnit != null)
+                    {
+                        daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, existingUnit) / 60000f;
+                    }
+                    else
+                    {
+                        // Fallback to simple calculation
+                        int estimatedTicks = Find.WorldGrid.TraversalDistanceBetween(wos.Tile, map.Tile) * (int)(2000f / rwd.movementAttribute);
+                        daysToArrive = estimatedTicks / 60000f;
+                    }
                 }
             }
             string text = "RequestMilitaryAid".Translate(requestCost);
@@ -234,7 +245,19 @@ namespace RimWar.Utility
                 wos = rwd.ClosestSettlementTo(map.Tile, minPoints);
                 if (wos != null)
                 {
-                    daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, (int)(2800f * (1f / rwd.movementAttribute))) / 60000f;
+                    // Try to find an existing WarObject of the right type for estimation
+                    WarObject existingUnit = rwd.FactionUnits.FirstOrDefault(wo => wo is Warband);
+                    if (existingUnit != null)
+                    {
+                        daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, existingUnit) / 60000f;
+                    }
+                    else
+                    {
+                        // Create temporary warband for estimation
+                        Warband tempWarband = new Warband();
+                        tempWarband.TicksPerMove = (int)(2800f * (1f / rwd.movementAttribute));
+                        daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, tempWarband) / 60000f;
+                    }
                 }
             }
             string text = "RequestMilitaryAid".Translate(requestCost);
@@ -325,7 +348,19 @@ namespace RimWar.Utility
                 wos = rwd.ClosestSettlementTo(map.Tile, minPoints);
                 if (wos != null)
                 {
-                    daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, 100) / 60000f;
+                    // Try to find an existing WarObject of the right type for estimation
+                    WarObject existingUnit = rwd.FactionUnits.FirstOrDefault(wo => wo is LaunchedWarband);
+                    if (existingUnit != null)
+                    {
+                        daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, existingUnit) / 60000f;
+                    }
+                    else
+                    {
+                        // Create temporary launched warband for estimation
+                        LaunchedWarband tempLaunchedWarband = new LaunchedWarband();
+                        // tempLaunchedWarband.TicksPerMove = 100;
+                        daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, tempLaunchedWarband) / 60000f;
+                    }
                 }
             }
             string text = "RequestMilitaryAid".Translate(requestCost);
@@ -424,7 +459,22 @@ namespace RimWar.Utility
                 wos = rwd.ClosestSettlementTo(map.Tile, 200);
                 if (wos != null)
                 {
-                    daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, (int)(2500f / rwd.movementAttribute)) / 60000f;
+                    // CHANGED: Replaced the old line that was passing an int to ArrivalTimeEstimator
+                    // OLD: daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, (int)(2500f / rwd.movementAttribute)) / 60000f;
+                    
+                    // NEW: Try to find an existing Trader WarObject first, then create temp one if needed
+                    WarObject existingUnit = rwd.FactionUnits.FirstOrDefault(wo => wo is Trader);
+                    if (existingUnit != null)
+                    {
+                        daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, existingUnit) / 60000f;
+                    }
+                    else
+                    {
+                        // Create temporary trader for estimation
+                        Trader tempTrader = new Trader();
+                        tempTrader.TicksPerMove = (int)(2500f / rwd.movementAttribute);
+                        daysToArrive = (float)Utility.ArrivalTimeEstimator.EstimatedTicksToArrive(wos.Tile, map.Tile, tempTrader) / 60000f;
+                    }
                 }
             }
             TaggedString taggedString = "RequestTrader".Translate(requestCost);

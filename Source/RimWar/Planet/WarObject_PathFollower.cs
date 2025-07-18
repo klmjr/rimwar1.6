@@ -188,7 +188,7 @@ namespace RimWar.Planet
 
         private bool TryRecoverFromUnwalkablePosition()
         {
-            if (GenWorldClosest.TryFindClosestTile(warObject.Tile, (int t) => IsPassable(t), out int foundTile))
+            if (GenWorldClosest.TryFindClosestTile(warObject.Tile, (PlanetTile t) => IsPassable(t), out PlanetTile foundTile))
             {
                 Log.Warning(warObject + " on unwalkable tile " + warObject.Tile + ". Teleporting to " + foundTile);
                 warObject.Tile = foundTile;
@@ -354,30 +354,37 @@ namespace RimWar.Planet
 
         private WorldPath GenerateNewPath()
         {
-            int num = (!moving || nextTile < 0 || !IsNextTilePassable()) ? warObject.Tile : nextTile;
+            int num = (!moving || nextTile < 0 || !IsNextTilePassable()) ? (int)warObject.Tile : (int)nextTile;
             lastPathedTargetTile = destTile;
+
+            PlanetLayer layer = PlanetLayer.Selected ?? Find.WorldGrid.Surface;
+            PlanetTile startTile = new PlanetTile(num, layer);
+            PlanetTile endTile = new PlanetTile(destTile, layer);
 
             try
             {
-                WorldPath worldPath = Verse.Find.WorldPathFinder.FindPath(num, destTile, null);
-                if (worldPath.Found && num != warObject.Tile)
+                using (var pathing = new WorldPathing(layer))
                 {
-                    if (worldPath.NodesLeftCount >= 2 && worldPath.Peek(1) == warObject.Tile)
+                    WorldPath worldPath = pathing.FindPath(startTile, endTile, null);
+                    if (worldPath.Found && num != warObject.Tile)
                     {
-                        worldPath.ConsumeNextNode();
-                        if (moving)
+                        if (worldPath.NodesLeftCount >= 2 && worldPath.Peek(1) == warObject.Tile)
                         {
-                            previousTileForDrawingIfInDoubt = nextTile;
-                            nextTile = warObject.Tile;
-                            nextTileCostLeft = nextTileCostTotal - nextTileCostLeft;
+                            worldPath.ConsumeNextNode();
+                            if (moving)
+                            {
+                                previousTileForDrawingIfInDoubt = nextTile;
+                                nextTile = warObject.Tile;
+                                nextTileCostLeft = nextTileCostTotal - nextTileCostLeft;
+                            }
+                        }
+                        else
+                        {
+                            worldPath.AddNodeAtStart(warObject.Tile);
                         }
                     }
-                    else
-                    {
-                        worldPath.AddNodeAtStart(warObject.Tile);
-                    }
+                    return worldPath;
                 }
-                return worldPath;
             }
             catch
             {

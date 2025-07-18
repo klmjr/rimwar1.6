@@ -160,6 +160,7 @@ namespace RimWar.Utility
         protected override bool TryResolveRaidFaction(IncidentParms parms)
         {
             Map map = (Map)parms.target;
+
             if (parms.faction != null)
             {
                 return true;
@@ -169,14 +170,14 @@ namespace RimWar.Utility
             {
                 num = 999999f;
             }
-            if (PawnGroupMakerUtility.TryGetRandomFactionForCombatPawnGroup(num, out parms.faction, (Faction f) => FactionCanBeGroupSource(f, map), allowNonHostileToPlayer: true, allowHidden: true, allowDefeated: true))
-            {
-                return true;
-            }
-            if (PawnGroupMakerUtility.TryGetRandomFactionForCombatPawnGroup(num, out parms.faction, (Faction f) => FactionCanBeGroupSource(f, map, desperate: true), allowNonHostileToPlayer: true, allowHidden: true, allowDefeated: true))
-            {
-                return true;
-            }
+            // if (PawnGroupMakerUtility.TryGetRandomFactionForCombatPawnGroup(num, out parms.faction, (Faction f) => FactionCanBeGroupSource(f, map), allowNonHostileToPlayer: true, allowHidden: true, allowDefeated: true))
+            // {
+            //     return true;
+            // }
+            // if (PawnGroupMakerUtility.TryGetRandomFactionForCombatPawnGroup(num, out parms.faction, (Faction f) => FactionCanBeGroupSource(f, map, desperate: true), allowNonHostileToPlayer: true, allowHidden: true, allowDefeated: true))
+            // {
+            //     return true;
+            // }
             return false;
         }
 

@@ -443,7 +443,7 @@ namespace RimWar.Planet
                         let.relatedFaction = defender.parent.Faction;
                         if (defenderResult > 1.75 * attackerResult) //routed
                         {
-                            endPointsDefender += endPointsAttacker * (Rand.Range(.35f, .55f)); //gain up to half the points of the attacker warband in combat power and disperse the warband                            
+                            endPointsDefender += endPointsAttacker * (Rand.Range(.35f, .55f)); //gain up to half the points of the defender warband in combat power and disperse the warband                            
                             if (attacker.WarSettlementComp != null)
                             {
                                 ConsolidatePoints reconstitute = new ConsolidatePoints(Mathf.RoundToInt(Mathf.Min((Rand.Range(.3f, .5f) * endPointsAttacker)/2f, attacker.RimWarPoints)), Mathf.RoundToInt(Find.WorldGrid.TraversalDistanceBetween(attacker.Tile, attacker.ParentSettlement.Tile) * attacker.TicksPerMove) + Find.TickManager.TicksGame);
@@ -1136,49 +1136,63 @@ namespace RimWar.Planet
             List<int> tmpTiles = new List<int>();
             tmpTiles.Clear();
             tmpTiles.Add(tile);
-            List<int> adjacentTiles = new List<int>();
-            adjacentTiles.Clear();
-            Find.WorldGrid.GetTileNeighbors(tile, adjacentTiles);
-            tmpTiles.AddRange(adjacentTiles);
-            for (int i = 0; i < tmpTiles.Count; i++)
+
+            // Convert tile int to PlanetTile
+            PlanetTile planetTile = PlanetTileForID(tile);
+            List<PlanetTile> adjacentPlanetTiles = new List<PlanetTile>();
+            adjacentPlanetTiles.Clear();
+            Find.WorldGrid.GetTileNeighbors(planetTile, adjacentPlanetTiles);
+
+            // Convert PlanetTile back to int tile IDs and add to tmpTiles
+            tmpTiles.AddRange(adjacentPlanetTiles.Select(pt => pt.tileId));
+
+    for (int i = 0; i < tmpTiles.Count; i++)
+    {
+        bool tileValid = true;
+        List<WorldObject> wos = WorldUtility.GetAllWorldObjectsAt(tmpTiles[i]);
+        if (wos != null && wos.Count > 0)
+        { 
+            for (int j = 0; j < wos.Count; j++)
             {
-                bool tileValid = true;
-                List<WorldObject> wos = WorldUtility.GetAllWorldObjectsAt(tmpTiles[i]);
-                if (wos != null && wos.Count > 0)
-                { 
-                    for (int j = 0; j < wos.Count; j++)
-                    {
-                        WorldObject wo = wos[j];
-                        if (wo is Settlement)
-                        {
-                            tileValid = false;
-                            break;
-                        }                        
-                    }
-                }
-                Tile t = Find.WorldGrid[tmpTiles[i]];
-                if (t.biome != null)
-                {
-                    if(!t.biome.canBuildBase)
-                    {
-                        tileValid = false;
-                    }
-                    if(Find.World.Impassable(tmpTiles[i]))
-                    {
-                        tileValid = false;
-                    }
-                }
-                else
+                WorldObject wo = wos[j];
+                if (wo is Settlement)
                 {
                     tileValid = false;
-                }
-                if (tileValid)
-                {
-                    return tmpTiles[i];
-                }
+                    break;
+                }                        
             }
-            return -1;
         }
+        Tile t = Find.WorldGrid[tmpTiles[i]];
+        if (t.Biomes != null)
+        {
+            if(!t.Biomes.Any(b => b.canBuildBase))
+            {
+                tileValid = false;
+            }
+            if(Find.World.Impassable(tmpTiles[i]))
+            {
+                tileValid = false;
+            }
+        }
+        else
+        {
+            tileValid = false;
+        }
+        if (tileValid)
+        {
+            return tmpTiles[i];
+        }
+    }
+    return -1;
+}
+
+// Helper method to convert int to PlanetTile
+public static PlanetTile PlanetTileForID(int tileID)
+{
+    // Replace 'this.layerId' with the appropriate layerId for your context
+    int layerId = 0; // Set this to the correct layerId if needed
+    return new PlanetTile(tileID, layerId);
+}
 
         public static void ResolveCombat_Settlement(RimWarSettlementComp defender, WarObject attacker)
         {
@@ -1393,13 +1407,14 @@ namespace RimWar.Planet
             float pointClamp = 200f;
             if (attacker.RimWarPoints > 20000)
             {
+               
                 pointClamp = 4000f;
             }
-            else if (attacker.RimWarPoints > 5000)
+            else if(attacker.RimWarPoints > 5000)
             {
                 pointClamp = 2000f;
             }
-            else if (attacker.RimWarPoints > 1000)
+            else if(attacker.RimWarPoints > 1000)
             {
                 pointClamp = 500f;
             }
@@ -1533,7 +1548,7 @@ namespace RimWar.Planet
             RW_LetterMaker.Archive_RWLetter(let);
         }
 
-        public static void AttackBattleSite(Caravan car, BattleSite bs, List<ActiveDropPodInfo> pods = null, PawnsArrivalModeDef arrivalMode = null)
+        public static void AttackBattleSite(Caravan car, BattleSite bs, List<ActiveTransporterInfo> pods = null, PawnsArrivalModeDef arrivalMode = null)
         {
             if (!bs.HasMap)
             {
@@ -1548,7 +1563,7 @@ namespace RimWar.Planet
             }
         }
 
-        private static void AttackBattleSiteNow(Caravan car, BattleSite bs, List<ActiveDropPodInfo> pods = null, PawnsArrivalModeDef arrivalMode = null)
+        private static void AttackBattleSiteNow(Caravan car, BattleSite bs, List<ActiveTransporterInfo> pods = null, PawnsArrivalModeDef arrivalMode = null)
         {
             bool num = !bs.HasMap;
             Map orGenerateMap = GetOrGenerateMapUtility.GetOrGenerateMap(bs.Tile, null);
@@ -1575,9 +1590,9 @@ namespace RimWar.Planet
             }
             else if(pods != null && arrivalMode != null)
             {
-                Thing lookTarget = TransportPodsArrivalActionUtility.GetLookTarget(pods);
+                Thing lookTarget = TransportersArrivalActionUtility.GetLookTarget(pods);
                 Find.LetterStack.ReceiveLetter(letterLabel, letterText, LetterDefOf.NeutralEvent, lookTarget, null);
-                arrivalMode.Worker.TravelingTransportPodsArrived(pods, orGenerateMap);
+                arrivalMode.Worker.TravellingTransportersArrived(pods, orGenerateMap);
                 //IntVec3 near = orGenerateMap.AllCells.RandomElement();
                 //if (arrivalMode == PawnsArrivalModeDefOf.CenterDrop)
                 //{

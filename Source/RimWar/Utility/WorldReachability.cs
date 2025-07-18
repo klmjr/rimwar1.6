@@ -46,8 +46,8 @@ namespace RimWar
         public static void GenerateIslands()
         {
             var world = Find.World;
-            var offsets = Find.WorldGrid.tileIDToNeighbors_offsets;
-            var tilesIDsFromNeighbor = Find.WorldGrid.tileIDToNeighbors_values;
+            var offsets = Find.WorldGrid.UnsafeTileIDToNeighbors_offsets;
+            var tilesIDsFromNeighbor = Find.WorldGrid.UnsafeTileIDToNeighbors_values;
 
             Queue<Pair<int, int>> queue = new Queue<Pair<int, int>>(100);
 
@@ -62,7 +62,7 @@ namespace RimWar
             var currentIslandCounter = 0;
             IEnumerable<int> GetNeighbors(int tile)
             {
-                int limit = (tile + 1 < offsets.Count) ? offsets[tile + 1] : tilesIDsFromNeighbor.Count;
+                int limit = (tile + 1 < offsets.Count()) ? offsets[tile + 1] : tilesIDsFromNeighbor.Count();
                 for (int k = offsets[tile]; k < limit; k++)
                     yield return tilesIDsFromNeighbor[k];
             }

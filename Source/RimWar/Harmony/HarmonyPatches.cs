@@ -17,6 +17,7 @@ using RimWar.Utility;
 using RimWar;
 using RimWorld.BaseGen;
 
+
 namespace RimWar.Harmony
 {
     //[StaticConstructorOnStartup]
@@ -41,9 +42,9 @@ namespace RimWar.Harmony
             //                    typeof(List<ActiveDropPodInfo>),
             //                    typeof(int)
             //    }, null), null, new HarmonyMethod(patchType, "ShuttleArrived_SettlementHasAttackers_Postfix", null), null);
-            harmonyInstance.Patch(AccessTools.Method(typeof(TransportPodsArrivalAction_AttackSettlement), "Arrived", new Type[]
+            harmonyInstance.Patch(AccessTools.Method(typeof(TransportersArrivalAction_AttackSettlement), "Arrived", new Type[]
                 {
-                                typeof(List<ActiveDropPodInfo>),
+                                typeof(List<ActiveTransporterInfo>),
                                 typeof(int)
                 }, null), null, new HarmonyMethod(patchType, "PodsArrived_SettlementHasAttackers_Postfix", null), null);
             harmonyInstance.Patch(AccessTools.Method(typeof(RimWorld.Planet.SettlementUtility), "AttackNow", new Type[]
@@ -79,7 +80,7 @@ namespace RimWar.Harmony
             harmonyInstance.Patch(AccessTools.Method(typeof(Settlement), "GetShuttleFloatMenuOptions", new Type[]
                 {
                     typeof(IEnumerable<IThingHolder>),
-                    typeof(Action<int, TransportPodsArrivalAction>)
+                    typeof(Action<int, TransportersArrivalAction>)
                 }, null), null, new HarmonyMethod(patchType, "Settlement_ShuttleReinforce_Postfix", null), null);
             harmonyInstance.Patch(AccessTools.Method(typeof(ThingSetMaker), "Generate", new Type[]
                 {
@@ -269,13 +270,13 @@ namespace RimWar.Harmony
             }
         }
 
-        public static void Settlement_ShuttleReinforce_Postfix(Settlement __instance, IEnumerable<IThingHolder> pods, Action<int, TransportPodsArrivalAction> launchAction, ref IEnumerable<FloatMenuOption> __result)
+        public static void Settlement_ShuttleReinforce_Postfix(Settlement __instance, IEnumerable<IThingHolder> pods, Action<PlanetTile, TransportersArrivalAction> launchAction, ref IEnumerable<FloatMenuOption> __result)
         {
             RimWarSettlementComp rwsc = __instance.GetComponent<RimWarSettlementComp>();
             if(rwsc != null && rwsc.Reinforceable)
             {
                 var fmoList = __result.ToList();
-                foreach (FloatMenuOption floatMenuOption in TransportPodsArrivalActionUtility.GetFloatMenuOptions(() => TransportPodsArrivalAction_ReinforceSettlement.CanReinforce(pods, __instance), () => new TransportPodsArrivalAction_Shuttle_ReinforceSettlement(__instance, __instance), "RW_ReinforceShuttle".Translate(__instance.Label), launchAction, __instance.Tile))
+                foreach (FloatMenuOption floatMenuOption in TransportersArrivalActionUtility.GetFloatMenuOptions(() => TransportPodsArrivalAction_ReinforceSettlement.CanReinforce(pods, __instance), () => new TransportPodsArrivalAction_Shuttle_ReinforceSettlement(__instance, __instance), "RW_ReinforceShuttle".Translate(__instance.Label), launchAction, __instance.Tile))
                 {
                     fmoList.Add(floatMenuOption);
                 }
@@ -283,7 +284,7 @@ namespace RimWar.Harmony
             }
         }
 
-        public static void ShuttleArrived_SettlementHasAttackers_Postfix(List<ActiveDropPodInfo> pods, int tile, MapParent ___mapParent)
+        public static void ShuttleArrived_SettlementHasAttackers_Postfix(List<ActiveTransporterInfo> pods, int tile, MapParent ___mapParent)
         {
             if (___mapParent != null && ___mapParent.HasMap)
             {
@@ -387,7 +388,7 @@ namespace RimWar.Harmony
             return true;
         }
 
-        public static void PodsArrived_SettlementHasAttackers_Postfix(List<ActiveDropPodInfo> pods, int tile, Settlement ___settlement)
+        public static void PodsArrived_SettlementHasAttackers_Postfix(List<ActiveTransporterInfo> pods, int tile, Settlement ___settlement)
         {
             if(___settlement != null && ___settlement.HasMap)
             {
@@ -493,8 +494,8 @@ namespace RimWar.Harmony
         public static void WorldCapitolOverlay()
         {
             List<Settlement> sList = Find.WorldObjects.Settlements;
-            float averageTileSize = Find.WorldGrid.averageTileSize;
-            float transitionPct = ExpandableWorldObjectsUtility.TransitionPct;
+            float averageTileSize = Find.WorldGrid.AverageTileSize;
+            float transitionPct = ExpandableWorldObjectsUtility.RawTransitionPct;
             float num = (Find.WorldCameraDriver.altitude / 100f) -.75f;
             foreach (Settlement wos in sList)
             {

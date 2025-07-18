@@ -87,7 +87,7 @@ namespace RimWar.Utility
                     RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
                     if (rwsc != null)
                     {
-                        WorldUtility.Get_WCPT().AttemptTradeMission(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, true);
+                        WorldUtility.Get_WCPT().AttemptTradeMission_UnThreaded(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, true);
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace RimWar.Utility
                     RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
                     if (rwsc != null)
                     {
-                        WorldUtility.Get_WCPT().AttemptTradeMission(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, true, true);
+                        WorldUtility.Get_WCPT().AttemptTradeMission_UnThreaded(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, true, true);
                     }
                 }
             }
@@ -131,7 +131,7 @@ namespace RimWar.Utility
                     RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
                     if (rwsc != null)
                     {
-                        WorldUtility.Get_WCPT().AttemptScoutMission(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, false, true);
+                        WorldUtility.Get_WCPT().AttemptScoutMission_UnThreaded(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, false, true);
                     }
                 }
             }
@@ -153,7 +153,7 @@ namespace RimWar.Utility
                     RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
                     if (rwsc != null)
                     {
-                        WorldUtility.Get_WCPT().AttemptScoutMission(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, true, false, true);
+                        WorldUtility.Get_WCPT().AttemptScoutMission_UnThreaded(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, true, false, true);
                     }
                 }
             }
@@ -175,7 +175,7 @@ namespace RimWar.Utility
                     RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
                     if (rwsc != null)
                     {
-                        WorldUtility.Get_WCPT().AttemptScoutMission(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, true, true);
+                        WorldUtility.Get_WCPT().AttemptScoutMission_UnThreaded(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, true, true);
                     }
                 }
             }
@@ -288,7 +288,7 @@ namespace RimWar.Utility
                     RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
                     if (rwsc != null)
                     {
-                        WorldUtility.Get_WCPT().AttemptLaunchedWarbandAgainstTown(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, true);
+                        WorldUtility.Get_WCPT().AttemptWarbandActionAgainstTown_UnThreaded(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, false, true);
                     }
                 }
             }
@@ -310,7 +310,7 @@ namespace RimWar.Utility
                     RimWarSettlementComp rwsc = WorldUtility.GetRimWarSettlementAtTile(tile);
                     if (rwsc != null)
                     {
-                        WorldUtility.Get_WCPT().AttemptLaunchedWarbandAgainstTown(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, true, true);
+                        WorldUtility.Get_WCPT().AttemptWarbandActionAgainstTown(WorldUtility.GetRimWarDataForFaction(s.Faction), s, rwsc, true, true);
                     }
                 }
             }

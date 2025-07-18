@@ -22,7 +22,7 @@ namespace RimWar.Planet
             this.wo = warObject;
         }
 
-        public override FloatMenuAcceptanceReport StillValid(Caravan caravan, int destinationTile)
+        public FloatMenuAcceptanceReport StillValid(Caravan caravan, int destinationTile)
         {
             //FloatMenuAcceptanceReport floatMenuAcceptanceReport = base.StillValid(caravan, destinationTile);
             //if (!(bool)floatMenuAcceptanceReport)

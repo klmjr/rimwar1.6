@@ -1,4 +1,38 @@
-<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>RimWar - Threaded</name>
+  <packageId>torann.rimwar.threaded</packageId>
+  <author>Torann (maintained by you)</author>
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+  <description>
+    Updated version of RimWar - Threaded for RimWorld 1.6 compatibility.
+  </description>
+  <modDependenciesByVersion>
+	<v1.6>
+		  <li>
+			<packageId>brrainz.harmony</packageId>
+			<displayName>Harmony</displayName>
+			<steamWorkshopUrl>hhttps://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</steamWorkshopUrl>
+			<downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
+		  </li>
+		  <li>
+			<packageId>UnlimitedHugs.HugsLib</packageId>
+			<displayName>HugsLib</displayName>
+			<steamWorkshopUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=818773962</steamWorkshopUrl>
+			<downloadUrl>https://ludeon.com/forums/index.php?topic=28066.0</downloadUrl>
+		  </li>
+	</v1.6>
+  </modDependenciesByVersion>
+  	<loadAfter>
+		<li>brrainz.harmony</li>
+		<li>Ludeon.RimWorld</li>
+		<li>Ludeon.RimWorld.Royalty</li>
+		<li>UnlimitedHugs.HugsLib</li>
+	</loadAfter>
+</ModMetaData>
+
+<!-- <?xml version="1.0" encoding="utf-8"?>
 
 <ModMetaData>
 	<name>Rim War</name>
@@ -73,4 +107,4 @@ Introduces a new winning condition to defeat a rival faction
 Overall faction power is a composed of settlements, warbands, scouting parties, and settlers and the amount of faction power determines the size and strength of armies, caravans, and settlers that AI faction can generate. Defeating an enemy army, gifting, or trading with other factions directly affects their faction power. Faction interaction matters - form alliances, subjugate the weak, and destroy dangerous enemies across the world to create winning conditions.
 
 Factions will interact with each other to form alliances or declare war. Take advantage of warring factions and strike while they are weak; or declare an alliance with a friendly factions to fight your wars for you.</description>
-</ModMetaData>
+</ModMetaData> -->
