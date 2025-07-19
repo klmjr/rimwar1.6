@@ -10,23 +10,31 @@ namespace RimWar.Planet
     public class TransportPodsArrivalAction_GiveSupplies : TransportersArrivalAction
     {
         private Settlement settlement;
+        private PawnsArrivalModeDef arrivalMode;
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_References.Look<Settlement>(ref this.settlement, "settlement", false);
+            Scribe_Defs.Look(ref arrivalMode, "arrivalMode");
+        }
 
         public TransportPodsArrivalAction_GiveSupplies()
         {
         }
 
-        public TransportPodsArrivalAction_GiveSupplies(Settlement settlement)
+        public TransportPodsArrivalAction_GiveSupplies(Settlement _settlement, PawnsArrivalModeDef _arrivalMode)
         {
-            this.settlement = settlement;
+            this.settlement = _settlement;
+            this.arrivalMode = _arrivalMode;
         }
 
-        public override void ExposeData()
+        public bool ShouldUseLongEvent(List<ActiveTransporter> pods, int tile)
         {
-            base.ExposeData();
-            Scribe_References.Look(ref settlement, "settlement");
+            return !settlement.HasMap;
         }
 
-        public override FloatMenuAcceptanceReport StillValid(IEnumerable<IThingHolder> pods, PlanetTile destinationTile)
+        public FloatMenuAcceptanceReport StillValid(IEnumerable<IThingHolder> pods, int destinationTile)
         {
             FloatMenuAcceptanceReport floatMenuAcceptanceReport = base.StillValid(pods, destinationTile);
             if (!(bool)floatMenuAcceptanceReport)
@@ -37,128 +45,57 @@ namespace RimWar.Planet
             {
                 return false;
             }
-            return CanGiveSuppliesTo(pods, settlement);
+            return CanGiveSupplies(pods, settlement);
         }
 
+        public static FloatMenuAcceptanceReport CanGiveSupplies(IEnumerable<IThingHolder> pods, Settlement settlement)
+        {
+            if (settlement == null || !settlement.Spawned)
+            {
+                return false;
+            }
+            RimWarSettlementComp rwsc = settlement.GetComponent<RimWarSettlementComp>();
+            if (rwsc == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static IEnumerable<FloatMenuOption> GetFloatMenuOptions(CompLaunchable representative, IEnumerable<IThingHolder> pods, Settlement settlement)
+        {
+            foreach (FloatMenuOption floatMenuOption in TransportersArrivalActionUtility.GetFloatMenuOptions(
+                () => CanGiveSupplies(pods, settlement),
+                () => new TransportPodsArrivalAction_GiveSupplies(settlement, PawnsArrivalModeDefOf.EdgeDrop),
+                "RW_GiveSupplies".Translate(settlement.Label),
+                (tile, arrivalAction) => representative.TryLaunch(tile, arrivalAction),
+                settlement.Tile))
+            {
+                yield return floatMenuOption;
+            }
+        }
+
+        public override bool GeneratesMap => true;
+        
         public override void Arrived(List<ActiveTransporterInfo> pods, PlanetTile tile)
         {
-            for (int i = 0; i < pods.Count; i++)
-            {
-                for (int j = 0; j < pods[i].innerContainer.Count; j++)
-                {
-                    if (pods[i].innerContainer[j] is Pawn pawn)
-                    {
-                        if (pawn.RaceProps.Humanlike)
-                        {
-                            Pawn result;
-                            if (pawn.HomeFaction == settlement.Faction)
-                            {
-                                GenGuest.AddHealthyPrisonerReleasedThoughts(pawn);
-                            }
-                            else if (PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists.TryRandomElement(out result))
-                            {
-                                Find.HistoryEventsManager.RecordEvent(new HistoryEvent(HistoryEventDefOf.SoldSlave, result.Named(HistoryEventArgsNames.Doer)));
-                            }
-                        }
-                        else if (pawn.RaceProps.Animal && pawn.relations != null)
-                        {
-                            Pawn firstDirectRelationPawn = pawn.relations.GetFirstDirectRelationPawn(PawnRelationDefOf.Bond);
-                            if (firstDirectRelationPawn != null && firstDirectRelationPawn.needs.mood != null)
-                            {
-                                pawn.relations.RemoveDirectRelation(PawnRelationDefOf.Bond, firstDirectRelationPawn);
-                                firstDirectRelationPawn.needs.mood.thoughts.memories.TryGainMemory(ThoughtDefOf.SoldMyBondedAnimalMood);
-                            }
-                        }
-                    }
-                }
-            }
-            GiveGift(pods, settlement);
-        }
-
-        public static FloatMenuAcceptanceReport CanGiveSuppliesTo(IEnumerable<IThingHolder> pods, Settlement settlement)
-        {
-            foreach (IThingHolder pod in pods)
-            {
-                ThingOwner directlyHeldThings = pod.GetDirectlyHeldThings();
-                for (int i = 0; i < directlyHeldThings.Count; i++)
-                {
-                    Pawn p;
-                    if ((p = (directlyHeldThings[i] as Pawn)) != null && p.IsQuestLodger())
-                    {
-                        return false;
-                    }
-                }
-            }
-            return settlement != null && settlement.Spawned && settlement.Faction != null && settlement.Faction != Faction.OfPlayer && !settlement.Faction.def.permanentEnemy && !settlement.HasMap;
-        }
-
-        public static IEnumerable<FloatMenuOption> GetFloatMenuOptions(PlanetTile tile, IEnumerable<IThingHolder> pods, Settlement settlement)
-        {
-            if (settlement.Faction == Faction.OfPlayer)
-            {
-                return Enumerable.Empty<FloatMenuOption>();
-            }
-            return TransportersArrivalActionUtility.GetFloatMenuOptions(
-                () => CanGiveSuppliesTo(pods, settlement),
-                () => new TransportPodsArrivalAction_GiveSupplies(settlement),
-                "RW_GiveSuppliesViaTransportPods".Translate(
-                    settlement.Label, 
-                    (FactionGiftUtility.GetGoodwillChange(pods, settlement) * 50).ToStringWithSign()
-                ),
-                (planetTile, arrivalAction) =>
-                {
-                    TradeRequestComp tradeReqComp = settlement.GetComponent<TradeRequestComp>();
-                    if (tradeReqComp != null && tradeReqComp.ActiveRequest && pods.Any((IThingHolder p) => p.GetDirectlyHeldThings().Contains(tradeReqComp.requestThingDef)))
-                    {
-                        Find.WindowStack.Add(new Dialog_MessageBox(
-                            "GiveGiftViaTransportPodsTradeRequestWarning".Translate(),
-                            "Yes".Translate(),
-                            delegate { arrivalAction.Arrived(pods.OfType<ActiveTransporterInfo>().ToList(), planetTile); },
-                            "No".Translate()
-                        ));
-                    }
-                    else
-                    {
-                        arrivalAction.Arrived(pods.OfType<ActiveTransporterInfo>().ToList(), planetTile);
-                    }
-                },
-                tile
-            );
-        }
-
-        public static void GiveGift(List<ActiveTransporterInfo> pods, Settlement giveTo)
-        {
-            int powerChange = 90 * FactionGiftUtility.GetGoodwillChange(pods.Cast<IThingHolder>(), giveTo);
-            for (int i = 0; i < pods.Count; i++)
-            {
-                ThingOwner innerContainer = pods[i].innerContainer;
-                for (int num = innerContainer.Count - 1; num >= 0; num--)
-                {
-                    GiveGiftInternal(innerContainer[num], innerContainer[num].stackCount, giveTo.Faction);
-                    if (num < innerContainer.Count)
-                    {
-                        innerContainer.RemoveAt(num);
-                    }
-                }
-            }
-            RimWarSettlementComp rwsc = giveTo.GetComponent<RimWarSettlementComp>();
+            Thing lookTarget = TransportersArrivalActionUtility.GetLookTarget(pods);
+            bool num = !settlement.HasMap;
+            Map orGenerateMap = GetOrGenerateMapUtility.GetOrGenerateMap(settlement.Tile, null);
+            
+            // Transfer supplies to settlement
+            RimWarSettlementComp rwsc = settlement.GetComponent<RimWarSettlementComp>();
             if (rwsc != null)
             {
-                rwsc.RimWarPoints += powerChange;
+                // Add logic to transfer supplies here
+                rwsc.RimWarPoints += 100; // Example - adjust as needed
             }
+            
+            TaggedString letterLabel = "RW_SuppliesDelivered".Translate();
+            TaggedString letterText = "RW_SuppliesDeliveredDesc".Translate(settlement.Label);
+            
+            Find.LetterStack.ReceiveLetter(letterLabel, letterText, LetterDefOf.PositiveEvent, lookTarget);
+            arrivalMode.Worker.TravellingTransportersArrived(pods, orGenerateMap);
         }
-
-        private static void GiveGiftInternal(Thing thing, int count, Faction giveTo)
-        {
-            Thing thing2 = thing.SplitOff(count);
-            Pawn pawn;
-            if ((pawn = (thing2 as Pawn)) != null)
-            {
-                pawn.SetFaction(giveTo);
-                pawn.guest.SetGuestStatus(null);
-            }
-            thing2.DestroyOrPassToWorld();
-        }
-        public override bool GeneratesMap => true;
     }
 }

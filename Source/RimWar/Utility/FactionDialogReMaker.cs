@@ -67,6 +67,7 @@ namespace RimWar.Utility
                 AddAndDecorateOption(RequestTraderOption(map, faction, dc0.negotiator), true, ref dc0);
                 AddAndDecorateOption(RequestMilitaryAid_Scouts_Option(map, faction, dc0.negotiator), true, ref dc0);
                 AddAndDecorateOption(RequestMilitaryAid_Warband_Option(map, faction, dc0.negotiator), true, ref dc0);
+                AddAndDecorateOption(RequestMilitaryAid_LaunchedWarband_Option(map, faction, dc0.negotiator), true, ref dc0);
                 Pawn_RoyaltyTracker royalty = dc0.negotiator.royalty;
                 if (royalty != null && royalty.HasAnyTitleIn(faction))
                 {
