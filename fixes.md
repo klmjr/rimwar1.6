@@ -10,8 +10,8 @@
 - **Basic Functionality**: Mod appears in-game and initializes ✓
 
 ## 🔧 **Currently Working On**
-- **Planet/World Objects**: Updating `TransportPod` → `Transporter` references
-- **Defs Migration**: 1.5 → 1.6 compatibility updates
+- **Planet/World Objects**: Updating pathinh system
+- **Integrate Space**: 1.5 → 1.6 compatibility updates
 
 ## 🚨 **Critical Runtime Issues Identified**
 
@@ -132,4 +132,4 @@ Your mod successfully **loads and initializes** in RimWorld 1.6! The core system
 ### **Source Code Updates Started**
 - 🔧 **In Progress**: `TransportPod` → `Transporter` object migrations
 - 🔧 **In Progress**: Planet/World object compatibility updates
-- 🔧 **In Progress**: RimWorld 1.6
+- 🔧 **In Progress**: RimWar 1.6
