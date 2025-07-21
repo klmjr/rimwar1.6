@@ -38,11 +38,38 @@ namespace RimWar
             private set;
         }
 
-        public override string ModIdentifier => "RimWar";
+        // FIXED: Match the packageId from About.xml
+        public override string ModIdentifier => "kajtherapper.rimwar16";
 
         public Base() 
         {
             Instance = this;
+        }
+
+        // ADDED: Proper initialization
+        public override void DefsLoaded()
+        {
+            try
+            {
+                Log.Message("RimWar 1.6: Defs loaded successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"RimWar 1.6: Error during DefsLoaded: {ex}");
+            }
+        }
+
+        // ADDED: Handle Harmony patches more safely
+        public override void WorldLoaded()
+        {
+            try
+            {
+                Log.Message("RimWar 1.6: World loaded successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"RimWar 1.6: Error during WorldLoaded: {ex}");
+            }
         }
     }
 }

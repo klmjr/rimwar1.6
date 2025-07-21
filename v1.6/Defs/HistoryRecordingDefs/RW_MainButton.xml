@@ -8,6 +8,7 @@
     <tabWindowClass>RimWar.MainTabWindow_RimWar</tabWindowClass>
     <order>94</order>
     <validWithoutMap>true</validWithoutMap>
+    <minimized>false</minimized>
   </MainButtonDef>
 
 </Defs>

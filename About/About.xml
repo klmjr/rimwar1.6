@@ -8,6 +8,27 @@
     </supportedVersions>
     <description>RimWar mod for RimWorld 1.6</description>
     <url>https://github.com/klmjr/rimwar1.6</url>
+    <!-- FIXED: Replace <v1.6> with <modDependencies> -->
+    <modDependencies>
+        <li>
+            <packageId>brrainz.harmony</packageId>
+            <displayName>Harmony</displayName>
+            <steamWorkshopUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</steamWorkshopUrl>
+            <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
+        </li>
+        <li>
+            <packageId>UnlimitedHugs.HugsLib</packageId>
+            <displayName>HugsLib</displayName>
+            <steamWorkshopUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=818773962</steamWorkshopUrl>
+            <downloadUrl>https://ludeon.com/forums/index.php?topic=28066.0</downloadUrl>
+        </li>
+    </modDependencies>
+    <loadAfter>
+        <li>brrainz.harmony</li>
+        <li>Ludeon.RimWorld</li>
+        <li>Ludeon.RimWorld.Royalty</li>
+        <li>UnlimitedHugs.HugsLib</li>
+    </loadAfter>
 </ModMetaData>
 <!-- <?xml version="1.0" encoding="utf-8"?>
 

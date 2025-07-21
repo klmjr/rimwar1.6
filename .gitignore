@@ -18,3 +18,4 @@ Source/RimWar/packages/
 *.tmp
 *.temp
 *~
+olddefs/*

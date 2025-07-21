@@ -5,12 +5,16 @@ using HarmonyLib;
 using System.Threading;
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace RimWar
 {
-    [HarmonyPatch(typeof(WorldReachability), nameof(WorldReachability.CanReach), new[] { typeof(int), typeof(int) })]
+    // DISABLED: This patch is not needed in RimWorld 1.6
+    // [HarmonyPatch] // Comment out this line
+    [System.Obsolete("WorldReachability.CanReach method doesn't exist in RimWorld 1.6", true)]
     public static class WorldReachability_CanReach_Patch
     {
+        // Keep all your existing fields and methods for future use
         internal static HashSet<int> visitedTiles;
 
         internal static int visitedTilesCount = 0;
@@ -178,32 +182,36 @@ namespace RimWar
             thread.Start();
         }
 
-        public static bool Prefix(ref bool __result, int startTile, int destTile)
+        public static bool Prefix(ref bool __result, params object[] args)
         {
-            if (world != Find.World)
+            // Check if we're dealing with the real WorldReachability method
+            if (args.Length >= 2 && args[0] is int && args[1] is int)
             {
-                //Log.Message("ROCKETMAN: Creating world map cache");
-                Initialize();
+                int startTile = (int)args[0];
+                int destTile = (int)args[1];
+                
+                // Your existing WorldReachability logic
+                if (world != Find.World)
+                {
+                    Initialize();
+                }
+                if (!finished)
+                {
+                    return true;
+                }
+                if (tilesToIsland[startTile] == 0 || tilesToIsland[destTile] == 0 || tilesToIsland[startTile] != tilesToIsland[destTile])
+                {
+                    __result = false;
+                    return false;
+                }
+                if (tilesToIsland[startTile] == tilesToIsland[destTile])
+                {
+                    __result = true;
+                    return false;
+                }
             }
-            if (!finished)
-            {
-                //Log.Warning("ROCKETMAN: Tried to call WorldReachability while still processing");
-                return true;
-            }
-            if (tilesToIsland[startTile] == 0 || tilesToIsland[destTile] == 0 || tilesToIsland[startTile] != tilesToIsland[destTile])
-            {
-                //if (Prefs.DevMode) Log.Message("ROCKETMAN: Not Allowed");
-                __result = false;
-                return false;
-            }
-            if (tilesToIsland[startTile] == tilesToIsland[destTile])
-            {
-                //if (Prefs.DevMode) Log.Message("ROCKETMAN: Allowed");
-                __result = true;
-                return false;
-            }
-            //Log.Message("unmatched " + tilesToIsland[startTile] + " " + tilesToIsland[destTile]);
-            //__result = true;
+            
+            // For dummy methods, just continue normally
             return true;
         }
     }
